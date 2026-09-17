@@ -2,6 +2,14 @@
 
 《昇腾平台技术实战》里程碑日志。所有来源数据、决策与结论落此文件，可追溯。
 
+## M3-3 第11章 SIMD/SIMT 与高级特性 成稿（0.2k → 约4.3k 总字 / 中文约3.3k）
+
+- **六章结构**：① SIMD C API 接口分级（`_sync` 易用口 vs `mask/repeat` 自排程口，真码取自混合样例的 `simd_adds`）；② SIMT 编程模型（硬件三件套 DCache/Warp Scheduler/128KB RF + **CUDA 迁移对照表** 8 行 + AICPU 逃逸时机=Tiling 下沉）；③ 混合编程（`__simt_vf__`/`__simd_vf__`/`asc_vf_call` 三件套，gather_and_adds 全程精读，核心编排思想：**离散和规整的转换在数据进 UB 的那一刻完成**）；④ 同步进阶（PipeBarrier/DataSyncBarrier/Mutex 核内、CrossCore/SyncAll/IBSet 核间、SSBuffer 新地基）；⑤ RegBase（MemBase vs RegBase 对照表、GM 不能直灌寄存器硬约束、VF 融合性能来源、02_reg_vector_compute 20 例字典）——**还清第 10 章预支的 RegTensor/寄存器计算深度债**；⑥ 950 新特性四类分组导览 + 调试工具箱。
+- **图 6 张**：SVG 3（SIMT 硬件剖视+CUDA 平移表 / 混合编程双引擎数据流 / MemBase vs RegBase 双栏对照）+ Mermaid 3（SIMD vs SIMT 执行对比 / 950 特性分类 / 本章四条路小结记忆图）。
+- **决策**：① NPU-Check 在本地开源基线检索不到，按 §8「无出处不写」降级处理并在正文明示；② 图 11-2 由原计划的 SVG 改为 Mermaid（执行模型对比用分类流程即可表达，硬件解剖留给图 11-1）；③ 字数延续「质量优先」口径。
+- **校验**：`npm run verify` 全绿（38 文件构建/链接/源码路径/术语通过）；XML 校验 3 图全过；脚注 used==defined；SVG 审核见 subagent 记录（下条）。
+- 全书进度：64.5k 总字 / 50.7k 中文。下一章：第12章 编译、工具链与部署。
+
 ## 2026-XX-XX · M0 初始化
 
 **范围**：站点骨架 + 写作规范 + 术语表 v1 + 来源映射表 + 第1章试写样章。

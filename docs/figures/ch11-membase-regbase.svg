@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 600" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">MemBase vs RegBase：中间结果落在哪（950 · dav-3510）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">同样三步逐元素计算：MemBase 每步写回 UB 再读回（6 次 UB 读写）；RegBase 一次装载、寄存器链式计算（2 次）</text>
+
+  <!-- 左：MemBase -->
+  <rect x="50" y="70" width="390" height="440" rx="12" fill="#f8f9fa" stroke="#4263eb" stroke-width="2"/>
+  <text x="245" y="96" text-anchor="middle" font-size="14" font-weight="bold" fill="#4263eb">MemBase（A2/A3 · 2201 起的传统形态）</text>
+  <text x="245" y="114" text-anchor="middle" font-size="11" fill="#495057">基础 API 主场：LocalTensor 进出，每步落 UB</text>
+
+  <g font-size="12" fill="#1f2937">
+    <rect x="80"  y="130" width="120" height="185" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.5"/>
+    <text x="140" y="230" text-anchor="middle" font-weight="bold">UB</text>
+    <rect x="290" y="130" width="120" height="185" rx="8" fill="#e7f0fa" stroke="#1971c2" stroke-width="1.5"/>
+    <text x="350" y="218" text-anchor="middle" font-weight="bold">Vector</text>
+    <text x="350" y="236" text-anchor="middle" font-weight="bold">计算单元</text>
+  </g>
+  <!-- MemBase 往返箭头（全部落在两框之间 y132-315 带内） -->
+  <path d="M200 145 L290 145" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="245" y="140" text-anchor="middle" font-size="9.5" fill="#1971c2">读入 t0</text>
+  <path d="M290 175 L200 175" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="245" y="170" text-anchor="middle" font-size="9.5" fill="#c92a2a">写回 t1</text>
+  <path d="M200 205 L290 205" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="245" y="200" text-anchor="middle" font-size="9.5" fill="#1971c2">再读 t1</text>
+  <path d="M290 235 L200 235" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="245" y="230" text-anchor="middle" font-size="9.5" fill="#c92a2a">写回 t2</text>
+  <path d="M200 265 L290 265" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="245" y="260" text-anchor="middle" font-size="9.5" fill="#1971c2">再读 t2</text>
+  <path d="M290 295 L200 295" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="245" y="290" text-anchor="middle" font-size="9.5" fill="#c92a2a">写回 t3</text>
+
+  <g font-size="11.5" fill="#495057">
+    <text x="80" y="345">三步计算 = 6 次 UB 读写往返；</text>
+    <text x="80" y="365">每次往返都占用 MTE/Vector 流水切换，</text>
+    <text x="80" y="385">中间结果在 UB 里只是「路过」。</text>
+    <text x="80" y="413" font-weight="bold" fill="#1f2937">API 形态：LocalTensor 进出</text>
+    <text x="80" y="433">AscendC::Add(zLocal, xLocal, yLocal, n)</text>
+    <text x="80" y="461" font-weight="bold" fill="#1f2937">优点：封装完整、不易错</text>
+    <text x="80" y="489" fill="#c92a2a" font-weight="bold">代价：中间结果的搬运税</text>
+  </g>
+
+  <!-- 右：RegBase -->
+  <rect x="480" y="70" width="390" height="440" rx="12" fill="#f6fbf7" stroke="#2f9e63" stroke-width="2"/>
+  <text x="675" y="96" text-anchor="middle" font-size="14" font-weight="bold" fill="#2f9e63">RegBase（950 · 3510 新形态）</text>
+  <text x="675" y="114" text-anchor="middle" font-size="11" fill="#495057">Reg 矢量计算 API：寄存器驻留，VF 融合链</text>
+
+  <g font-size="12" fill="#1f2937">
+    <rect x="510" y="130" width="120" height="44" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.5"/>
+    <text x="570" y="157" text-anchor="middle" font-weight="bold">UB</text>
+    <rect x="510" y="290" width="120" height="44" rx="8" fill="#f3e8fd" stroke="#9c36b5" stroke-width="1.5"/>
+    <text x="570" y="311" text-anchor="middle" font-weight="bold">VF Reg</text>
+    <text x="570" y="328" text-anchor="middle" font-size="10" fill="#495057">vector_float / mask</text>
+    <rect x="720" y="230" width="120" height="70" rx="8" fill="#e7f0fa" stroke="#1971c2" stroke-width="1.5"/>
+    <text x="780" y="258" text-anchor="middle" font-weight="bold">Vector 计算单元</text>
+    <text x="780" y="278" text-anchor="middle" font-size="10.5" fill="#495057">op1 → op2 → op3 链式</text>
+  </g>
+  <!-- RegBase 数据流 -->
+  <path d="M570 174 L570 290" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+  <text x="562" y="234" text-anchor="end" font-size="10.5" fill="#2f9e63">① loadalign</text>
+  <text x="562" y="250" text-anchor="end" font-size="10.5" fill="#2f9e63">一次装载</text>
+  <path d="M630 302 L720 272" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <path d="M720 252 L634 296" stroke="#495057" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="708" y="225" text-anchor="end" font-size="10.5" fill="#6b7280">②③ 寄存器内链式计算</text>
+  <path d="M590 290 L590 178" stroke="#c92a2a" stroke-width="1.8" stroke-dasharray="6 4" fill="none" marker-end="url(#arr)"/>
+  <text x="598" y="205" font-size="10.5" fill="#c92a2a">④ storealign 才回 UB</text>
+
+  <g font-size="11.5" fill="#495057">
+    <text x="510" y="366">三步计算 = 首尾各 1 次 UB 访问；</text>
+    <text x="510" y="386">中间结果全程驻留寄存器文件，</text>
+    <text x="510" y="406">省掉的读写就是 MTE 流水与 UB 带宽。</text>
+    <text x="510" y="434" font-weight="bold" fill="#1f2937">API 形态：vector_float / mask 寄存器</text>
+    <text x="510" y="454">asc_loadalign → 多 op → asc_storealign</text>
+    <text x="510" y="482" font-weight="bold" fill="#1f2937">硬约束：GM 不能直灌寄存器</text>
+    <text x="510" y="500">路径必须 GM → UB → Reg（新手第一坑）</text>
+  </g>
+
+  <!-- 底部结论 -->
+  <rect x="50" y="530" width="820" height="50" rx="10" fill="#fff7e6" stroke="#e8590c" stroke-width="1.4"/>
+  <text x="460" y="551" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">选型口诀：常规开发用 Membase（不易错）；关键路径热循环用 RegBase + VF 融合（把多个逐元素 op 串进一条寄存器链）</text>
+  <text x="460" y="570" text-anchor="middle" font-size="11" fill="#495057">第14章实战将走通一条完整 RegBase 链路；样例字典：examples/02_simd_c_api/03_c_api/02_reg_vector_compute/（20 例）</text>
+</svg>

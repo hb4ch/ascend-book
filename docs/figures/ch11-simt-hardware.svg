@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">SIMT 硬件三件套与线程执行模型（950 · dav-3510）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">950 为 AIV 新增 SIMT 硬件单元：DCache · Warp Scheduler · 128KB Register File；调度/切换/掩蔽由硬件自动完成</text>
+
+  <!-- SIMT 单元容器 -->
+  <rect x="60" y="70" width="560" height="300" rx="12" fill="#f2faf5" stroke="#2f9e63" stroke-width="2"/>
+  <text x="80" y="94" font-size="13" font-weight="bold" fill="#2f9e63">AIV 内的 SIMT 单元（本章 11.2）</text>
+
+  <!-- Warp Scheduler -->
+  <rect x="90" y="110" width="170" height="70" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
+  <text x="175" y="136" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">Warp Scheduler</text>
+  <text x="175" y="156" text-anchor="middle" font-size="10.5" fill="#495057">发射指令 · 调度线程束</text>
+  <text x="175" y="172" text-anchor="middle" font-size="10.5" fill="#495057">不活跃线程硬件掩蔽</text>
+
+  <!-- DCache -->
+  <rect x="90" y="200" width="170" height="70" rx="8" fill="#e7f0fa" stroke="#1971c2" stroke-width="1.5"/>
+  <text x="175" y="226" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">DCache</text>
+  <text x="175" y="246" text-anchor="middle" font-size="10.5" fill="#495057">GM 离散读的就近缓存</text>
+  <text x="175" y="262" text-anchor="middle" font-size="10.5" fill="#495057">gather 等不规则访问的主通道</text>
+
+  <!-- Register File -->
+  <rect x="90" y="290" width="170" height="64" rx="8" fill="#f3e8fd" stroke="#9c36b5" stroke-width="1.5"/>
+  <text x="175" y="314" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">128KB Register File</text>
+  <text x="175" y="334" text-anchor="middle" font-size="10.5" fill="#495057">线程私有寄存器 · 独立 PC</text>
+
+  <!-- 线程束 -->
+  <line x1="260" y1="145" x2="334" y2="145" stroke="#495057" stroke-width="1.8" marker-end="url(#arr)"/>
+  <text x="295" y="134" text-anchor="middle" font-size="10.5" fill="#6b7280">发射</text>
+  <g font-size="11" fill="#1f2937">
+    <rect x="336" y="110" width="94" height="40" rx="6" fill="#fff" stroke="#2f9e63" stroke-width="1.3"/>
+    <text x="383" y="134" text-anchor="middle">thread 0</text>
+    <rect x="436" y="110" width="94" height="40" rx="6" fill="#fff" stroke="#2f9e63" stroke-width="1.3"/>
+    <text x="483" y="134" text-anchor="middle">thread 1</text>
+    <rect x="336" y="160" width="94" height="40" rx="6" fill="#fff" stroke="#2f9e63" stroke-width="1.3" stroke-dasharray="5 3"/>
+    <text x="383" y="184" text-anchor="middle" fill="#adb5bd">thread 2（掩蔽）</text>
+    <rect x="436" y="160" width="94" height="40" rx="6" fill="#fff" stroke="#2f9e63" stroke-width="1.3"/>
+    <text x="483" y="184" text-anchor="middle">thread 3 …</text>
+  </g>
+  <text x="470" y="222" text-anchor="middle" font-size="11" fill="#495057">if (threadIdx.x &lt; 3) { … }：分支/return 逐线程独立</text>
+  <text x="470" y="240" text-anchor="middle" font-size="11" fill="#495057">被掩蔽线程不生效（虚线），无需软件展开</text>
+
+  <!-- 数据通路 -->
+  <path d="M175 200 L175 181" stroke="#1971c2" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <path d="M175 270 L175 290" stroke="#495057" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="475" y="345" text-anchor="middle" font-size="11" fill="#6b7280">线程寄存器直连执行；GM 离散数据经 DCache 中转</text>
+
+  <!-- __ubuf__ 动态区 -->
+  <rect x="330" y="252" width="290" height="64" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.5"/>
+  <text x="475" y="276" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">__ubuf__：SIMT 的「shared」</text>
+  <text x="475" y="294" text-anchor="middle" font-size="10" fill="#495057">静态数组（编译期定长）· extern 动态数组</text>
+  <text x="475" y="310" text-anchor="middle" font-size="10" fill="#495057">动态大小由 &lt;&lt;&lt;&gt;&gt;&gt; 第三槽位传入</text>
+  <path d="M260 322 L328 308" stroke="#e8590c" stroke-width="1.4" stroke-dasharray="4 3" fill="none" marker-end="url(#arr)"/>
+
+  <!-- host 启动 -->
+  <rect x="60" y="400" width="560" height="56" rx="10" fill="#eef2fb" stroke="#4263eb" stroke-width="1.5"/>
+  <text x="340" y="424" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">host 侧：hello_world&lt;&lt;&lt;blocks_per_grid, threads_per_block, dyn_ubuf_size, stream&gt;&gt;&gt;()</text>
+  <text x="340" y="444" text-anchor="middle" font-size="10.5" fill="#495057">第 9 章 &lt;&lt;&lt;&gt;&gt;&gt; 四槽位：网格数 · 块内线程数 · 动态 UB 大小 · 流（SIMT 为 CUDA 风格四槽）</text>
+  <line x1="340" y1="370" x2="340" y2="400" stroke="#495057" stroke-width="1.8" marker-end="url(#arr)"/>
+
+  <!-- CUDA 对照栏 -->
+  <rect x="650" y="70" width="250" height="386" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.3"/>
+  <text x="775" y="94" text-anchor="middle" font-size="12.5" font-weight="bold">CUDA → SIMT 平移表</text>
+  <g font-size="10.5" fill="#1f2937">
+    <text x="668" y="120">blockIdx / threadIdx /</text>
+    <text x="668" y="136">blockDim / gridDim → 同名同义</text>
+    <text x="668" y="160">dim3 → dim3（一致）</text>
+    <text x="668" y="184">__shared__ → __ubuf__</text>
+    <text x="668" y="200">（动态大小走第三槽位）</text>
+    <text x="668" y="224">__launch_bounds__ → 同名</text>
+    <text x="668" y="248">新增 __maxnreg__（寄存器配额）</text>
+    <text x="668" y="272">global 直取 → __gm__ 直访</text>
+    <text x="668" y="296">warp 掩蔽 → 硬件自动</text>
+    <text x="668" y="320">bank conflict → UB bank 优化</text>
+    <text x="668" y="344">（950：8 组 × 16KB）</text>
+    <text x="668" y="368">cudaDeviceSynchronize →</text>
+    <text x="668" y="384">aclrtSynchronizeStream（第4章）</text>
+    <text x="668" y="416" fill="#c92a2a">仅 950PR/950DT（dav-3510）</text>
+    <text x="668" y="432" fill="#c92a2a">支持；A2/A3 无 SIMT 单元</text>
+  </g>
+
+  <!-- 底部提醒 -->
+  <rect x="60" y="482" width="840" height="54" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="1.4"/>
+  <text x="480" y="504" text-anchor="middle" font-size="12" font-weight="bold" fill="#c92a2a">架构边界：SIMT 单元、DCache、128KB RF 均为 950 新增——同一份 SIMT 代码在 A2/A3（dav-2201）上不可用</text>
+  <text x="480" y="524" text-anchor="middle" font-size="11" fill="#495057">编译期用 --npu-arch=dav-3510 选定目标；跨代际迁移先查能力菜单（第2章 2.5、第12章）</text>
+</svg>
