@@ -2,6 +2,8 @@
 
 面向**实操型工程师**的昇腾（Ascend）全栈技术书。本书不是 API 文档的翻译合集，而是以 **CANN 开源仓源码**为第一手资料，逐层拆解「从 PyTorch 算子调用到 AI Core 上的执行」完整链路：平台全景 → 运行时与驱动 → 算子开发 → 性能优化 → 分布式通信 → 现代编译后端。
 
+- **📖 在线阅读（HTML 站点）**：https://hb4ch.github.io/ascend-book/ —— 推送 main 后由 GitHub Actions 自动构建发布。
+
 - **文档站点（推荐）**：`npm run docs:dev` 本地预览，`npm run docs:build` 产出静态站点（`docs/.vitepress/dist`）。
 - **单页/PDF 导出**：见 `docs/导读` 说明；站点内容为 Markdown，可用 pandoc/pagedjs 等工具聚合导出。
 - **GitHub 在线阅读**：全部章节为 Markdown，可直接从下方[目录](#目录在线阅读)点击进入；写作规范见 [STYLEGUIDE.md](./STYLEGUIDE.md)。

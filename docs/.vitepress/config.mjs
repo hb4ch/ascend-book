@@ -18,7 +18,10 @@ export default withMermaid({
   lang: 'zh-CN',
   title: '昇腾平台技术实战',
   description: '面向实操型工程师的昇腾全栈技术书——从芯片架构到算子开发、性能优化、分布式通信与现代编译后端',
-  cleanUrls: true,
+  // GitHub Pages 项目站点需设置 VP_BASE=/ascend-book/；本地默认 '/'
+  base: process.env.VP_BASE || '/',
+  // GitHub Pages 不支持无后缀路由，部署时退回 .html
+  cleanUrls: !process.env.VP_BASE,
   lastUpdated: true,
   themeConfig: {
     nav: [
