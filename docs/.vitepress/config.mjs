@@ -48,7 +48,7 @@ export default withMermaid({
     },
     docFooter: { prev: '上一章', next: '下一章' },
     lastUpdated: { text: '最后更新于', formatOptions: { dateStyle: 'short', timeStyle: 'short' } },
-    editLink: { pattern: 'https://gitcode.com/cann/{path}', text: '在本仓查看源码' },
+    editLink: { pattern: 'https://github.com/hb4ch/ascend-book/blob/main/:path', text: '在本仓查看源码' },
     footer: {
       message: '《昇腾平台技术实战》· 基于 CANN Open 开源仓写作，内容以源码为准'
     }
