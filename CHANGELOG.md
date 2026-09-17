@@ -163,3 +163,13 @@
 - 顺手修复：ch01/ch04 遗留「昇腾 C」→「Ascend C」（check:terms 归零）；appD 第9章来源同步 8 条路径。
 - **校验**：`npm run verify` 全绿（构建/站内链接/源码路径/术语/字数）；HTML 抽查 3 表格 + 4 Mermaid + 6 脚注渲染正常、无裸 `|`。
 - 全书进度：55.6k 总字 / 44.6k 中文。下一章：第10章 核心编程能力详解（本编最重，第8章预支的搬运 API 写法在此还债）。
+
+## M3-2 第10章 核心编程能力详解 成稿（0.3k → 4.3k 总字 / 中文 3.0k）
+
+- 覆盖骨架四块：① TPipe/TQue 范式（队列管道思想、CopyIn/Compute/CopyOut 三段式、InitBuffer 双缓冲、TBuf、官方范式伪代码全精读，附 VecIn/VECIN 命名差异注）；② 同步语义（EnQue/DeQue→Set/Wait 解决 RAW、AllocTensor/FreeTensor 解决 WAR、SetFlag<HardEvent::MTE2_MTE3> 真码、核内/核间/任务间三类同步表）；③ Tensor 体系（Global/Local/Reg 三类对齐存储层级、基础 vs 扩展 Tensor/Layout/AscendC::Te、LocalMemAllocator 自主管理对照、Tpipe/Tque vs add 成对样例）；④ 计算 API 家族（memory_vector_compute 目录树检索法、Matmul 高阶 API 三步表达、TPosition→物理 Buffer 完整映射表 A1/B1/C1/A2/B2/C2/CO1/CO2、融合范式 CO2→VECIN）。
+- **还债落地**：第 8 章预支的 N-DMA 实操——data_copy_gm2ub_nddma 真码（场景 1 Padding / 场景 3 Transpose），NdDmaLoopInfo 五字段（loopSrcStride/loopDstStride/loopSize/loopLpSize/loopRpSize）逐字段注释并对照 8.2 口诀验收；新增 10.5.1 DataCopyPad 非对齐尾部（paddingValue/dummy/SetPadValue 三种填充来源、左右 Pad ≤32B、Compact 模式仅 950）；双缓冲流水时序表（表 10-1）兑现第 8 章乒乓钩子。
+- 统一心智：**TPipe 管资源、TQue 管通信；四个队列操作写齐、三种同步类别分清；对齐走 DataCopy、尾部不齐找 DataCopyPad、块内变换找 N-DMA**。
+- 图 4 张（三段式流水、RAW/WAR 同步封装、三类 Tensor、小结记忆图）+ 表 5 张；码例 4 段全部 `[需真机验证]` 分级。
+- 口径说明（如实记录）：3.0k 中文未达 §4 核心章 8k 目标下限；机制骨架已完整（范式/同步/Tensor/搬运四块闭合），深度扩写留给第 14 章端到端实战（RegTensor 寄存器计算、高维切分搬运实操在彼处随案例展开），质量优先不注水。
+- appD 第10章来源同步 10 条路径。**校验**：`npm run verify` 全绿；HTML 抽查 4 表格 + 4 Mermaid + 9 脚注渲染正常。
+- 全书进度：59.6k 总字 / 47.3k 中文。下一章：第11章 SIMD/SIMT 与高级特性。
