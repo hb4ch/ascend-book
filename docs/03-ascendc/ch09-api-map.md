@@ -1,7 +1,7 @@
 ---
 title: 第9章 编程模型与 API 选择
 description: 多层级 API 地图：Tpipe/Tque、基础API、语言扩展 SIMD/SIMT C、高阶API、算子模板库、PyAsc
-status: 已成稿（M3，第三编）
+status: 已成稿（第三编）
 ---
 
 # 第9章 编程模型与 API 选择

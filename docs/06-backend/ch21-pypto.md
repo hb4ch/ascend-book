@@ -1,16 +1,16 @@
 ---
 title: 第21章 PyPTO 框架深入
 description: 架构分层、多级 IR 与 Pass、CodeGen、MPMD 调度、工具链、0.2.0 新前端、示例性能方法
-status: 未成稿（M6 里程碑）
+status: 提纲预览
 ---
 
 # 第21章 PyPTO 框架深入
 
-> 状态：**未成稿**，属「M6」里程碑。骨架先行，待该里程碑成稿时按 STYLEGUIDE 填充。
+> 本章为提纲预览，正文将随写作推进逐步填充。
 
 > 架构分层、多级 IR 与 Pass、CodeGen、MPMD 调度、工具链、0.2.0 新前端、示例性能方法
 
-## 本章来源（M0 骨架期登记）
+## 本章来源
 
 - 📦 源码/📄 资料: `pypto/README.md`
 - 📦 源码/📄 资料: `pypto/framework/{src/passes,src/codegen,include}`
@@ -53,8 +53,8 @@ status: 未成稿（M6 里程碑）
 
 ## 陷阱与注意
 
-（成稿时填写）
+（待补充）
 
 ## 进一步阅读
 
-（成稿时填写）
+（待补充）

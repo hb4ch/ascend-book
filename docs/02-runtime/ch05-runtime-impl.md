@@ -1,7 +1,7 @@
 ---
 title: 第5章 运行时核心实现
 description: runtime 模块总览、任务到 SQE 的分发表、流与调度、BQS 队列、TSD 设备侧、kernel 加载、控制面；API→硬件的实现级解读
-status: 已成稿（M2，第二编）
+status: 已成稿（第二编）
 ---
 
 # 第5章 运行时核心实现

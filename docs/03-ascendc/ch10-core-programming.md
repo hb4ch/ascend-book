@@ -1,7 +1,7 @@
 ---
 title: 第10章 核心编程能力详解
 description: TPipe/TQue 范式与队列同步、Tensor 体系（Global/Local/Reg）、计算 API 家族、搬运 API 与 N-DMA 实操
-status: 已成稿（M3，第三编）
+status: 已成稿（第三编）
 ---
 
 # 第10章 核心编程能力详解

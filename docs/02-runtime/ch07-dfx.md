@@ -1,7 +1,7 @@
 ---
 title: 第7章 维测子系统 DFX
 description: DFX 模块总览、msprof 原理与实战、adump、log 与 error manager、trace、错误码体系、算子级排障（msSanitizer/DumpTensor）、精度迭代与性能画像流程
-status: 已成稿（M2，第二编）
+status: 已成稿（第二编）
 ---
 
 # 第7章 维测子系统 DFX

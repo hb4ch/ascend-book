@@ -1,16 +1,16 @@
 ---
 title: 第20章 PTO 虚拟 ISA
 description: 设计动机、tile 编程模型、90+ 指令体系、事件同步、CPU-Simulator、跨代际、性能参考
-status: 未成稿（M6 里程碑）
+status: 提纲预览
 ---
 
 # 第20章 PTO 虚拟 ISA
 
-> 状态：**未成稿**，属「M6」里程碑。骨架先行，待该里程碑成稿时按 STYLEGUIDE 填充。
+> 本章为提纲预览，正文将随写作推进逐步填充。
 
 > 设计动机、tile 编程模型、90+ 指令体系、事件同步、CPU-Simulator、跨代际、性能参考
 
-## 本章来源（M0 骨架期登记）
+## 本章来源
 
 - 📦 源码/📄 资料: `pto-isa/docs/{README_zh,PTO-Virtual-ISA-Manual_zh,isa/,coding/,machine/}`
 - 📦 源码/📄 资料: `pto-isa/include/pto/`
@@ -52,8 +52,8 @@ status: 未成稿（M6 里程碑）
 
 ## 陷阱与注意
 
-（成稿时填写）
+（待补充）
 
 ## 进一步阅读
 
-（成稿时填写）
+（待补充）

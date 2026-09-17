@@ -1,16 +1,16 @@
 ---
 title: 第19章 通算融合与大规模系统
 description: MC2 通算融合、MoE 通信计算重叠、AlltoAll、SuperPod/超节点、PD 分离与 RL、端到端案例
-status: 未成稿（M5 里程碑）
+status: 提纲预览
 ---
 
 # 第19章 通算融合与大规模系统
 
-> 状态：**未成稿**，属「M5」里程碑。骨架先行，待该里程碑成稿时按 STYLEGUIDE 填充。
+> 本章为提纲预览，正文将随写作推进逐步填充。
 
 > MC2 通算融合、MoE 通信计算重叠、AlltoAll、SuperPod/超节点、PD 分离与 RL、端到端案例
 
-## 本章来源（M0 骨架期登记）
+## 本章来源
 
 - 📦 源码/📄 资料: `ops-transformer/mc2/`
 - 📦 源码/📄 资料: `pto-isa/kernels/manual/a2a3/gemm_ar/`
@@ -39,8 +39,8 @@ status: 未成稿（M5 里程碑）
 
 ## 陷阱与注意
 
-（成稿时填写）
+（待补充）
 
 ## 进一步阅读
 
-（成稿时填写）
+（待补充）

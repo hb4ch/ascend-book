@@ -1,16 +1,16 @@
 ---
 title: 第18章 HIXL 单边通信
 description: 单边零拷贝机制、D2D/D2H/H2D、直传/中转/FabricMem、链路池、LLM-DataDist 与 KV Cache、集成场景
-status: 未成稿（M5 里程碑）
+status: 提纲预览
 ---
 
 # 第18章 HIXL 单边通信
 
-> 状态：**未成稿**，属「M5」里程碑。骨架先行，待该里程碑成稿时按 STYLEGUIDE 填充。
+> 本章为提纲预览，正文将随写作推进逐步填充。
 
 > 单边零拷贝机制、D2D/D2H/H2D、直传/中转/FabricMem、链路池、LLM-DataDist 与 KV Cache、集成场景
 
-## 本章来源（M0 骨架期登记）
+## 本章来源
 
 - 📦 源码/📄 资料: `hixl/README.md`
 - 📦 源码/📄 资料: `hixl/docs/zh/{api,guide}/`
@@ -50,8 +50,8 @@ status: 未成稿（M5 里程碑）
 
 ## 陷阱与注意
 
-（成稿时填写）
+（待补充）
 
 ## 进一步阅读
 
-（成稿时填写）
+（待补充）

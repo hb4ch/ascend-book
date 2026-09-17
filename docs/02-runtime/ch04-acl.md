@@ -1,7 +1,7 @@
 ---
 title: 第4章 ACL 编程接口
 description: 初始化与会话、设备/上下文/流/事件、内存管理、算子 Launch、异步执行、错误码；一个完整 aclnn 程序逐步剖析
-status: 已成稿（M2，第二编）
+status: 已成稿（第二编）
 ---
 
 # 第4章 ACL 编程接口

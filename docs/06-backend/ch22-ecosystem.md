@@ -1,16 +1,16 @@
 ---
 title: 第22章 生态与前沿编译技术
 description: PyAsc、tilelang-ascend、PTO-AS/PTO-DSL、torch.compile 路径（torchair/autofuse/ACLNN）、图模式与 AOT、模型级工具链
-status: 未成稿（M6 里程碑）
+status: 提纲预览
 ---
 
 # 第22章 生态与前沿编译技术
 
-> 状态：**未成稿**，属「M6」里程碑。骨架先行，待该里程碑成稿时按 STYLEGUIDE 填充。
+> 本章为提纲预览，正文将随写作推进逐步填充。
 
 > PyAsc、tilelang-ascend、PTO-AS/PTO-DSL、torch.compile 路径（torchair/autofuse/ACLNN）、图模式与 AOT、模型级工具链
 
-## 本章来源（M0 骨架期登记）
+## 本章来源
 
 - 📦 源码/📄 资料: `pypto/README.md`
 - 📦 源码/📄 资料: `pto-isa/README_zh.md`
@@ -39,8 +39,8 @@ status: 未成稿（M6 里程碑）
 
 ## 陷阱与注意
 
-（成稿时填写）
+（待补充）
 
 ## 进一步阅读
 
-（成稿时填写）
+（待补充）

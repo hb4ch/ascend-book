@@ -1,16 +1,16 @@
 ---
 title: 第12章 编译、工具链与部署
 description: 算子编译流程、bisheng 编译器定位、工程构建、RTC、simulator、静态/动态编译、ascendc 工具链
-status: 未成稿（M3 里程碑）
+status: 提纲预览
 ---
 
 # 第12章 编译、工具链与部署
 
-> 状态：**未成稿**，属「M3」里程碑。骨架先行，待该里程碑成稿时按 STYLEGUIDE 填充。
+> 本章为提纲预览，正文将随写作推进逐步填充。
 
 > 算子编译流程、bisheng 编译器定位、工程构建、RTC、simulator、静态/动态编译、ascendc 工具链
 
-## 本章来源（M0 骨架期登记）
+## 本章来源
 
 - 📦 源码/📄 资料: `asc-devkit/docs/zh/guide/compilation_and_execution/`
 - 📦 源码/📄 资料: `asc-devkit/scripts/`
@@ -52,8 +52,8 @@ status: 未成稿（M3 里程碑）
 
 ## 陷阱与注意
 
-（成稿时填写）
+（待补充）
 
 ## 进一步阅读
 
-（成稿时填写）
+（待补充）
