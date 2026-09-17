@@ -1,0 +1,28 @@
+{
+  "name": "ascend-book",
+  "version": "0.1.0",
+  "private": true,
+  "description": "《昇腾平台技术实战》——面向实操型工程师的昇腾全栈技术书（VitePress 站点）",
+  "type": "module",
+  "scripts": {
+    "sync:glossary": "node scripts/sync-glossary.mjs",
+    "predocs:dev": "npm run sync:glossary",
+    "predocs:build": "npm run sync:glossary",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "check:links": "node scripts/run-link-check.mjs",
+    "check:internal": "node scripts/check-internal-links.mjs",
+    "check:terms": "node scripts/check-terms.mjs",
+    "check:source": "node scripts/check-source.mjs",
+    "word:count": "node scripts/word-count.mjs docs",
+    "verify": "npm run docs:build && npm run check:internal && npm run check:source && npm run check:terms && npm run word:count"
+  },
+  "devDependencies": {
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-link-check": "^3.15.0",
+    "mermaid": "^10.9.8",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  }
+}

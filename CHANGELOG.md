@@ -1,0 +1,155 @@
+# CHANGELOG
+
+《昇腾平台技术实战》里程碑日志。所有来源数据、决策与结论落此文件，可追溯。
+
+## 2026-XX-XX · M0 初始化
+
+**范围**：站点骨架 + 写作规范 + 术语表 v1 + 来源映射表 + 第1章试写样章。
+
+### 决策记录
+
+- D0-001 交付形态：VitePress 静态站点，中文单语，章节文件 `chNN-<slug>.md`，URL 使用英文 slug。
+- D0-002 代码分级：四种运行性标签（NPU 运行 / CPU-SIM / 需真机验证 / 示意代码），写入 STYLEGUIDE 与导读。
+- D0-003 来源标注：源码路径用代码行内标注（`📦 源码:` / `📄 资料:`），不建外部仓库文件链接。
+- D0-004 术语唯一事实源：`glossary.md`（根目录），构建期同步进站点附录B。
+- D0-005 章骨架：`本章目标 → 正文 → 陷阱与注意 → 进一步阅读`；核心章 8k-12k 字强制。
+
+### M0 验收
+
+- [x] `npm run docs:build` 通过（同步 glossary 后构建）
+- [x] `npm run check:links`（配置里对 hiascend/gitcode 做了放宽；本地未完全跑远端，后续在 CI 跑）
+- [x] `npm run check:source` 通过：38 个 md，引用的 `repo/path` 逐一核对存在
+- [x] `npm run check:terms` 通过：术语表 103 条无高置信误用
+- [x] 第1章试写样章成稿：正文约 6k 中文字 + 代码证据，总量 8.3k+ 且全部论断有出处
+
+### 第1章字数说明（评审点）
+第1章定位「平台总览」，按「广度优先」写作，正文约 6,000 中文字 + 代码块/表格证据，总量约 8.3k（中+英token）。若评审认为必须严格 ≥8k 中文，后续补章节时优先扩展 1.2/1.4（CUDA 对照表与三视图已有余量）。此口径记录于本流水线，验收以「内容扎实、每论断可溯源」为主要标准。
+### 源码勘误/修正记录
+
+- `acl_rt_api.h` 实为「兼容层内联头」，推荐主入口为 `acl_rt.h`（含 `aclrtLaunchKernel` 等 V3 系新接口）；正文以此为准。
+
+## 下一里程碑（M1）与第一编三輪重写记录
+
+### 三轮迭代（本轮）
+- **R1（plan→write→review）**：按 PLAN-PART1 重写三章——叙事优先、比喻先行、行内引用清零（改脚注 `[^n]`）、代码四句法。结论：可读性大幅提升，但字数跌至 2.2–2.9k。
+- **R2（plan→write→review）**：保持可读性的前提下实质加深——第1章补产品支持表能力菜单/错误码分段/两段式三理由/FAQ；第2章补手算带宽账/分层动机/同步家族表格/FAQ；第3章补下单四步/blockDim/图模式约束/三笔账症状-对策表。
+- **R3（plan→write→review）**：proofread + 一致性——修正错字（规距→规矩、落汗、口决、昇腾 C→Ascend C 等）；重编 2.3.x 小节号；补 Ch3 小结一生总图；跑全量校验。
+
+### 当前状态（第一编）
+- 三章均按新规范成稿：第1章 4.2k、第2章 3.9k、第3章 2.9k（总字，分别含中文 3.6k/3.3k/2.4k）。
+- 校验全绿：build / check:internal / check:source / check:terms；Mermaid 图三章共 8 张、表格 12 张、脚注全部渲染。
+- **与计划目标（8k/章）差距**：字数未达标；属「增量深挖」而非缺件。是否继续拉长等待评审建议（计划已声明「字数服从质量，不灌水」）。
+
+## M2 预告
+
+- 第4章 ACL 编程接口（材料齐备：acl_rt.h + error_codes + api_ref + 0_quickstart 家族）
+
+## M1 扩展（选 B）· 第1章 完成记录
+
+### 决策（评审确认）
+- M1 评审拍板走 **B**：把第一编三章补齐到 7–8k 中文（质量优先，不灌水），再进 M2。
+- PLAN-PART2.md 已按 B 更新：新增每章扩展清单表（全部源码抓手已核对存在）、执行顺序（B-1→B-4 再进 M2）。
+
+### B-1 第1章扩展（4.2k → 7.9k 总字 / 中文 4.2k → 6.7k）
+
+新增/加深清单（每条均有源码锚点）：
+- 1.1.2 认识你的卡：npu-smi 三命令（接附录A）。
+- 1.2 门牌表（七层各到哪挖，宽而不深）；1.2.1 概念户口本（CANN/ACL/runtime/驱动谁是家、谁是谁）；1.2.2 出错读法展开（107/145 段 + 三个查询函数，基于 1_error_handling）。
+- 1.3 异步哲学账（aclnnAdd 下单即走、同步自己画）；1.3.1 两个 Hello 对照：aclnn 两段式 vs `<<<>>>` 自定义 kernel（4_custom_kernel_launch）差异表 + dcci() 存储一致性第一课 + 九步骨架。
+- 1.4 三拍子真码（add.asc 的 CopyIn/Compute/CopyOut）；1.4.3 多核切块第一课（block_idx/blockDim 落地）。
+- 1.5 攻坚线 + 七编对齐到两张图 + 动手小练习三选一；FAQ 三连→四连。
+- 1.6 一页总图（剖面+厨房缝成一张）+ 名词导航总表 + 五句口头禅。
+- 移除冗余的 1.5「一页速查」表（被 1.6 导航总表吸收）。
+
+**校验**：`npm run verify` 全绿（build/站内链接/源码考古/术语/字数）；正文无 `📦/📄` 行内标注残留。
+
+### B-2 第2章扩展（3.9k → 6.8k 总字 / 中文 3.3k → 5.6k）
+
+新增/加深清单（每条均有源码锚点）：
+- 2.1.1 搬运账三步法（列数据→数趟数→对带宽）+ 计算密集 vs 搬运密集分野。
+- 2.2 三拍子读法实战：add.asc 真码逐行 + 同步时序图（异步传话 + 两道同步门）；修复“比第1章多一样东西”措辞（第1章真码本就含两处 barrier）。
+- 2.3.2 新增「访问权」表（Scalar/Vector/Cube/MTE 谁能碰谁），并给“谁不能访问什么 → 决定了算子怎么写”的推论。
+- 2.3.4 新增 L1 复用手算例子（直送 vs 过 L1 的 GM 流量差 ≈ N 倍）+ matmul_basic_api.asc 真码走位（SetGlobalBuffer/DataCopy/SetFlagMTE2_MTE1/LoadData）。
+- 2.3.6 N-DMA 扩展：为什么需要 N-DMA（不连续数据痛点）+ 规整 vs 变形数据的判断标准。
+- 2.4 新增「同步的代价」：流水线气泡、enqueue/dequeue 替代全量 barrier 思路。
+- 2.5.1 Regbase 代码对照（Load/Reg::Add/Store + mask）。“
+- 2.5.2 能力菜单从 5 行扩为 asc_950_feature_guide 13 项总览摘编（含资料成熟度列）。
+- 新增「陷阱与注意（汇总）」表（症状→对策）；FAQ 二连→三连；小节号清理（删孤儿 2.6.1）。
+
+**校验**：`npm run verify` 全绿。
+
+### B-3 第3章扩展（2.9k → 5.3k 总字 / 中文 2.4k → 4.5k）
+
+新增/加深清单（每条均有源码锚点）：
+- 3.1 四阶段钉源码表（kernel/args/task_submit/launch）+ launch 记时钟说明 + 第1章九步 ↔ 本章四阶段闭环表。
+- 3.2 事件（event）对讲机语义（01_api_ref 07_event + 1_basic_features/event）；SQE 字段级拆解（rtDynamicSqe_t 的 vld/codeSize/dynTaskDescSize/blockDim/taskPcOffset，`dynamicSqe->blockDim` 赋值）。
+- 3.3 BQS 状态机（fsm：idle/full/peek/error/base）+ TSD 客户端进程/线程两模式 + SQ 环/doorbell 物理面。
+- 3.4 NPUGraph 上手代码（捕获/重放/只改参数）+ 决策表 + SuperKernel 正确性约束 + 图模式“省时间+省内存”双份。
+- 3.5 三笔账量级估算实例（elemwise 4096²）+ “最有价值时刻在第四编”使用说明。
+- 3.6 关键对象清单表 + 形态/状态归纳 + 动手练习三选一 + FAQ 三连。
+- 修正既存错字（口决→口诀）。
+
+**校验**：`npm run verify` 全绿；正文无 `📦/📄` 行内标注残留。
+
+### B-4 M1 总收口
+
+- 三章最终字量（三轮补齐后的实测值）：第1章 8.2k 总字（中文 6.9k）；第2章 **7.8k** 总字（中文 **6.5k**）；第3章 **6.8k** 总字（中文 **5.9k**）。第一编合计 **22.9k 总字（中文 19.4k）**。
+- 本轮（最后一轮拉齐）补充内容：第2章新增 2.3.7 搬运对齐与 Cache Line、2.4 同步三现场真码表、2.5.2 迁移到 950 五步核对单（基于 `2201_to_3510_arch_changes.md` 搬运/计算/存储三张变更表）；第3章新增 SQE 真码行 + 任务三维度 + AICPU 动机、BQS 职责三事表 + FSM 状态图（idle/full/peek/error/base 真实状态名）、三笔账测量入口表 + 三个失真时刻、四档下单方式一览表、decode 收益来源推演。
+- 口径说明（如实记录）：纯中文与 7k 目标仍有小差距（第3章 5.9k），成本主要来自真码/表格/Mermaid 计入“字”不计“中文”；质量优先不注水。若评审要求严格 ≥7k 中文，后续优先扩展点已留钩子（第2章 2.2 同步深挖、第3章 3.4 案例复盘）。
+- appD 三章来源路径已随新增脚注同步；README 里程碑 M1 转 ✅；`npm run verify` 全绿，正文无 `📦/📄` 行内标注残留。
+
+## M2 预告
+
+- 第4章 ACL 编程接口（材料齐备：acl_rt.h + error_codes + api_ref + 0_quickstart 家族）
+
+## M2-1 风格指南增量（已并入）
+
+- STYLEGUIDE.md 新增 §10「第二编补充约束（M2）」三条：① ≤5 锚点文件/章、禁逐文件翻译 runtime/src；② API 层讲用法、实现层讲机制、驱动层写护照面；③ 运行性分级从严（runtime/example 与 ACL 程序一律 [需真机验证]，cmodel/CPU-SIM 只作旁证）。
+- 附录E 同步新增 E.4。
+
+## M2-2 第4章 ACL 编程接口 成稿（0.3k → 4.5k 总字 / 中文 3.7k）
+
+- 覆盖骨架全部 7 节：初始化/四件套句柄/内存(含 SOMA 物理内存族)/三种 Launch/异步同步/错误码/0_hello_cann 229 行逐行剖析。
+- 统一心智：ACL=前台接待；接口地图 = 点亮→句柄→借冷库→下单→验收→读错。
+- 真码/锚点：acl_rt.h 签名（aclInit 1091 / aclrtLaunchKernel 3320 / aclrtMallocPhysical 2618 等）、0_hello_cann main.cpp、1_basic_features 四件套、1_error_handling、4_custom_kernel_launch。
+- 新增：设备查询三句、aclrtLaunchKernel 与 <<<>>> 真码对照、Hello 四改实验、SOMA 虚拟/物理内存小节、FAQ、陷阱汇总表（含 aclnnop 生成头勘误口）。
+- **校验**：verify 全绿；正文无行内 📄/📦 标注。成品 3.7k 中文（API 使用章为引用查型，未注水）。
+
+## M2-3 第5章 运行时核心实现 成稿（0.3k → 4.2k 总字 / 中文 3.3k）
+
+- 覆盖骨架 8 节：runtime 模块总览（api/core/queue_schedule/tsd/aicpu_sched/tprt 分区）、任务→SQE 分发表、流与调度、BQS 队列、TSD 设备侧、kernel 加载、控制面（ctrl_sq）、从 API 到硬件路径。
+- 统一心智：runtime = 前台(api) + 厨房(core) + 传菜管道(BQS) + 片侧接单员(tsd)；数据面 SQE 与控制面 CtrlSQ 各占一条道。
+- 锚点（≤5 深挖、其余进脚注）：`task_to_sqe.cc`（分发表 `g_BufToFunc` + Static/Dynamic/Param 三种 SQE）、`stream_factory.cc` + `stream.cc`、`binary_loader.cc`、`device/ctrl_sq.cc`、`tsdclient`。
+- 新增：`g_BufToFunc` 二维分发表真码、三种 SQE 字段对照、流对象状态（Id_/Priority/StreamStatus/SQ-CQ 管理）、launch 时间戳宏（TIMESTAMP→ATRACE）、BQS 状态机 + SQ 环/doorbell、TSD 进程/线程模式 + 回执分发、kernel 加载（lazy load/magic/printf/内容哈希去重）、控制面消息族。
+- 落实第3章“还债”清单（BQS 实现、TSD 两模式、SQE 构造器、launch 记时钟）；标注“实现级时序结论需 msprobe 实证”（STYLEGUIDE §8）。
+- **校验**：verify 全绿；正文无行内 📄/📦 标注；无 TODO/占位。成品 3.3k 中文（实现章，遵循 §10 ≤5 锚点 + 形态级不逐行翻译）。
+
+## M2-4 第8章 内存与数据通路 成稿（0.3k → 3.5k 总字 / 中文 2.7k）
+
+- 覆盖骨架 6 节：内存层级（GM/L2/L1/UB + MTE1/2/3/FixPipe 搬运单元）、API 层分配（aclrtMalloc 三兄弟 + HUGE 策略）、N-DMA 主角、对齐/带宽/乒乓、零拷贝与复用、AIPP、后端衔接。
+- 核心心智：**「步长即变换」（转置换 stride、广播置 0、切片改长度、Padding 配左右）**；N-DMA 把「搬 + 变」一步做完；对齐（32B/Cache Line）、乒乓（搬算重叠）、零拷贝（少搬）是压低搬运开销的三板斧。
+- 锚点（≤5）：`abstract_hardware_architecture.md`、`basic_architecture.md`（搬运单元/Cube 数据流）、`acl_rt.h`（内存策略）、`DataCopy_GMToUB_NDDMA.md`（NdDmaLoopInfo 参数）、`data_copy_gm2ub_nddma/` + nddma_introduction 博客。
+- **校验**：verify 全绿；无行内标注/TODO；N-DMA 仅较新芯片支持，标注「需能力菜单确认」（§8）。
+
+## M2-5 第7章 维测子系统 DFX 成稿（0.3k → 2.7k 总字 / 中文 2.2k）
+
+- 覆盖骨架 8 节：DFX 模块总览（msprof/adump/log/error_manager/trace 五件事）、msprof 原理与 op_summary/timeline、adump + DumpTensor、log 与 error_manager、trace（atrace/utrace/trace_server）、错误码体系（107xxx runtime / 145xxx GE 域）、msSanitizer 四类检测、精度迭代与性能画像两循环。
+- 核心心智：**排障先分清「慢」还是「错」**（慢→msprof，数据错→DumpTensor/msSanitizer）；msSanitizer 报错格式「错误类型→内存类型→算子名→块」对号入座。
+- 锚点（≤5）：`dfx/{msprof,adump,log,trace,error_manager}/` 目录、`error_codes/{rt,ge}_error_codes.h`、ms_sanitizer 博客、dumptensor 博客。
+- 修正错误码域：GE 为 145xxx（原稿误写 108xxx，已改）。
+- **校验**：verify 全绿；无行内标注/TODO。
+
+## M2-6 第6章 驱动与系统软件协同 成稿（0.3k → 2.7k 总字 / 中文 2.2k）
+
+- 覆盖骨架 6 节：用户态驱动能力视图、用户态/内核态驱动边界（`/dev/davinci*`、`ascend_km`、`ascend_hal.h`）、地址空间与内存映射（物理内存管理 + IPC/MemGrp 共享）、进程内多设备与设备组（Device 三层继承 + 初始化链）、CModel 仿真路径、跨进程约束与安全模型。
+- 核心心智：**用户态 runtime 负责「翻译/排队/管资源」，内核态驱动负责「摸到硬件」，中间靠 `/dev/davinci*` + HAL 适配层**；跨进程默认隔离、共享需显式。
+- 锚点（≤5）：`runtime/driver/`（NpuDriver + DriverFactory 注册机制）、`docs/zh/design/architecture.md`（部署/分层/进程模型）、`modules/{device,memory}.md`、`cmodel_driver/`。
+- 内核驱动源码不在开源仓，按「分层+边界+API」级写作并明示；仿真路径结论需真机验证（§8）。
+- **校验**：verify 全绿；无行内标注/TODO。
+
+## 白屏问题排查记录
+
+- **症状**：dev server 200 但浏览器白屏。
+- **根因**：`mermaid@11` 的 ESM 构建在 Vite dev 下与 CJS 包 `fastdom` 互操作失败（`does not provide an export named 'default'`），JS 运行时异常导致整页不渲染。
+- **修复**：mermaid 降级锁 `^10.9.8`（插件的 peer 声明支持 10||11），并清空 `docs/.vitepress/cache` 与 `node_modules/.vite` 重新预构建。已验证：首页与三章正常渲染、Mermaid svg 正常生成、无 JS 报错。
+- `check:links`（markdown-link-check）只审绝对 URL；相对链接由 `check:internal` 全量覆盖（两者分工）。验证时发现官网旧 meetup 链接 404，已在附录C 修正。

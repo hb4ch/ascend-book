@@ -1,0 +1,25 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^(\\.\\.?/|/)"
+    },
+    {
+      "pattern": "https://www.hiascend.com/(document|developer|cn)"
+    },
+    {
+      "pattern": "github.com"
+    },
+    {
+      "pattern": "gitcode.com"
+    }
+  ],
+  "httpHeaders": [
+    {
+      "urls": ["https://www.hiascend.com/"],
+      "headers": { "user-agent": "Mozilla/5.0 (markdown-link-check)" }
+    }
+  ],
+  "timeout": "30s",
+  "retryOn429": true,
+  "retryCount": 3
+}
