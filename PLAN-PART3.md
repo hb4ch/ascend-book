@@ -32,11 +32,28 @@
 - **图**：TPipe/TQue 数据流时序图（sequence）；计算 API 家族树。
 - **验收**：Add 三种写法（Tpipe/Tque、基础 API、C API）对照完成；搬运 API 五场景表格；verify 绿。
 
-### 第11章 SIMD/SIMT 与高级特性（950 新范式章）
-- **骨架**：SIMD C API 全貌（`asc_xxx` 命名、`_sync` 后缀、repeat/stride 高级接口）；SIMT 编程模型（线程/warp、共享内存、与 CUDA 对照迁移）；SIMD/SIMT 混合编程；AICPU 算子（何时逃逸到 CPU 核）。
-- **锚点**：`examples/02_simd_c_api/`、`examples/03_simt_api/00_introduction/01_gather/`、`examples/05_simd_simt_hybrid/`、`impl/simt_api/`、`cann-learning-hub/blogs/operator/regbase_vec_add/`。
-- **图**：SIMD vs SIMT 执行模型对比图；混合编程分工图。
-- **验收**：一张「CUDA 开发者迁移对照表」；每类 API 有真实 `.asc` 代码例证；verify 绿。
+### 第11章 SIMD/SIMT 与高级特性（M3-3 详细方案）
+
+**章节结构（6 节，对骨架重排）**
+1. **SIMD C API 接口分级**：`asc_xxx` 命名、`_sync` 易用口 vs `repeat/stride` 极致口（真码：`02_simd_c_api/03_c_api/{00_data_movement,02_reg_vector_compute}`）
+2. **SIMT 编程模型**：Warp/线程、ld/st/AddrSpace、分支掩蔽；硬件三件套（DCache · Warp Scheduler · 128KB Register File，出自 950 特性表第2行）；**CUDA 开发者迁移对照表**（blockIdx/threadIdx/shared memory↔SSBuffer、bank conflict）；何时逃逸到 AICPU（`04_aicpu` 样例定位）
+3. **SIMD/SIMT 混合编程**：`__simt_vf__`/`__simd_vf__` 双 VF + `asc_vf_call` 派发；`simd_simt_gather_and_adds` 全程精读（SIMT 做离散 gather、SIMD 做 UB 连续加，UB 是交接面）
+4. **同步进阶**：PipeBarrier/DataSyncBarrier/Lock（核内）、CrossCore AIV0/AIV1 独立触发 AIC（核间）、SSBuffer（950 新增核间存储）——接第10章 §10.2 三类表落实操
+5. **RegBase 寄存器底座**：MemBase vs RegBase 深化（第2章预支）、RegTensor/VF 融合优化/循环优化、`02_reg_vector_compute` 20 例导览
+6. **A5(950) 新特性导览 + 调试**：13 项特性表按类分组（计算/搬运通路/同步/存储结构/低比特）；printf、reg dump、NPU-Check（材料风险：zh 文档未检索到 NPU-Check，写作时在 `03_simt_api/05_troubleshooting/` 与 blogs 中补充取证，找不到则明示并降级）
+
+**配图方案（5 张，均带中英文 alt+图注+正文解释）**
+| 图 | 类型 | 内容 | 为什么是 SVG/Mermaid |
+|---|---|---|---|
+| 图 11-1 SIMT 硬件三件套与线程执行模型 | SVG | AIV 内 SIMT 单元解剖：DCache/Warp Scheduler/128KB RF；warp→线程束调度、独立 PC、分支掩蔽；右侧 CUDA 对照小栏 | 结构剖视图，Mermaid 不擅长 |
+| 图 11-2 SIMD vs SIMT 执行模型对比 | SVG | 上半：1 指令→多 lane 同构数据（Vector 单元，数据驻 UB）；下半：1 指令→多线程独立分支（Warp Scheduler，数据经 DCache/RF）；与第9章图 9-2「四步法」互补——那是编程流程对比，这是硬件执行视角 | 同一坐标框架双栏结构图 |
+| 图 11-3 混合编程数据流 | SVG | 单 kernel 内：GM --(SIMT VF: gather 离散读)--> UB --(SIMD VF: adds 连续算)--> GM；标注 `asc_vf_call` 两次派发与 UB 交接面；真码行摘 `gather_and_adds.asc` | 双引擎分工 + 数据流向，结构图 |
+| 图 11-4 MemBase vs RegBase | SVG | 双流水对照：MemBase（算一步→写回 UB→再读→算下一步，UB 读写 N 次）vs RegBase（UB→Register 一次装载，中间结果留寄存器，VF 融合链）；标注读写次数差 = 性能来源 | 第2章已有 mini-mermaid，此处深化为寄存器文件视角 |
+| 图 11-5 950 新特性分类图 | Mermaid | 13 项特性按「计算单元 / 搬运通路 / 同步 / 存储结构 / 低比特类型」五组归类，标注与 ch2 能力菜单、ch10 已讲项的呼应 | 分类树，Mermaid 足够 |
+
+**锚点（≤5）**：`asc_950_feature_guide.md`（13 特性表）、`examples/05_simd_simt_hybrid/.../gather_and_adds.asc`、`examples/03_simt_api/00_introduction/{00_quickstart/hello_world_simt,01_gather/gather_1d}`、`examples/02_simd_c_api/03_c_api/02_reg_vector_compute/`、`cann-learning-hub/blogs/operator/regbase_vec_add/`。其余（simt_builtin_keywords、simt_language_extension_c_api、vf_optimization 两篇）进脚注。
+
+**验收**：CUDA 老手 30 分钟能写出第一个 SIMT gather；读者能判断自己的算子该用 SIMD/SIMT/混合/RegBase 四条路中的哪条；verify 绿。
 
 ### 第12章 编译、工具链与部署（边界最明确的章）
 - **骨架**：Host/Device 混合编译流程；`--npu-arch` 与目标芯片映射（dav-3510/2201/2002）；CMake 工程组织；kernel 二进制产物与加载（衔接第 5 章 binary_loader）；调试工具（衔接第 7 章 DFX）。
