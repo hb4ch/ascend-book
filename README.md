@@ -4,8 +4,9 @@
 
 - **文档站点（推荐）**：`npm run docs:dev` 本地预览，`npm run docs:build` 产出静态站点（`docs/.vitepress/dist`）。
 - **单页/PDF 导出**：见 `docs/导读` 说明；站点内容为 Markdown，可用 pandoc/pagedjs 等工具聚合导出。
+- **GitHub 在线阅读**：全部章节为 Markdown，可直接从下方[目录](#目录在线阅读)点击进入；写作规范见 [STYLEGUIDE.md](./STYLEGUIDE.md)。
 
-## 写作原则（务必阅读 STYLEGUIDE.md）
+## 写作原则（务必阅读 [STYLEGUIDE.md](./STYLEGUIDE.md)）
 
 1. **以源码为准**：任何 API、行为、性能结论都必须能在开源仓中找到出处，正文用 `📦 源码:` / `📄 资料:` 行内标注精确路径。
 2. **不写水货**：所有示例来自仓内 examples/docs，标注运行性分级（`[可在 NPU 运行]` / `[可用 CPU-SIM 运行]` / `[需真机验证]` / `[示意代码]`）。
@@ -25,21 +26,35 @@
 | M6 | 第20–23章（现代编译后端） | ⬜ 未开始 |
 | M7 | 第24章 + 附录 + 全书校对 | ⬜ 未开始 |
 
-> 详细进度、决策与变更记录见 [CHANGELOG.md](./CHANGELOG.md)。
+> 详细进度、决策与变更记录见 [CHANGELOG.md](./CHANGELOG.md)；写作计划见 [PLAN-PART1.md](./PLAN-PART1.md) / [PLAN-PART2.md](./PLAN-PART2.md)。
+
+## 目录（在线阅读）
+
+> 点击章节标题直接跳转到对应 Markdown 源文件；各编导语见各编目录下 `index.md`。
+
+- [导读：如何使用本书](./docs/index.md)
+- **第一编 昇腾平台全景**（[编导语](./docs/01-platform/index.md)）：[第1章 平台与生态总览](./docs/01-platform/ch01-overview.md) · [第2章 硬件体系结构](./docs/01-platform/ch02-hardware.md) · [第3章 软件栈执行主链路](./docs/01-platform/ch03-exec-path.md)
+- **第二编 运行时、驱动与维测底层**（[编导语](./docs/02-runtime/index.md)）：[第4章 ACL 编程接口](./docs/02-runtime/ch04-acl.md) · [第5章 运行时核心实现](./docs/02-runtime/ch05-runtime-impl.md) · [第6章 驱动与系统软件协同](./docs/02-runtime/ch06-driver.md) · [第7章 维测子系统 DFX](./docs/02-runtime/ch07-dfx.md) · [第8章 内存与数据通路](./docs/02-runtime/ch08-memory.md)
+- **第三编 算子开发：Ascend C**（[编导语](./docs/03-ascendc/index.md)）：[第9章 编程模型与 API 选择](./docs/03-ascendc/ch09-api-map.md) · [第10章 核心编程能力详解](./docs/03-ascendc/ch10-core-programming.md) · [第11章 SIMD/SIMT 与高级特性](./docs/03-ascendc/ch11-simd-simt.md) · [第12章 编译、工具链与部署](./docs/03-ascendc/ch12-compile-tools.md) · [第13章 算子库体系](./docs/03-ascendc/ch13-operator-libs.md) · [第14章 经典算子实战](./docs/03-ascendc/ch14-op-practice.md)
+- **第四编 性能优化方法论**（[编导语](./docs/04-perf/index.md)）：[第15章 性能分析与瓶颈定位](./docs/04-perf/ch15-perf-analysis.md) · [第16章 优化技术专题](./docs/04-perf/ch16-opt-topics.md)
+- **第五编 分布式通信**（[编导语](./docs/05-comm/index.md)）：[第17章 HCCL 集合通信](./docs/05-comm/ch17-hccl.md) · [第18章 HIXL 单边通信](./docs/05-comm/ch18-hixl.md) · [第19章 通算融合与大规模系统](./docs/05-comm/ch19-supernode.md)
+- **第六编 现代编译后端与编程范式**（[编导语](./docs/06-backend/index.md)）：[第20章 PTO 虚拟 ISA](./docs/06-backend/ch20-pto-isa.md) · [第21章 PyPTO 框架深入](./docs/06-backend/ch21-pypto.md) · [第22章 生态与前沿编译技术](./docs/06-backend/ch22-ecosystem.md) · [第23章 全栈综合案例](./docs/06-backend/ch23-case.md)
+- **第七编 展望与总结**（[编导语](./docs/07-outlook/index.md)）：[第24章 路线图与展望](./docs/07-outlook/ch24-roadmap.md)
+- **附录**：[A 环境搭建](./docs/附录/appA-env.md) · [B 术语表](./docs/附录/appB-glossary.md) · [C 资源索引](./docs/附录/appC-resources.md) · [D 来源映射表](./docs/附录/appD-source-map.md) · [E 风格规范](./docs/附录/appE-style.md)
 
 ## 目录结构
 
 ```
 ascend-book/
-├── package.json / README.md      # 站点与书说明
-├── STYLEGUIDE.md                 # 写作规范（风格指南）
-├── glossary.md                   # 术语表（唯一事实源，作为附录B进入站点）
-├── CHANGELOG.md                  # 里程碑日志
+├── package.json / [README.md](./README.md)   # 站点与书说明
+├── [STYLEGUIDE.md](./STYLEGUIDE.md)          # 写作规范（风格指南）
+├── [glossary.md](./glossary.md)              # 术语表（唯一事实源，作为附录B进入站点）
+├── [CHANGELOG.md](./CHANGELOG.md)            # 里程碑日志
 ├── markdown-link-check.json      # 链接检查配置
 ├── docs/                         # VitePress 站点
-│   ├── index.md                  # 首页（导读）
+│   ├── [index.md](./docs/index.md)           # 首页（导读）
 │   ├── .vitepress/               # 配置、侧边导航
-│   ├── 00-导读/ 01-platform/ ... 07-outlook/ 附录/
+│   ├── 00-导读/ 01-platform/ ... 07-outlook/ 附录/  # 各编章节（见上方目录）
 ├── figures/                      # 自绘图
 └── scripts/                      # build、link-check、word-count、源码校验
 ```
