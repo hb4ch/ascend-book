@@ -38,6 +38,10 @@ flowchart TB
 
 还有一个常被忽略的区：**`aicpu_sched/`**——它调度的是第3章说过的「碎活」AICPU（片上通用 CPU），跟 AI Core 的 `core/` 分开走[^aicpu]。理解这张分区图，你以后在 `runtime` 里迷路时，第一步就是问：「这是前台、厨房、传菜，还是片侧？」
 
+![runtime 模块组织图：api 前台、core 厨房、queue_schedule 传菜、tsd 片侧接单员，数据面实线与控制面 CtrlSQ 虚线双通道（runtime module map: front desk, kitchen, queue pipeline, on-device dispatcher; data plane vs control plane）](../figures/ch05-runtime-map.svg)
+
+*图 5-1 runtime 模块组织与双面通道：数据面（实线）把 SQE 订单从前台送到片侧，控制面（虚线）另走一条 CtrlSQ 专道；aicpu_sched 与 tprt 是两个常被忽略的辅助区。*
+
 ### 5.1.1 两个常被忽略的区：AICPU 与平台抽象
 
 `aicpu_sched/` 不止一处值得记，它的子目录本身就自解释：`aicpu_schedule`（调度主逻辑）、`aicpu_sharder`（把任务分摊到多 AICPU）、`aicpu_processer`（执行处理）、`aicpu_kernel`（内核态侧）、`aicpu_prof`（AICPU 性能）、`aicpu_cust_schedule`（自定义调度）[^aicpu]。细看 `aicpu_schedule/` 下还有 `execute / core / interface / proto`——它像一个小一号的 runtime，说明 AICPU 的调度是**自成体系**的。

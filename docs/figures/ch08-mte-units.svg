@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 620" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="a-mte2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker>
+    <marker id="a-mte1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e63"/></marker>
+    <marker id="a-mte3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8930c"/></marker>
+    <marker id="a-fix" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9c36b5"/></marker>
+    <marker id="a-cube" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">物理搬运单元数据流：MTE1 / MTE2 / MTE3 / FixPipe（第8章）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">线色 = 执行搬运的单元；「想搬得快」第一步：看清数据由谁搬、要不要经 L1 中转</text>
+
+  <!-- 存储节点 -->
+  <g font-size="12.5" fill="#1f2937">
+    <rect x="40"  y="230" width="130" height="180" rx="10" fill="#fdf0e5" stroke="#e8590c" stroke-width="1.8"/>
+    <text x="105" y="310" text-anchor="middle" font-weight="bold" font-size="14">GM / HBM</text>
+    <text x="105" y="332" text-anchor="middle" font-size="11" fill="#495057">全局内存</text>
+
+    <rect x="280" y="90"  width="150" height="80" rx="10" fill="#e7f0fa" stroke="#1971c2" stroke-width="1.8"/>
+    <text x="355" y="124" text-anchor="middle" font-weight="bold" font-size="14">L1 Buffer</text>
+    <text x="355" y="146" text-anchor="middle" font-size="11" fill="#495057">Cube 粮仓</text>
+
+    <rect x="280" y="440" width="150" height="90" rx="10" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.8"/>
+    <text x="355" y="478" text-anchor="middle" font-weight="bold" font-size="14">UB</text>
+    <text x="355" y="500" text-anchor="middle" font-size="11" fill="#495057">Vector 主场</text>
+
+    <rect x="560" y="60"  width="150" height="56" rx="10" fill="#efe7fd" stroke="#7048e8" stroke-width="1.6"/>
+    <text x="635" y="82" text-anchor="middle" font-weight="bold">L0A / L0B</text>
+    <text x="635" y="102" text-anchor="middle" font-size="11" fill="#495057">矩阵输入分块</text>
+
+    <rect x="560" y="150" width="150" height="56" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="1.6"/>
+    <text x="635" y="172" text-anchor="middle" font-weight="bold">L0C</text>
+    <text x="635" y="192" text-anchor="middle" font-size="11" fill="#495057">矩乘结果分块</text>
+
+    <rect x="560" y="240" width="150" height="44" rx="10" fill="#efe7fd" stroke="#7048e8" stroke-width="1.6"/>
+    <text x="635" y="266" text-anchor="middle" font-weight="bold">BT</text>
+  </g>
+
+  <!-- 计算单元 -->
+  <rect x="790" y="80" width="110" height="120" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="2"/>
+  <text x="845" y="132" text-anchor="middle" font-size="14" font-weight="bold" fill="#c92a2a">Cube</text>
+  <text x="845" y="154" text-anchor="middle" font-size="11" fill="#495057">矩阵计算</text>
+  <text x="845" y="172" text-anchor="middle" font-size="11" fill="#495057">（仅 SIMD 模型）</text>
+
+  <rect x="790" y="440" width="110" height="90" rx="10" fill="#e8f4ec" stroke="#2f9e63" stroke-width="2"/>
+  <text x="845" y="478" text-anchor="middle" font-size="14" font-weight="bold" fill="#2f9e63">Vector</text>
+  <text x="845" y="500" text-anchor="middle" font-size="11" fill="#495057">矢量计算</text>
+  <text x="845" y="518" text-anchor="middle" font-size="11" fill="#495057">在 UB 内取数</text>
+
+  <!-- MTE2：GM → L1 / UB / L0A-B -->
+  <path d="M170 270 L280 140" stroke="#1971c2" stroke-width="2.2" fill="none" marker-end="url(#a-mte2)"/>
+  <path d="M170 340 L280 470" stroke="#1971c2" stroke-width="2.2" fill="none" marker-end="url(#a-mte2)"/>
+  <path d="M170 260 C420 60 460 70 560 92" stroke="#1971c2" stroke-width="1.8" stroke-dasharray="7 4" fill="none" marker-end="url(#a-mte2)"/>
+  <text x="212" y="196" font-size="11.5" font-weight="bold" fill="#1971c2">MTE2</text>
+  <text x="196" y="416" font-size="11.5" font-weight="bold" fill="#1971c2">MTE2（Cache Line 对齐）</text>
+  <text x="330" y="76" font-size="10.5" fill="#1971c2">MTE2 分形直灌 L0A/B</text>
+
+  <!-- MTE1：L1 → L0A/B、L1 → BT -->
+  <path d="M430 108 L560 92" stroke="#2f9e63" stroke-width="2.2" fill="none" marker-end="url(#a-mte1)"/>
+  <path d="M430 150 L560 254" stroke="#2f9e63" stroke-width="2.2" fill="none" marker-end="url(#a-mte1)"/>
+  <text x="478" y="88" font-size="11.5" font-weight="bold" fill="#2f9e63">MTE1</text>
+  <text x="480" y="212" font-size="11.5" font-weight="bold" fill="#2f9e63">MTE1</text>
+
+  <!-- MTE3：UB → GM、L1 → GM -->
+  <path d="M280 480 L170 360" stroke="#e8930c" stroke-width="2.2" fill="none" marker-end="url(#a-mte3)"/>
+  <path d="M300 440 C210 400 150 380 145 386" stroke="#e8930c" stroke-width="1.6" stroke-dasharray="6 4" fill="none"/>
+  <path d="M300 436 C180 420 152 396 148 392" stroke="#e8930c" stroke-width="1.6" stroke-dasharray="6 4" fill="none" marker-end="url(#a-mte3)"/>
+  <text x="196" y="446" font-size="11.5" font-weight="bold" fill="#e8930c">MTE3</text>
+
+  <!-- FixPipe：L0C → GM / L1，随路转换 -->
+  <path d="M560 190 C300 250 220 300 172 330" stroke="#9c36b5" stroke-width="2" fill="none" marker-end="url(#a-fix)"/>
+  <path d="M560 176 C480 170 460 150 430 136" stroke="#9c36b5" stroke-width="1.8" stroke-dasharray="6 4" fill="none" marker-end="url(#a-fix)"/>
+  <text x="300" y="252" font-size="11.5" font-weight="bold" fill="#9c36b5">FixPipe（随路格式/类型转换）</text>
+
+  <!-- Cube 数据流 -->
+  <path d="M710 88 L790 120" stroke="#c92a2a" stroke-width="2.4" fill="none" marker-end="url(#a-cube)"/>
+  <path d="M790 168 L710 172" stroke="#c92a2a" stroke-width="2.4" fill="none" marker-end="url(#a-cube)"/>
+  <text x="742" y="106" font-size="10.5" fill="#c92a2a">喂入</text>
+  <text x="736" y="192" font-size="10.5" fill="#c92a2a">结果写入 L0C</text>
+
+  <!-- Vector -->
+  <path d="M430 486 L790 490" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#a-mte1)"/>
+  <text x="600" y="478" font-size="10.5" fill="#2f9e63">UB 内分片直接参与计算</text>
+
+  <!-- 图例 -->
+  <rect x="40" y="556" width="860" height="48" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
+  <g font-size="11.5" font-weight="bold">
+    <text x="66"  y="585" fill="#1971c2">■ MTE2：GM→{L1, UB, L0A/B（分形）} 搬入</text>
+    <text x="336" y="585" fill="#2f9e63">■ MTE1：L1→{L0A/B, BT}</text>
+    <text x="524" y="585" fill="#e8930c">■ MTE3：{UB, L1}→GM 搬出</text>
+    <text x="702" y="585" fill="#9c36b5">■ FixPipe：L0C→{GM, L1}</text>
+  </g>
+  <text x="66" y="600" font-size="10.5" fill="#6b7280">注：所有经搬运单元读写 GM 的数据缺省被 L2Cache 缓存（按 Cache Line 加载）——对齐纪律的物理根源。</text>
+</svg>

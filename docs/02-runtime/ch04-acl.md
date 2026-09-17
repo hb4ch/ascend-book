@@ -8,6 +8,10 @@ status: 已成稿（M2，第二编）
 
 > 第1章我们看到，昇腾软件栈的 ③ 层是 AscendCL（ACL）；第3章看到 runtime 把「订单」翻译成 SQE。这一章我们系统地把 ACL 这一层过一遍——但目标不是背几百个接口，而是建立一张「接口地图」：**哪些东西要先点亮（初始化）、哪些是跟谁沟通的句柄（设备/流/事件）、钱和菜在哪里（内存）、怎么下单（Launch）、怎么验收（同步）、出错找谁（错误码）**。学完这章，你看到任何Ascend C 程序，都能立刻说出它走到地图的哪一格。
 
+![ACL 柜台资源地图：从会话到四件套句柄、内存、三种 Launch、同步原语的调用层级（ACL resource map: session, device/context/stream/event handles, memory, three launch paths, sync primitives）](../figures/ch04-acl-resource-map.svg)
+
+*图 4-1 ACL 柜台资源地图：本章 4.1–4.6 六节就是自上而下把这根链条逐段讲透——右栏是出错时的去处（错误码体系，详见第7章）。*
+
 ## 4.1 初始化与会话：aclInit / aclFinalize
 
 **人话**：写程序的第一步永远是「点亮整条电梯井」。`aclInit` 做的事，是让 runtime 初始化与设备通信所需的资源（进程级会话）；`aclFinalize` 是结束会话、释放资源。

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 600" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">DFX 排障地图：先问「慢还是错」，再选模块（第7章）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">runtime/src/dfx/ 五个子模块 + msSanitizer，各管一类「可观测性」</text>
+
+  <!-- 问题分流 -->
+  <rect x="360" y="64" width="200" height="46" rx="22" fill="#fff" stroke="#111827" stroke-width="2"/>
+  <text x="460" y="92" text-anchor="middle" font-size="14" font-weight="bold" fill="#111827">排障第一问：哪种问题？</text>
+  <path d="M400 110 C330 150 260 170 205 200" stroke="#495057" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+  <path d="M520 110 C590 150 660 170 715 200" stroke="#495057" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+  <text x="270" y="162" font-size="13" font-weight="bold" fill="#e8930c">「慢」＝性能问题</text>
+  <text x="612" y="162" font-size="13" font-weight="bold" fill="#c92a2a">「错」＝精度 / 异常</text>
+
+  <!-- 左分支：慢 -->
+  <g font-size="12" fill="#1f2937">
+    <rect x="60" y="204" width="290" height="84" rx="10" fill="#fff7e6" stroke="#e8930c" stroke-width="1.6"/>
+    <text x="205" y="228" text-anchor="middle" font-weight="bold" font-size="13">msprof/（7.2）量性能</text>
+    <text x="205" y="248" text-anchor="middle" font-size="11" fill="#495057">采样打点 · 时间戳同步 · Metric 采集</text>
+    <text x="205" y="266" text-anchor="middle" font-size="11" fill="#495057">op_summary / timeline：分清 Host 调度费 vs Kernel 执行费</text>
+    <rect x="60" y="304" width="290" height="62" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
+    <text x="205" y="326" text-anchor="middle" font-weight="bold">trace/（7.5）看调用链</text>
+    <text x="205" y="344" text-anchor="middle" font-size="11" fill="#495057">atrace / awatchdog / cpu_detect：调用怎么串、耗时在哪段</text>
+  </g>
+  <line x1="205" y1="288" x2="205" y2="304" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 右分支：错 -->
+  <g font-size="12" fill="#1f2937">
+    <rect x="570" y="204" width="290" height="84" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="1.6"/>
+    <text x="715" y="228" text-anchor="middle" font-weight="bold" font-size="13">adump/（7.3）看数据</text>
+    <text x="715" y="248" text-anchor="middle" font-size="11" fill="#495057">算子/模型 dump · 异常 dump · Workspace/Tiling dump</text>
+    <text x="715" y="266" text-anchor="middle" font-size="11" fill="#495057">DumpTensor：在数据流各环节打点比对</text>
+    <rect x="570" y="304" width="290" height="62" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
+    <text x="715" y="326" text-anchor="middle" font-weight="bold">msSanitizer（7.7）抓隐蔽异常</text>
+    <text x="715" y="344" text-anchor="middle" font-size="11" fill="#495057">报错格式：错误类型 → 内存类型 → 算子名 → 内存块，对号入座</text>
+  </g>
+  <line x1="715" y1="288" x2="715" y2="304" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 底部通用 -->
+  <rect x="60" y="392" width="800" height="66" rx="10" fill="#eef2fb" stroke="#4263eb" stroke-width="1.5"/>
+  <text x="460" y="416" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">两条分支的公共底座：log/（7.4）记过程 · error_manager/（7.4、7.6）译错误码</text>
+  <text x="460" y="438" text-anchor="middle" font-size="11" fill="#495057">分级日志（liblog/syslog/python 侧）；错误码登记与解释：107xxx runtime 域 · 145xxx GE 域</text>
+  <line x1="205" y1="366" x2="260" y2="392" stroke="#495057" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <line x1="715" y1="366" x2="660" y2="392" stroke="#495057" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+
+  <!-- 两个循环 -->
+  <g font-size="12" fill="#1f2937">
+    <rect x="60" y="480" width="390" height="86" rx="10" fill="#fff7e6" stroke="#e8930c" stroke-width="1.6"/>
+    <text x="255" y="504" text-anchor="middle" font-weight="bold" font-size="13">性能画像循环（7.8）</text>
+    <text x="255" y="524" text-anchor="middle" font-size="11" fill="#495057">msprof 画像 → 定位 Host 调度 / Kernel 执行</text>
+    <text x="255" y="542" text-anchor="middle" font-size="11" fill="#495057">→ 回第8章查对齐·乒乓·搬算重叠 / 回第3、5章查下单粒度 → 再画像</text>
+    <rect x="470" y="480" width="390" height="86" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="1.6"/>
+    <text x="665" y="504" text-anchor="middle" font-weight="bold" font-size="13">精度迭代循环（7.8）</text>
+    <text x="665" y="524" text-anchor="middle" font-size="11" fill="#495057">msOpST 跑通基础 → msSanitizer 异常检测</text>
+    <text x="665" y="542" text-anchor="middle" font-size="11" fill="#495057">→ DumpTensor 打点比对 → log / error_manager 定层定码 → 再迭代</text>
+  </g>
+</svg>

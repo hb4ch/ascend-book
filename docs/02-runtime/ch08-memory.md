@@ -36,7 +36,15 @@ GM → L1 → L0A/L0B → Cube → L0C → FixPipe → GM   （一次算完回 G
 GM → L1 → L0A/L0B → Cube → L0C → FixPipe → L1 → GM  （中间结果回 L1 继续）
 ```
 
+![物理搬运单元数据流图：MTE2 负责搬入（GM 到 L1/UB/L0）、MTE1 喂 L0 与 BT、MTE3 搬出（UB/L1 到 GM）、FixPipe 从 L0C 收结果并随路转换（data movement units: MTE2 in, MTE1 L1-to-L0, MTE3 out, FixPipe from L0C with format conversion）](../figures/ch08-mte-units.svg)
+
+*图 8-2 四个搬运单元的分工地图：线色即执行单元——MTE2 蓝（搬入）、MTE1 绿（L1 喂 L0）、MTE3 橙（搬出）、FixPipe 紫（收结果）；Cube/Vector 两个计算单元吃什么、吐到哪，一眼看清。*
+
 注意到没有——**L1 是 Cube 的「粮仓」**，矩阵数据先经 MTE2 进 L1，再经 MTE1 进 L0A/L0B 喂 Cube。所以一个矩阵算子效率高不高，往往看 L1 利用率，而不只看 GM 带宽。
+
+![AI Core 存储层级图：寄存器、L0、L1、UB、L2、GM 自上而下容量增大带宽降低，右侧标注 Cube 与 Vector 两条使用路径（memory hierarchy: register, L0, L1, UB, L2, GM with capacity/bandwidth/latency tradeoffs）](../figures/ch08-memory-hierarchy.svg)
+
+*图 8-1 存储层级金字塔：上方这张图值得背下来——每一层「谁在用、由谁服务」对应表 8-1 的每一行；对齐纪律的物理根源在 L2 的 Cache Line 加载。*
 
 这里有个关键设计：**所有经搬运单元读写 GM 的数据都缺省被 L2Cache 缓存**，按 Cache Line 加载，Cache Line 大小视硬件规格（128/256/512 Byte 不等）[^memlay]。这解释了为什么「对齐」如此重要——如果数据没对齐到 Cache Line，一次加载可能多搬半条线，白耗带宽。
 

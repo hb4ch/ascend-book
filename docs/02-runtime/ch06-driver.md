@@ -50,6 +50,10 @@ Driver* DriverFactory::GetDriver(const driverType_t type);
 
 **边界一句话：用户态 runtime 通过 `/dev/davinci*` 设备文件，把请求交给内核态 `ascend_km` 驱动**。内核源码不在本开源仓范围，所以第6章我们只能看**边界与 API**（这正是骨架里标注的「按分层+边界+API 级写作」的原因）。
 
+![用户态内核态驱动分层边界图：应用层、CANN Runtime、驱动适配层到 ascend_km 内核模块与 NPU 硬件的四层结构（user/kernel driver boundary: app, CANN runtime, HAL adapter, ascend_km, hardware）](../figures/ch06-driver-boundary.svg)
+
+*图 6-1 驱动分层边界：绿色区是本章能看透的用户态，蓝色区只写「护照面」；右栏标注了写作边界、跨进程约束与仿真路径三个边界注记。*
+
 在用户态这一侧，runtime 用一个**驱动适配层**把「不同代际芯片」的差异屏蔽掉：`driver/v100`、`driver/v200` 版本目录管多代际；`config/` 目录管芯片特性配置；`ascend_hal.h` 是**统一的 HAL 驱动调用入口**[^deploy]。所以上层的 `core/` 根本不用管底下是 910 还是 950——这又是「接口统一、差异藏在实现里」。
 
 ## 6.3 地址空间与内存映射模型

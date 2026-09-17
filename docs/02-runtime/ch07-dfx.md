@@ -26,6 +26,10 @@ status: 已成稿（M2，第二编）
 **慢→查 msprof；数据错→查 adump；经过不明→查 log；报错码→查 error_manager；调用链→查 trace。** 先分清楚这五件事，再动手，能省一半时间。
 :::
 
+![DFX 排障地图：从「慢还是错」分流到 msprof/trace 与 adump/msSanitizer，log 与 error_manager 作公共底座，底部为性能画像与精度迭代两个循环（DFX triage map: slow vs wrong branches, shared log/error_manager base, two iteration loops）](../figures/ch07-dfx-map.svg)
+
+*图 7-1 DFX 排障地图：排障先定「哪种问题」再选模块；两个循环是 7.8 节标准流程的图形版。*
+
 ## 7.2 msprof：原理（采样打点/时间戳同步/Metric）与实战
 
 `msprof/` 是性能画像的主力，它的 `collector/` 下有 `basic / avp / dvvp` 等采集器[^dfxroot]。它靠三样东西工作[^msprof]：

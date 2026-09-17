@@ -173,3 +173,16 @@
 - 口径说明（如实记录）：3.0k 中文未达 §4 核心章 8k 目标下限；机制骨架已完整（范式/同步/Tensor/搬运四块闭合），深度扩写留给第 14 章端到端实战（RegTensor 寄存器计算、高维切分搬运实操在彼处随案例展开），质量优先不注水。
 - appD 第10章来源同步 10 条路径。**校验**：`npm run verify` 全绿；HTML 抽查 4 表格 + 4 Mermaid + 9 脚注渲染正常。
 - 全书进度：59.6k 总字 / 47.3k 中文。下一章：第11章 SIMD/SIMT 与高级特性。
+
+## M3 图表补强轮：第 4–8 章 SVG 大图补齐（6 张）
+
+- **图表审计**：ch1–3 图况尚可（3/5/3 张 Mermaid）；ch4–5 偏少（2/2）；ch6/ch7/ch8 **零图**——而 ch8（存储层级/搬运单元/N-DMA）是全书最依赖视觉的章节。
+- **新增 6 张手写 SVG**（`docs/figures/`，统一配色：用户态绿/内核态蓝/硬件橙/同步紫，中文字体栈），全部带中英文 alt + 图注 + 正文解释：
+  - 图 4-1 `ch04-acl-resource-map.svg`：ACL 柜台资源地图（会话→四件套→内存→三种 Launch→同步，右栏错误码去处）；
+  - 图 5-1 `ch05-runtime-map.svg`：runtime 四角色组织 + 数据面 SQE/控制面 CtrlSQ 双通道 + aicpu_sched/tprt 辅助区；
+  - 图 6-1 `ch06-driver-boundary.svg`：用户态/内核态四层边界（含 /dev/davinci* 边界线、内核源码不在开源仓注记、跨进程/仿真右栏）；
+  - 图 7-1 `ch07-dfx-map.svg`：「慢/错」排障分流 + 五模块分工 + 性能画像/精度迭代双循环；
+  - 图 8-1 `ch08-memory-hierarchy.svg`：存储层级六层金字塔（Reg→L0→L1→UB→L2→GM，容量/带宽/延迟三轴 + Cube/Vector 两路径注记）；
+  - 图 8-2 `ch08-mte-units.svg`：MTE1/MTE2/MTE3/FixPipe 搬运单元数据流（线色即单元，Cube/Vector 计算单元 inout 一眼看清）。
+- STYLEGUIDE §6 增补：分层/架构/数据流类大图可用手写 SVG（docs/figures/，统一配色规范），Mermaid 仍为流程/时序默认。
+- **校验**：`npm run verify` 全绿；构建产物确认 6 张 SVG 全部打包进 dist/assets 并被对应章 HTML 引用。
