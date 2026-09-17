@@ -57,7 +57,9 @@ __simd_vf__ inline void simd_adds(
 
 ![SIMT 硬件三件套与线程执行模型图：Warp Scheduler 发射指令并掩蔽不活跃线程，DCache 承接 GM 离散读，128KB Register File 存放线程私有寄存器与独立 PC，右侧附 CUDA 到 SIMT 的概念平移表（SIMT hardware anatomy: warp scheduler, dcache, 128KB register file, with CUDA migration cheat sheet）](../figures/ch11-simt-hardware.svg)
 
-*图 11-1 SIMT 硬件三件套与线程执行模型：右栏对照表是本章核心交付之一——CUDA 老手按图索骥即可平移；底部红线是架构边界：三件套均为 950 新增。*编程面上它刻意向 CUDA 看齐——`blockIdx`/`threadIdx`/`blockDim`/`gridDim` 内置变量同名同义，`dim3` 三维网格结构、`__launch_bounds__`（编译期声明线程数上限）、`__maxnreg__`（寄存器配额）也都对得上[^simtkw]：
+*图 11-1 SIMT 硬件三件套与线程执行模型：右栏对照表是本章核心交付之一——CUDA 老手按图索骥即可平移；底部红线是架构边界：三件套均为 950 新增。*
+
+编程面上它刻意向 CUDA 看齐——`blockIdx`/`threadIdx`/`blockDim`/`gridDim` 内置变量同名同义，`dim3` 三维网格结构、`__launch_bounds__`（编译期声明线程数上限）、`__maxnreg__`（寄存器配额）也都对得上[^simtkw]：
 
 ```cpp
 // [需真机验证] 摘自 asc-devkit/examples/03_simt_api/00_introduction/

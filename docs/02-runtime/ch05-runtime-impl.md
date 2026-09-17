@@ -210,7 +210,7 @@ sequenceDiagram
 
 ## 本章来源与进一步阅读
 
-[^rtroot]: runtime 分区与源码布局：`runtime/src/runtime/{api,core,driver}/`、`runtime/src/queue_schedule/`、`runtime/src/tsd/`、`runtime/src/aicpu_sched/`、`runtime/src/tprt/`（目录即分区语）。
+[^rtroot]: runtime 分区与源码布局：`runtime/src/runtime/{api,core,driver}/`、`runtime/src/queue_schedule/`、`runtime/src/tsd/`、`runtime/src/aicpu_sched/`、`runtime/src/tprt/`（目录即分区地图）。
 [^sqe]: 任务到 SQE 的分发表与统一入口：`runtime/src/runtime/core/src/task/task_to_sqe.cc`（`g_BufToFunc[MAX_TASK][RT_TASK_TYPE_MAX]`、`ConstructSqeByTaskInput`、三种 `Construct*Sqe`）；`rtTaskBuffType_t`/`rtTaskType_t` 枚举见 `runtime/pkg_inc/runtime/rt_external_preload.h`（HWTS_STATIC_TASK_DESC=0 / DYNAMIC=1 / PARAM=2，RT_TASK_TYPE_KERNEL_NANO_AICORE=2 / AICPU_HOSTFUNC=3）。
 [^sqe2]: Static/Dynamic/Param 三种 SQE 字段：`rtStaticSqe_t`（type/pre_p/post_p/dump/cond_s/kernelCredit/taskParamOffset）与 `rtDynamicSqe_t`（vld/codeSize/dynTaskDescSize/blockDim/taskPcOffset）及 param 缓冲（prefetchSqe/preLoadSqe）：`runtime/pkg_inc/runtime/rt_external_preload.h`、`runtime/src/runtime/core/src/task/task_to_sqe.cc`。
 [^sfac]: 流工厂薄封装：`runtime/src/runtime/core/src/stream/stream_factory.cc`（`CreateStream` 转发 `CreateStreamAndGet`）与 `stream_factory.hpp`。

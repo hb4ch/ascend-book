@@ -1,6 +1,6 @@
 ---
 title: 第三编 · 算子开发：Ascend C
-description: AP测选择、核心编程、SIMD/SIMT、编译工具链、算子库、端到端实战
+description: 编程模型与 API 选择、核心编程、SIMD/SIMT、编译工具链、算子库、端到端实战
 ---
 
 # 第三编 算子开发：Ascend C

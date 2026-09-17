@@ -130,7 +130,7 @@ aclrtMemset(devPtr, maxCount, 0, count); // 按字节清零
 
 ## 4.4 三种 Launch：点菜、下厨、老菜单
 
-第1章 1.3.1 我们见过 `aclnn` 和 `<<<>>>` 两种「下单姿势」。现在给全三种，并讲清楚记清楚[^launch3]：
+第1章 1.3.1 我们见过 `aclnn` 和 `<<<>>>` 两种「下单姿势」。现在补上第三种，把三种的区别讲清楚[^launch3]：
 
 | 维度 | ① `aclnn...` 算子库两层式 | ② `<<<>>>`（`aclrtLaunchKernel`，V3） | ③ 老式 `rtKernelLaunch` |
 |---|---|---|---|

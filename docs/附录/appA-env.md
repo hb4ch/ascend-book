@@ -11,7 +11,7 @@ description: 从零搭建昇腾开发/验证环境
 
 - NPU：Atlas 800T A2 / 800I A3 / 900 A5 等，或对应 950 系列。
 - 主机：x86_64 或 aarch64 Linux（Ubuntu 22.04/CentOS 7.6+），内核 5.10+。
-- 推荐先在一张卡/一块驱动可装载的机器上开始。Driver + Toolkit 版本必须匹配。
+- 建议先在一台单卡、驱动能正常装载的机器上上手。Driver + Toolkit 版本必须匹配。
 
 ## A.2 安装步骤
 
@@ -42,7 +42,7 @@ docker run --device /dev/davinci0 --device /dev/davinci_manager \
 
 各仓 README 提供 `build.sh` 与依赖脚本：
 - `runtime/install_deps.sh` + `runtime/build.sh`（含 UT：`pytest`/预冒烟）。
-- `asc-devkit/build.sh`（cmake 构建，可进行 CPU 静态核对个算子工程）。
+- `asc-devkit/build.sh`（cmake 构建，可在 CPU 上静态核对单个算子工程）。
 - `pto-isa/setup.py` / `pyproject.toml`：`pip install -e .` 后会带 CPU-Simulator 与工具链。
 - `pypto/setup.py`：`pip install -e .`，需要依赖 `pto-isa` 与 llvm 工具链。
 - `hcomm/build.sh`、`hixl/build.sh`、ops 系列 `build.sh`。
@@ -52,7 +52,7 @@ docker run --device /dev/davinci0 --device /dev/davinci_manager \
 
 - CANN 官方 NPU-Simulator（需 Toolkit 配套）：昇腾社区版。
 - `pto-isa` 自带 CPU-Simulator：见第20章/`pto-isa/docs/getting-started_zh.md`。
-- `asc-devkit` 程序可通过 simulator 编译执行（`[可用 CPU-SIM 运行]` 需要一个真实安装的 AscendC Toolkit 本身，因此本机直接标 `[需真机验证]`）。
+- `asc-devkit` 程序可通过 simulator 编译执行（`[可用 CPU-SIM 运行]` 的前提是本机真实安装了 AscendC Toolkit，因此这部分在本机直接标 `[需真机验证]`）。
 
 ## A.6 验证任一算子端到端
 

@@ -77,4 +77,4 @@ npm run verify          # 构建+站内链接+源码+术语+字数 一键执行
 
 ## 许可证
 
-本书基于 CANN Open Open 系列开源仓（CANN Open Software License Version 2.0）与 related 社区文档写作。书中复用的官方图均标注源文件路径与许可证；正文、自绘图与代码阐释部分版权归本书作者，遵循对应开源许可合规要求传播。
+本书基于 CANN Open 系列开源仓（CANN Open Software License Version 2.0）与相关社区文档写作。书中复用的官方图均标注源文件路径与许可证；正文、自绘图与代码阐释部分版权归本书作者，遵循对应开源许可合规要求传播。
