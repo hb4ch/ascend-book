@@ -9,10 +9,10 @@
     </linearGradient>
   </defs>
   <text x="450" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">AI Core 存储层级：从「小而快」到「大而慢」（第8章）</text>
-  <text x="450" y="46" text-anchor="middle" font-size="11" fill="#6b7280">越往上离算力越近：容量越小、带宽越高、延迟越低；每层都由不同的搬运单元服务（见图 8-2）</text>
+  <text x="450" y="46" text-anchor="middle" font-size="11" fill="#6b7280">越往上离算力越近：容量越小、带宽越高、延迟越低；GM↔片上各层的存取由专门搬运单元负责（寄存器除外，见图 8-2）</text>
 
   <!-- 左轴注记 -->
-  <path d="M120 560 L120 90" stroke="#2f9e63" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M120 520 L120 90" stroke="#2f9e63" stroke-width="2" marker-end="url(#arr)"/>
   <text x="100" y="330" font-size="12.5" font-weight="bold" fill="#2f9e63" transform="rotate(-90 100 330)">离算力越近：带宽 ↑ · 延迟 ↓ · 容量 ↓</text>
 
   <!-- 层级条 -->
@@ -31,7 +31,7 @@
 
     <rect x="240" y="298" width="420" height="66" rx="10" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.6"/>
     <text x="450" y="324" text-anchor="middle" font-weight="bold" font-size="13">UB（Unified Buffer）—— Vector 的主场</text>
-    <text x="450" y="344" text-anchor="middle" font-size="11" fill="#495057">矢量计算输入/输出分片；Tpipe/TQue 的 AllocTensor 就在这里（第10章）</text>
+    <text x="450" y="344" text-anchor="middle" font-size="11" fill="#495057">矢量计算输入/输出分片；TPipe/TQue 的 AllocTensor 就在这里（第10章）</text>
 
     <rect x="210" y="374" width="480" height="66" rx="10" fill="#fff7e6" stroke="#e8930c" stroke-width="1.6"/>
     <text x="450" y="400" text-anchor="middle" font-weight="bold" font-size="13">L2 Cache —— GM 的缺省缓存</text>
@@ -45,7 +45,7 @@
   <!-- 两条使用路径注记 -->
   <rect x="700" y="146" width="176" height="130" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.3"/>
   <text x="788" y="170" text-anchor="middle" font-size="12" font-weight="bold">Cube 路径（8.1）</text>
-  <text x="788" y="192" text-anchor="middle" font-size="10.5">GM →L1 →L0A/B → Cube</text>
+  <text x="788" y="192" text-anchor="middle" font-size="10.5">GM → L1 → L0A/B → Cube</text>
   <text x="788" y="210" text-anchor="middle" font-size="10.5">→ L0C → FixPipe → GM</text>
   <text x="788" y="228" text-anchor="middle" font-size="10.5">效率先看 L1 利用率，</text>
   <text x="788" y="246" text-anchor="middle" font-size="10.5">不只看 GM 带宽</text>
@@ -58,6 +58,6 @@
 
   <!-- 底部提醒 -->
   <rect x="180" y="540" width="540" height="56" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="1.4"/>
-  <text x="450" y="562" text-anchor="middle" font-size="12" font-weight="bold" fill="#c92a2a">对齐是本层级的头号纪律：数据对齐到 Cache Line（32B 起步）</text>
+  <text x="450" y="562" text-anchor="middle" font-size="12" font-weight="bold" fill="#c92a2a">对齐是本层级的头号纪律：数据对齐到 32B / Cache Line（128/256/512B）</text>
   <text x="450" y="582" text-anchor="middle" font-size="11" fill="#495057">没对齐 = 一次加载多搬半条线，白耗带宽（8.3 带宽利用三件事之一）</text>
 </svg>

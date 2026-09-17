@@ -15,7 +15,7 @@
     <text x="380" y="126" text-anchor="middle" font-weight="bold">应用层：AI 框架（PyTorch/MindSpore）· 算子库 · HCCL 通信库</text>
     <text x="380" y="146" text-anchor="middle" font-size="11" fill="#495057">aclnn / ACL 程序（第4章）</text>
     <rect x="90" y="172" width="580" height="52" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
-    <text x="380" y="194" text-anchor="middle" font-weight="bold">CANN Runtime（用户态动态库）：libacl_rt.so · libruntime.so(.so 版本变体)</text>
+    <text x="380" y="194" text-anchor="middle" font-weight="bold">CANN Runtime（用户态动态库）：libacl_rt.so · libruntime.so / libruntime_v100.so</text>
     <text x="380" y="214" text-anchor="middle" font-size="11" fill="#495057">翻译 / 排队 / 管资源 —— 第5章的 api/ + core/ + queue_schedule/</text>
     <rect x="90" y="240" width="580" height="52" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
     <text x="380" y="262" text-anchor="middle" font-weight="bold">驱动适配层（差异屏蔽）：driver/v100 · driver/v200 · config/ 芯片特性配置</text>
@@ -40,16 +40,16 @@
 
   <!-- 硬件 -->
   <rect x="60" y="494" width="640" height="48" rx="12" fill="#fdf0e5" stroke="#e8590c" stroke-width="2"/>
-  <text x="380" y="524" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">Ascend NPU 硬件：AI Core · AI CPU · CCU（910 / 310P / 950 / A2 / A3）</text>
+  <text x="380" y="524" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1f2937">Ascend NPU 硬件：AI Core · AI CPU · CCU（910 / 310P / 950）</text>
   <line x1="380" y1="478" x2="380" y2="494" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
 
   <!-- 右侧注记 -->
   <g font-size="11.5" fill="#1f2937">
     <rect x="726" y="104" width="158" height="96" rx="8" fill="#fceff1" stroke="#c92a2a" stroke-width="1.3"/>
-    <text x="805" y="126" text-anchor="middle" font-weight="bold" fill="#c92a2a">写作边界（§8）</text>
+    <text x="805" y="126" text-anchor="middle" font-weight="bold" fill="#c92a2a">写作边界</text>
     <text x="805" y="146" text-anchor="middle" font-size="10.5">内核驱动源码不在开源仓</text>
     <text x="805" y="164" text-anchor="middle" font-size="10.5">本章按「分层+边界+API」</text>
-    <text x="805" y="182" text-anchor="middle" font-size="10.5">级写作，仿真结论需真机</text>
+    <text x="805" y="182" text-anchor="middle" font-size="10.5">级写作（STYLEGUIDE §8）</text>
     <rect x="726" y="220" width="158" height="96" rx="8" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.3"/>
     <text x="805" y="242" text-anchor="middle" font-weight="bold">跨进程约束（6.6）</text>
     <text x="805" y="262" text-anchor="middle" font-size="10.5">进程间默认隔离</text>

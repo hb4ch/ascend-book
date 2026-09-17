@@ -8,7 +8,7 @@
     </marker>
   </defs>
   <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">runtime 模块组织：前台 → 厨房 → 传菜 → 片侧（第5章）</text>
-  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">实线 = 数据面（SQE 订单流）；虚线 = 控制面（CtrlSQ：查询 / 取消 / 资源增删）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">实线 = 数据面（SQE 订单流）；紫色虚线 = 控制面（CtrlSQ：清流 / 回收 / 模型绑定·加载 / 复位）</text>
 
   <!-- 数据面主链 -->
   <g font-size="12" fill="#1f2937">
@@ -52,10 +52,10 @@
 
   <!-- 控制面 -->
   <rect x="40" y="320" width="860" height="64" rx="10" fill="#f8f0fc" stroke="#9c36b5" stroke-width="1.5" stroke-dasharray="7 4"/>
-  <text x="470" y="346" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#862e9c">控制面 CtrlSQ（5.7）：ctrl_sq.cc —— 查询进度 / 取消任务 / 流与事件等资源的建、删、改</text>
+  <text x="470" y="346" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#862e9c">控制面 CtrlSQ（5.7）：ctrl_sq.cc —— 清流 / 回收 / 模型绑定·加载 / 复位 / Dump / 调试注册</text>
   <text x="470" y="368" text-anchor="middle" font-size="11" fill="#862e9c">与数据面各占一条道：普通订单走 SQ，管理指令走 CtrlSQ，互不阻塞</text>
-  <path d="M125 186 L125 320" stroke="#9c36b5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrb)"/>
-  <path d="M830 286 L830 320" stroke="#9c36b5" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#arrb)"/>
+  <path d="M125 186 L125 320" stroke="#9c36b5" stroke-width="1.8" stroke-dasharray="6 4" fill="none" marker-end="url(#arrb)"/>
+  <path d="M830 286 L830 320" stroke="#9c36b5" stroke-width="1.8" stroke-dasharray="6 4" fill="none" marker-end="url(#arrb)"/>
 
   <!-- 两个辅助区 -->
   <g font-size="12" fill="#1f2937">
@@ -64,9 +64,10 @@
     <text x="415" y="464" text-anchor="middle" font-size="11" fill="#495057">算子逃逸到 AI CPU 执行时的调度通道（第11章）</text>
     <rect x="610" y="420" width="290" height="60" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
     <text x="755" y="444" text-anchor="middle" font-weight="bold">tprt/ · 传输运行层（5.1.1）</text>
-    <text x="755" y="464" text-anchor="middle" font-size="11" fill="#495057">跨设备数据搬运的底层通道（第8章零拷贝 / 第18章）</text>
+    <text x="755" y="464" text-anchor="middle" font-size="11" fill="#495057">跨设备传输的平台抽象，供上层 core/ 调用（第8章零拷贝 / 第18章）</text>
   </g>
-  <path d="M365 186 L365 420" stroke="#adb5bd" stroke-width="1.4" stroke-dasharray="4 3"/>
-  <path d="M610 186 C560 260 640 340 755 420" stroke="#adb5bd" stroke-width="1.4" stroke-dasharray="4 3" fill="none"/>
+  <path d="M365 186 L365 318" stroke="#adb5bd" stroke-width="1.4" fill="none"/>
+  <path d="M365 386 L365 420" stroke="#adb5bd" stroke-width="1.4" fill="none"/>
+  <path d="M430 186 C500 250 600 340 700 420" stroke="#adb5bd" stroke-width="1.4" fill="none"/>
   <text x="70" y="500" font-size="11" fill="#6b7280">八个大步里只有最后两步在「真算」——其余都是翻译、排队、派发（5.8 完整路径）。</text>
 </svg>

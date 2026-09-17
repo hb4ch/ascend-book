@@ -186,3 +186,16 @@
   - 图 8-2 `ch08-mte-units.svg`：MTE1/MTE2/MTE3/FixPipe 搬运单元数据流（线色即单元，Cube/Vector 计算单元 inout 一眼看清）。
 - STYLEGUIDE §6 增补：分层/架构/数据流类大图可用手写 SVG（docs/figures/，统一配色规范），Mermaid 仍为流程/时序默认。
 - **校验**：`npm run verify` 全绿；构建产物确认 6 张 SVG 全部打包进 dist/assets 并被对应章 HTML 引用。
+
+## SVG 图表修复轮（subagent review 产出，22 处问题全数闭环）
+
+- **评审方式**：reviewer 子代理对 6 张 SVG 逐行审查（文字溢出估算、贝塞尔碰撞求值、与 5 个章节源文对语义），产出 22 处缺陷（2 BLOCKER / 6 MAJOR / 14 MINOR）。
+- **误报澄清**：reviewer 报告的 ch05「BLOCKER：<path> 粘进 <text>」经 XML 校验为误读（文件完好）；真实修复以校验为准。
+- **修复清单**：
+  - ch04：4 条纵向箭头延伸至目标框缘（原悬空 26px）；右栏旋转文字与底条对位；同步行拆两行补 aclrtRecordEvent/aclrtWaitEvent 全名；
+  - ch05：核心→aicpu_sched 与 queue→tprt 连线改为分段绕开控制面框（原横穿标题文字）；tprt 连线改由 core/ 引出（对齐 5.1.1）；CtrlSQ 职责措辞对齐 5.7（清流/回收/模型绑定·加载/复位/Dump/调试注册）；灰色辅助连线改实线消除与控制面虚线的歧义；
+  - ch06：硬件行型号收窄为本章表格口径（910/310P/950）；库列表修正；§8 归属明确为 STYLEGUIDE §8；
+  - ch07：msprof 行缩文消溢出；「慢/错」分支标签移至无碰撞角落；trace 行缩文；补两条循环框↔公共底座连线；
+  - ch08 层级图：底部标语区分 32B 对齐与 Cache Line（128/256/512B）两个概念（原混淆）；TPipe 拼写；轴箭头起点贴 GM 框；副标题不再声称寄存器层有搬运单元服务；
+  - ch08 搬运单元图：MTE2 分形曲线改道绕开 L1 框与其文字（BLOCKER）；MTE1/MTE2 箭头落点分离；删除重复的 MTE3 死头虚线、补 L1→GM 曲线（对齐图例）；UB→Vector 箭头改灰色中性 marker（原误用 MTE1 绿色）；MTE2/FixPipe/分形三处标签移出箭头路径；Cube 框「仅 SIMD 模型」改「本图按 SIMD 模型绘制」。
+- **校验**：6 张 SVG XML 全部通过；`grep '<text...>d="M'` 零命中；构建产物 6 张 SVG 正常打包。

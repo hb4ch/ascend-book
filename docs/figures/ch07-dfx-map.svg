@@ -12,18 +12,18 @@
   <text x="460" y="92" text-anchor="middle" font-size="14" font-weight="bold" fill="#111827">排障第一问：哪种问题？</text>
   <path d="M400 110 C330 150 260 170 205 200" stroke="#495057" stroke-width="2" fill="none" marker-end="url(#arr)"/>
   <path d="M520 110 C590 150 660 170 715 200" stroke="#495057" stroke-width="2" fill="none" marker-end="url(#arr)"/>
-  <text x="270" y="162" font-size="13" font-weight="bold" fill="#e8930c">「慢」＝性能问题</text>
-  <text x="612" y="162" font-size="13" font-weight="bold" fill="#c92a2a">「错」＝精度 / 异常</text>
+  <text x="66" y="182" font-size="13" font-weight="bold" fill="#e8930c">「慢」＝性能问题</text>
+  <text x="854" y="182" text-anchor="end" font-size="13" font-weight="bold" fill="#c92a2a">「错」＝精度 / 异常</text>
 
   <!-- 左分支：慢 -->
   <g font-size="12" fill="#1f2937">
     <rect x="60" y="204" width="290" height="84" rx="10" fill="#fff7e6" stroke="#e8930c" stroke-width="1.6"/>
     <text x="205" y="228" text-anchor="middle" font-weight="bold" font-size="13">msprof/（7.2）量性能</text>
     <text x="205" y="248" text-anchor="middle" font-size="11" fill="#495057">采样打点 · 时间戳同步 · Metric 采集</text>
-    <text x="205" y="266" text-anchor="middle" font-size="11" fill="#495057">op_summary / timeline：分清 Host 调度费 vs Kernel 执行费</text>
+    <text x="205" y="266" text-anchor="middle" font-size="11" fill="#495057">op_summary / timeline：分清 Host 调度 vs Kernel 执行</text>
     <rect x="60" y="304" width="290" height="62" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
     <text x="205" y="326" text-anchor="middle" font-weight="bold">trace/（7.5）看调用链</text>
-    <text x="205" y="344" text-anchor="middle" font-size="11" fill="#495057">atrace / awatchdog / cpu_detect：调用怎么串、耗时在哪段</text>
+    <text x="205" y="344" text-anchor="middle" font-size="11" fill="#495057">atrace / awatchdog / cpu_detect：调用链与耗时</text>
   </g>
   <line x1="205" y1="288" x2="205" y2="304" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
 
@@ -45,7 +45,8 @@
   <text x="460" y="438" text-anchor="middle" font-size="11" fill="#495057">分级日志（liblog/syslog/python 侧）；错误码登记与解释：107xxx runtime 域 · 145xxx GE 域</text>
   <line x1="205" y1="366" x2="260" y2="392" stroke="#495057" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arr)"/>
   <line x1="715" y1="366" x2="660" y2="392" stroke="#495057" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arr)"/>
-
+  <line x1="255" y1="458" x2="255" y2="480" stroke="#495057" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <line x1="665" y1="458" x2="665" y2="480" stroke="#495057" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#arr)"/>
   <!-- 两个循环 -->
   <g font-size="12" fill="#1f2937">
     <rect x="60" y="480" width="390" height="86" rx="10" fill="#fff7e6" stroke="#e8930c" stroke-width="1.6"/>

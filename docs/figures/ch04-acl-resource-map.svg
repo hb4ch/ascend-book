@@ -17,7 +17,7 @@
   <line x1="450" y1="98" x2="450" y2="118" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- 四件套 -->
-  <line x1="450" y1="152" x2="450" y2="172" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="152" x2="450" y2="196" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
   <text x="70" y="192" font-size="12.5" font-weight="bold" fill="#2f9e63">四件套句柄（4.2）</text>
   <g font-size="12" fill="#1f2937">
     <rect x="70"  y="200" width="180" height="52" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
@@ -33,7 +33,7 @@
     <text x="760" y="222" text-anchor="middle" font-weight="bold">事件 Event</text>
     <text x="760" y="240" text-anchor="middle" font-size="11" fill="#495057">精细对齐用</text>
   </g>
-  <line x1="450" y1="252" x2="450" y2="278" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="252" x2="450" y2="300" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- 内存 -->
   <text x="70" y="296" font-size="12.5" font-weight="bold" fill="#2f9e63">内存（4.3）</text>
@@ -43,7 +43,7 @@
   <rect x="470" y="304" width="380" height="56" rx="8" fill="#fff7e6" stroke="#e8930c" stroke-width="1.5"/>
   <text x="660" y="326" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">搬运：aclrtMemcpy</text>
   <text x="660" y="346" text-anchor="middle" font-size="11" fill="#495057">H2D 搬入 · D2H 搬回（同步语义，读前先同步）</text>
-  <line x1="450" y1="360" x2="450" y2="386" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="360" x2="450" y2="408" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- 三种 Launch -->
   <text x="70" y="404" font-size="12.5" font-weight="bold" fill="#2f9e63">下单 Launch（4.4）</text>
@@ -61,15 +61,15 @@
     <text x="735" y="452" text-anchor="middle" font-size="11" fill="#495057">老工具链工程追溯</text>
     <text x="735" y="466" text-anchor="middle" font-size="11" fill="#e8590c">新代码不推荐</text>
   </g>
-  <line x1="450" y1="472" x2="450" y2="498" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="472" x2="450" y2="520" stroke="#495057" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- 同步 -->
   <text x="70" y="516" font-size="12.5" font-weight="bold" fill="#2f9e63">验收（4.5）</text>
   <rect x="70" y="524" width="780" height="48" rx="8" fill="#f3e8fd" stroke="#9c36b5" stroke-width="1.5"/>
-  <text x="460" y="544" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">同步原语：aclrtSynchronizeStream（等全流）· aclrtSynchronizeDevice（等全场，重）· RecordEvent / WaitEvent（等点位）</text>
-  <text x="460" y="562" text-anchor="middle" font-size="11" fill="#495057">默认异步：下单即走、事后回执；读结果前必须自己画同步</text>
+  <text x="460" y="544" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">同步原语：aclrtSynchronizeStream（等全流）· aclrtSynchronizeDevice（等全场，重）</text>
+  <text x="460" y="562" text-anchor="middle" font-size="11" fill="#495057">细粒度用 aclrtRecordEvent / aclrtWaitEvent（等点位）；默认异步：下单即走、事后回执，读结果前必须自己画同步</text>
 
   <!-- 右侧错误码栏 -->
-  <rect x="866" y="62" width="20" height="510" rx="6" fill="#fceff1" stroke="#c92a2a" stroke-width="1" transform="translate(-6,0)"/>
-  <text x="876" y="320" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#c92a2a" transform="rotate(90 876 320)">出错找谁（4.6）：107xxx runtime 域 · 145xxx GE 域 · error_manager 译码 → 详见第7章</text>
+  <rect x="860" y="62" width="20" height="510" rx="6" fill="#fceff1" stroke="#c92a2a" stroke-width="1"/>
+  <text x="870" y="320" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#c92a2a" transform="rotate(90 870 320)">出错找谁（4.6）：107xxx runtime 域 · 145xxx GE 域 · error_manager 译码 → 详见第7章</text>
 </svg>
