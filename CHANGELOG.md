@@ -153,3 +153,13 @@
 - **根因**：`mermaid@11` 的 ESM 构建在 Vite dev 下与 CJS 包 `fastdom` 互操作失败（`does not provide an export named 'default'`），JS 运行时异常导致整页不渲染。
 - **修复**：mermaid 降级锁 `^10.9.8`（插件的 peer 声明支持 10||11），并清空 `docs/.vitepress/cache` 与 `node_modules/.vite` 重新预构建。已验证：首页与三章正常渲染、Mermaid svg 正常生成、无 JS 报错。
 - `check:links`（markdown-link-check）只审绝对 URL；相对链接由 `check:internal` 全量覆盖（两者分工）。验证时发现官网旧 meetup 链接 404，已在附录C 修正。
+
+## M3 启动：PLAN-PART3 定稿 + 第9章 编程模型与 API 选择 成稿（0.3k → 4.4k 总字 / 中文 3.4k）
+
+- **PLAN-PART3.md**（M3 六章成稿方案）定稿：总纪律五条（含锚点≤5、运行性从严、950/SIMT 架构差异显式标注）、六章骨架与锚点文件、执行顺序 9→10→11→12→13→14、风险边界四条。
+- **第9章成稿**，覆盖骨架 5 节：① API 分层总览（三层完备 Tpipe/Tque·基础API·语言扩展 C + 两层提效 高阶API·模板库，分层金字塔图）；② host/device 分工与 `<<<>>>` 启动（真码槽位：核数/动态UB大小/流；SIMT 为 CUDA 风格四槽）；③ SIMD/SIMT 并行模型与编程四步法（对照图）；④ Tiling=host 侧「分块账本」（按核/按UB/对齐三笔账，衔接 aclrtLaunchKernel tiling 参数与第5章 SQE Param）；⑤ PyAsc Python 前端定位；⑥ 选型决策树（改绘官方 asc_how_to_choose_api.md，标注本书后续章节入口）+ Tensor vs 指针两路 Add 真码对照。
+- 统一心智：**三层完备能力等价、差别只在「同步与内存归谁管」；host 管资源与 Tiling 账本、device 跑核函数、`<<<>>>` 是接头暗号**。
+- 图 4 张（分层金字塔、四步法对照、决策树、小结记忆图），码例 4 段（add_tpipe_tque.asc / gather_1d.asc / c_api_add.asc + `<<<>>>` 真码行），全部 `[需真机验证]` 分级。
+- 顺手修复：ch01/ch04 遗留「昇腾 C」→「Ascend C」（check:terms 归零）；appD 第9章来源同步 8 条路径。
+- **校验**：`npm run verify` 全绿（构建/站内链接/源码路径/术语/字数）；HTML 抽查 3 表格 + 4 Mermaid + 6 脚注渲染正常、无裸 `|`。
+- 全书进度：55.6k 总字 / 44.6k 中文。下一章：第10章 核心编程能力详解（本编最重，第8章预支的搬运 API 写法在此还债）。

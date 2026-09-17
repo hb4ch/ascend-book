@@ -256,7 +256,7 @@ CUDA 用户看到这三括号会心一笑——昇腾把它做成一样的形状
 3. **看官方示例，先问「它为什么这样写」，再闭眼抄。** 这个习惯从第1章就要养成（第8章展开 DCache 与一致性，第15章教你用 dump/msprof 抓这类问题）。
 :::
 
-到这里你会发现：`aclnnAdd` 和 `VectorAddKernel<<<>>>` 两个 Hello 长得不一样，骨架却一模一样——**初始化 → 选卡 → 开流 → 分配 → 拷入 → 下单 → 同步 → 拷回 → 清理**。这段九步骨架，就是你以后写任何昇腾 C 程序的模板；第2章的 Add 真码、第4章的完整剖析、第14章的算子工程，全都在给这九步填空。记住「九步骨架」四个字，以后看任何昇腾示例都不慌。
+到这里你会发现：`aclnnAdd` 和 `VectorAddKernel<<<>>>` 两个 Hello 长得不一样，骨架却一模一样——**初始化 → 选卡 → 开流 → 分配 → 拷入 → 下单 → 同步 → 拷回 → 清理**。这段九步骨架，就是你以后写任何Ascend C 程序的模板；第2章的 Add 真码、第4章的完整剖析、第14章的算子工程，全都在给这九步填空。记住「九步骨架」四个字，以后看任何昇腾示例都不慌。
 
 ## 1.4 AI Core：一间分工明确的厨房
 
@@ -460,5 +460,5 @@ flowchart TB
 [^err2]: 错误查询函数与「故意传错参数再读取」的演示：`runtime/example/0_quickstart/1_error_handling/main.cpp`（`aclrtGetErrorVerbose` / `aclrtPeekAtLastError` / `aclrtGetLastError`，88 行）。
 [^kern]: 自定义 kernel 三括号启动（内部走 `aclrtLaunchKernel`）与 3510 上 `dcci()` 回写背景：`runtime/example/0_quickstart/4_custom_kernel_launch/{main.cpp,vector_add_kernel.cpp,vector_add_kernel.h}`；三括号 `<<<>>>` 与 `aclrtLaunchKernel` 声明见 `runtime/include/external/acl/acl_rt.h`。
 [^asc]: 三拍子真码（CopyIn 用 `DataCopy`、计算用 `Add`、同步用 `PipeBarrier<PIPE_ALL>`）与 `<<<numBlocks,0,stream>>>` 启动：`asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/add/add.asc`（含 `aclrtMallocHost`/`VerifyResult` 完整闭环）。
-[^async]: 昇腾 C 接口的异步语义（`aclnnAdd` 立即返回、`aclrtSynchronizeStream`/`aclrtSynchronizeDevice` 负责等待）与「读数据前先同步」的实践提醒：`runtime/example/0_quickstart/0_hello_cann/main.cpp`、`runtime/docs/zh/api_ref/06_stream_management.md`。
+[^async]: Ascend C 接口的异步语义（`aclnnAdd` 立即返回、`aclrtSynchronizeStream`/`aclrtSynchronizeDevice` 负责等待）与「读数据前先同步」的实践提醒：`runtime/example/0_quickstart/0_hello_cann/main.cpp`、`runtime/docs/zh/api_ref/06_stream_management.md`。
 - 继续读：`runtime/example/0_quickstart/`（0~6 号样例族，第4章会用 4_custom_kernel_launch 做对照）；`asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/`（第2章三拍子实战、第3编会展开 API 层）；`ops-nn/examples/add_example/`（第2章会用到它的 Tiling 与 kernel 入口）。
