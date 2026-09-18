@@ -2,6 +2,14 @@
 
 《昇腾平台技术实战》里程碑日志。所有来源数据、决策与结论落此文件，可追溯。
 
+## M3-4 第12章 编译、工具链与部署 成稿（0.3k → 3.8k 总字 / 中文 2.9k）
+
+- **六节结构**：① 编译总流程（bisheng 三路异构：Host/Cube/Vector→Fatbin→可执行；SIMT 走 `--enable-simt` 支线且与 SIMD 头文件互斥；产物终点=第5章 binary_loader 调用侧）；② `--npu-arch`（dav-2201/dav-3510；**决策：骨架期登记的 dav-2002 检索不到，明示不采信**，架构号以官方对应表为准；2201→3510 迁移 CMake 真码；reserved-ubuf 选项跨架构语义差异）；③ 四种编译形态（全程序/`-dc` 单独编译+extern 纪律+LTO/动态库/静态库隐藏流程）+ ops-nn `custom_kernel.cmake` 真仓「目录即约定」组织；④ RTC 七接口流程（rtc_hello_world 真码、模板核函数 aclrtcAddNameExpr/GetLoweredName、aclrtcGetCompileLog）；⑤ NPU Simulator（bit 级精度+指令流水、npusim 更名时效标注、约束清单）+ 与 `--run-mode=sim` 两条仿真路径辨析；⑥ 部署（多算子包/交叉编译/加速/调试）+ 实用选项表（--cce-auto-sync 呼应第10章）。
+- **图 3 张**：SVG 1（异构编译流水线，核心记忆图，右接第5章 binary_loader）+ Mermaid 2（静态 vs RTC 双泳道 / 五分支编译形态选型树）。
+- **决策**：① BiSheng 源码不在开源仓，全书只写「文档+产物+用法」级（§8）；② ch12 字数 2.9k 中文低于 8k 目标——工具链章信息密度高、流程可图化，按「质量优先」口径如实登记；③ Simulator 约束多用表格不硬凑图。
+- **校验**：`npm run verify` 全绿；脚注配对、XML 校验、色板（#e8930c 清除）自审过。
+- 全书进度：68.6k 总字 / 53.8k 中文。M3 进度 4/6。下一章：第13章 算子库体系。
+
 ## M3-3 第11章 SIMD/SIMT 与高级特性 成稿（0.2k → 约4.3k 总字 / 中文约3.3k）
 
 - **六章结构**：① SIMD C API 接口分级（`_sync` 易用口 vs `mask/repeat` 自排程口，真码取自混合样例的 `simd_adds`）；② SIMT 编程模型（硬件三件套 DCache/Warp Scheduler/128KB RF + **CUDA 迁移对照表** 8 行 + AICPU 逃逸时机=Tiling 下沉）；③ 混合编程（`__simt_vf__`/`__simd_vf__`/`asc_vf_call` 三件套，gather_and_adds 全程精读，核心编排思想：**离散和规整的转换在数据进 UB 的那一刻完成**）；④ 同步进阶（PipeBarrier/DataSyncBarrier/Mutex 核内、CrossCore/SyncAll/IBSet 核间、SSBuffer 新地基）；⑤ RegBase（MemBase vs RegBase 对照表、GM 不能直灌寄存器硬约束、VF 融合性能来源、02_reg_vector_compute 20 例字典）——**还清第 10 章预支的 RegTensor/寄存器计算深度债**；⑥ 950 新特性四类分组导览 + 调试工具箱。
