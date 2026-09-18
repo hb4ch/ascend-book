@@ -80,10 +80,28 @@ Simulator 节用表格（约束多、无图必要）。
 
 **验收**：读者能把一个 `.asc` 沿静态/RTC 两条路走到能跑；`--npu-arch` 会选会查；没卡时知道用 Simulator；verify 绿。
 
-### 第13章 算子库体系（四仓横览）
-- **骨架**：为什么要算子库（复用/性能/覆盖）；ops-nn 结构与 aclnn 算子生成（衔接第 4 章 aclnnop）；ops-transformer（大模型算子族）；ops-sparse；算子库视角的选型——先用库、再改模板、最后手写。
-- **锚点**：`ops-nn/`（目录结构 + 一个典型算子全链）、`ops-transformer/`、`ops-sparse/`、`asc-devkit/docs/zh/guide/programming_guide/library_api/`。
-- **图**：算子库分层复用图（库→模板→手写）。
+### 第13章 算子库体系（M3-5 详细方案）
+
+**章节结构（骨架 6 节保持，重排重心）**
+1. **三仓定位与版图**：ops-nn（高阶 NN：matmul/activation/quant/index/loss/conv/pooling/rnn/optim/foreach…）/ ops-transformer（进阶：attention/moe/mc2/ffn/gmm/posembedding）/ ops-sparse（2026-05 上线：SpMM/SpMV，仅 CANN 9.0.0+）；三仓同构（build.sh/cmake/classify_rule.yaml/CONTRIBUTING/experimental）；**版本配套纪律**（配 release 标签，master 有风险）；「先用库→再改模板→最后手写」呼应第9章决策树
+2. **ops-nn 深看**：add_example 全链解剖（op_host def + op_kernel + config binary.json → 编译 → aclnn，衔接第4章两段式与第12章「目录即约定」）；量化矩阵（fp8/mxfp8/hifp8/mxfp4 × pertensor/perchannel/pertoken/pergroup/perblock，真例 quant_batch_matmul_v4）；SIMD/SIMT 同构算子（MapIndex/ScatterSub，衔接第11章）；ops-tensor 分层结构优化 Cube 类
+3. **ops-transformer：大模型算子族谱**：attention 族（flash_attn/quant_flash_attn/sparse_flash_mla/lightning_indexer…DSV4 场景）/ moe / **mc2 通算融合**（matmul_allto_all、engram_fetch，衔接第17章通信伏笔）；时效性纪律：A5 每月上新，写作时以 CHANGELOG 当期为准；onnx 算子插件（framework 目录）
+4. **ops-sparse 短节**：稀疏计算定位、SpMM/SpMV、与稀疏 4:2 量化 matmul 呼应
+5. **开发与贡献路径**：`build.sh --genop=examples/add_example` 工程创建、最小交付件（aicore_develop_guide）、QUICKSTART（Docker）、experimental→正式目录贡献流（CONTRIBUTING）、npusim 调试衔接第12章
+6. **二开方法论**：读一个库算子的标准动作清单（README→binary.json→tiling→kernel→调用侧）；torch_extension/NpuOpsTransformerExt 工程模板（PyTorch 张量操作+自动微分+GPU/NPU 统一接口）
+
+**配图方案（3 张）**
+| 图 | 类型 | 内容 |
+|---|---|---|
+| 图 13-1 三仓版图 + 典型算子解剖 | SVG | 核心：左半三仓定位地图（高阶/进阶/稀疏，各自覆盖域），右半一个典型算子的目录解剖（op_host/op_kernel/config → 编译 → aclnn API，双向衔接第4章 aclnn 与第12章构建系统） |
+| 图 13-2 算子获取决策树 | Mermaid | 查 ops-nn → transformer/sparse → experimental → 改模板 → 手写 → 贡献回去，闭环 |
+| 图 13-3 一个算子的完整交付链 | Mermaid | 源码目录 → binary.json → 编译(第12章) → 安装包 → aclnn 两段式调用(第4章) → torch_extension 可选 |
+
+**锚点（≤5）**：`ops-nn/README.md`、`ops-nn/docs/QUICKSTART.md`、`ops-transformer/README.md`、`ops-transformer/docs/zh/develop/aicore_develop_guide.md`、`ops-sparse/README.md`。其余（contributing、torch_extension、experimental、classify_rule.yaml、算子级 README）进脚注。
+
+**时效性纪律（§8）**：三仓上新极快（transformer 月更），正文只写结构性事实，算子清单给「截至写作时的族系+查证方法」，逐个算子不打包票；CHANGELOG 引用标注日期。
+
+**验收**：读者能按图索骥找到目标算子并跑通「编译→安装→aclnn 调用」；知道改动后往哪贡献；verify 绿。
 
 ### 第14章 经典算子实战（端到端收口章）
 - **骨架**：一条龙旅程——Add 全家族（入门→Tiling→双流水）；MatMul（Cube 路径、分形、L0C）；Softmax 高阶 API 复用；融合算子设计（衔接第 8 章零拷贝动机）；性能验收（衔接第 7 章 msprof、第 15 章预告）。
