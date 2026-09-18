@@ -5,6 +5,10 @@ description: 编程模型与 API 选择、核心编程、SIMD/SIMT、编译工�
 
 # 第三编 算子开发：Ascend C
 
+![第三编扉页插图：指令方块流按网格同步落入计算单元阵列，规整的并行节奏（part divider art: instruction blocks falling in sync onto a compute array）](../figures/art/part3-ascendc.png)
+
+*第三编 算子开发：Ascend C · 编扉页配图（AI 生成概念插图，非技术图）*
+
 对应全书目标 2（掌握算子实现与性能优化）。全书篇幅最大的一编，从 API 地图走到端到端算子实战。
 
 - [第9章 编程模型与 API 选择](./ch09-api-map.md)

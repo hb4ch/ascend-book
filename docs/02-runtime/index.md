@@ -5,6 +5,10 @@ description: ACL API、runtime 核心实现、驱动边界、DFX、内存与数�
 
 # 第二编 运行时、驱动与维测底层
 
+![第二编扉页插图：软件栈剖面中层层数据流沿管道逐层下传，抵达底部发光的芯片楼层（part divider art: software stack cross-section with data flowing down to a glowing chip floor）](../figures/art/part2-runtime.png)
+
+*第二编 运行时、驱动与维测底层 · 编扉页配图（AI 生成概念插图，非技术图）*
+
 对应全书目标 3（深入底层）。本编逐层翻开 `runtime` 仓：先给编程接口（ACL），再剖内部实现（模块划分、任务构建、队列调度、TSD 通信），而后界定用户态驱动与内核驱动的边界，最后落到维测（DFX）与内存/数据通路——后两者为算子性能编打基础。
 
 - [第4章 ACL 编程接口](./ch04-acl.md)

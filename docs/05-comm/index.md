@@ -5,6 +5,10 @@ description: HCCL 集合通信、HIXL 单边通信、通算融合与大规模系
 
 # 第五编 分布式通信
 
+![第五编扉页插图：八枚芯片环形互连，对称发光链路汇向中央交换节点（part divider art: eight chips in a ring topology with symmetric links to a central switch）](../figures/art/part5-comm.png)
+
+*第五编 分布式通信 · 编扉页配图（AI 生成概念插图，非技术图）*
+
 独立成编。昇腾在大模型时代的主战场是集群；本编从集合通信（HCCL/HCOMM）到单边通信（HIXL）再到通算融合（MC2）与超节点系统形态。
 
 - [第17章 HCCL 集合通信](./ch17-hccl.md)

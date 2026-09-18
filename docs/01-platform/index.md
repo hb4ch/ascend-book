@@ -5,6 +5,10 @@ description: 从芯片家族到软件栈主链路
 
 # 第一编 昇腾平台全景
 
+![第一编扉页插图：层叠的芯片封装与服务器机柜由一条发光数据主干线相连，前景一枚发光芯片特写（part divider art: stacked chip packages and server racks linked by a glowing data trunk）](../figures/art/part1-platform.png)
+
+*第一编 昇腾平台全景 · 编扉页配图（AI 生成概念插图，非技术图）*
+
 对应全书目标 1（建立全局认知）。本编回答三个问题：**平台上有什么**（芯片与软件栈）、**硬件长什么样**（AI Core 与内存/互连拓扑）、**一次算子调用如何穿越整个软件栈**（执行主链路）。
 
 - [第1章 昇腾平台与生态总览](../01-platform/ch01-overview.md)
