@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 600" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/>
+    </marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">CANN 开源算子库版图与典型算子解剖（13.1 / 13.2）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">左：三仓按「计算域 + 难度梯度」分工；右：每个算子是一个四件套目录，目录即约定，构建系统自动认领</text>
+
+  <!-- 左：三仓版图 -->
+  <rect x="40" y="70" width="380" height="440" rx="12" fill="#f8f9fa" stroke="#4263eb" stroke-width="2"/>
+  <text x="230" y="96" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#4263eb">三仓定位（学会一个 = 学会三个）</text>
+
+  <g font-size="11.5" fill="#1f2937">
+    <rect x="60" y="112" width="340" height="106" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.5"/>
+    <text x="80" y="136" font-weight="bold">ops-nn —— 高阶 NN 算子库</text>
+    <text x="80" y="156" fill="#495057">matmul · activation · quant · index · loss</text>
+    <text x="80" y="174" fill="#495057">conv · pooling · rnn · optim · foreach …</text>
+    <text x="80" y="196" font-size="10.5" fill="#1971c2">2025-09 上线（A2/A3）→ 950（2025-12）</text>
+
+    <rect x="60" y="234" width="340" height="106" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
+    <text x="80" y="258" font-weight="bold">ops-transformer —— 大模型进阶算子库</text>
+    <text x="80" y="278" fill="#495057">attention（flash/quant/sparse/mla…）</text>
+    <text x="80" y="296" fill="#495057">moe · mc2 通算融合 · ffn · gmm · posembedding</text>
+    <text x="80" y="318" font-size="10.5" fill="#2f9e63">月更节奏 · 查证入口：README Latest News</text>
+
+    <rect x="60" y="356" width="340" height="70" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.5"/>
+    <text x="80" y="380" font-weight="bold">ops-sparse —— 稀疏矩阵算子库</text>
+    <text x="80" y="400" fill="#495057">SpMM · SpMV（格式稀疏线）</text>
+    <text x="80" y="418" font-size="10.5" fill="#e8590c">2026-05 上线 · 仅 CANN 9.0.0+</text>
+  </g>
+  <text x="230" y="452" text-anchor="middle" font-size="11" fill="#6b7280">同构骨架：build.sh · cmake · classify_rule.yaml</text>
+  <text x="230" y="470" text-anchor="middle" font-size="11" fill="#6b7280">CONTRIBUTING · experimental · tests · docs</text>
+  <text x="230" y="494" text-anchor="middle" font-size="11" font-weight="bold" fill="#c92a2a">版本配套纪律：源码配 release 标签，慎用 master</text>
+
+  <!-- 连接箭头 -->
+  <path d="M420 260 L480 260" stroke="#495057" stroke-width="2" stroke-dasharray="8 5" fill="none" marker-end="url(#arr)"/>
+  <text x="450" y="248" text-anchor="middle" font-size="10" fill="#6b7280">任一仓内</text>
+
+  <!-- 右：算子解剖 -->
+  <rect x="490" y="70" width="390" height="440" rx="12" fill="#f6fbf7" stroke="#2f9e63" stroke-width="2"/>
+  <text x="685" y="96" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#2f9e63">算子四件套（add_example 真例）</text>
+
+  <g font-size="11" fill="#1f2937">
+    <rect x="510" y="112" width="350" height="76" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.4"/>
+    <text x="526" y="134" font-weight="bold">op_host/ —— 分块账本（第9章）</text>
+    <text x="526" y="152" fill="#495057">*_def.cpp · *_infershape.cpp · *_tiling.cpp</text>
+    <text x="526" y="172" font-size="10" fill="#1971c2">config/&lt;架构&gt;/binary.json —— 按架构登记编译配置</text>
+
+    <rect x="510" y="200" width="350" height="60" rx="8" fill="#fdf0e5" stroke="#e8590c" stroke-width="1.4"/>
+    <text x="526" y="222" font-weight="bold">op_kernel/ —— Device 实现（第10-11章）</text>
+    <text x="526" y="240" fill="#495057">*.cpp · *_tiling_key.h · *_tiling_data.h</text>
+
+    <rect x="510" y="272" width="350" height="60" rx="8" fill="#f3e8fd" stroke="#9c36b5" stroke-width="1.4"/>
+    <text x="526" y="294" font-weight="bold">op_graph/ —— 图侧（第3章，易被忽略）</text>
+    <text x="526" y="312" fill="#495057">*_proto.h · fusion_pass/ —— 图模式融合真身</text>
+
+    <rect x="510" y="344" width="350" height="52" rx="8" fill="#f8f0fc" stroke="#9c36b5" stroke-width="1.4" stroke-dasharray="6 3"/>
+    <text x="526" y="366" font-weight="bold">examples/ —— 调用侧最权威参考</text>
+    <text x="526" y="384" fill="#495057">test_aclnn_*.cpp（第4章两段式真码）</text>
+  </g>
+
+  <!-- 交付链 -->
+  <g font-size="10.5" fill="#495057">
+    <text x="685" y="428" text-anchor="middle">交付链：目录 → binary.json → 编译（第12章）</text>
+    <text x="685" y="446" text-anchor="middle">→ 安装包 → aclnn 两段式调用（第4章）</text>
+  </g>
+  <path d="M510 470 L600 470" stroke="#1971c2" stroke-width="1.6" fill="none" marker-end="url(#arrb)"/>
+  <path d="M660 470 L770 470" stroke="#1971c2" stroke-width="1.6" fill="none" marker-end="url(#arrb)"/>
+  <g font-size="10" fill="#1971c2">
+    <text x="555" y="462" text-anchor="middle">build.sh --pkg</text>
+    <text x="715" y="462" text-anchor="middle">aclnn 调用</text>
+  </g>
+
+  <!-- 底部结论 -->
+  <rect x="40" y="530" width="840" height="50" rx="10" fill="#fff7e6" stroke="#e8590c" stroke-width="1.4"/>
+  <text x="460" y="551" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">选型闭环：先调库 → 再改模板 → 最后手写（第9-12章方法论）→ 改好了贡献回库（experimental → 正式域目录）</text>
+  <text x="460" y="570" text-anchor="middle" font-size="11" fill="#495057">仓是月更的：学会查证方法（README News / ascend950_op_list / 算子级 README）比背清单值钱</text>
+</svg>

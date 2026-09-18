@@ -2,6 +2,14 @@
 
 《昇腾平台技术实战》里程碑日志。所有来源数据、决策与结论落此文件，可追溯。
 
+## M3-5 第13章 算子库体系 成稿（0.2k → 2.9k 总字 / 中文 2.2k）
+
+- **六节结构**：① 三仓定位与版图（ops-nn 高阶 NN 16 域 / ops-transformer 大模型进阶 / ops-sparse 2026-05 新仓；目录结构完全同构；版本配套纪律）；② ops-nn 深看（**add_example 四件套真结构：op_host/op_kernel/op_graph/examples**——骨架期漏了 op_graph，写作时补上：fusion_pass 是第3章图模式收益的真身；量化矩阵 fp8/mxfp8/hifp8/mxfp4×5 粒度；SIMD/SIMT 同构算子）；③ transformer 族谱（attention 月更族系/moe/mc2 通算融合→第17章伏笔）；④ sparse 短节；⑤ 开发贡献路径（--genop 骨架、最小交付件清单、experimental→正式目录）；⑥ 二开五步清单 + torch_extension JIT 桥。
+- **图 3 张**：SVG 1（三仓版图+算子解剖）+ Mermaid 2（算子获取决策树闭环 / 算子交付链）。
+- **决策**：① **时效性纪律**：transformer 仓月更，正文只写结构性事实，算子清单给族系+查证方法不逐个打包票；② 章字数 2.2k 中文低于目标——参考型章节以表/结构为主，按「质量优先」口径登记；③ 骨架期「四仓横览」实为三仓（第四编才是仓库全景），标题已纠。
+- **校验**：`npm run verify` 全绿；脚注配对、XML、色板自审过。
+- 全书进度：71.3k 总字 / 55.9k 中文。M3 进度 5/6。下一章：第14章 经典算子实战（本编收口，还三笔预支债）。
+
 ## M3-4 第12章 编译、工具链与部署 成稿（0.3k → 3.8k 总字 / 中文 2.9k）
 
 - **六节结构**：① 编译总流程（bisheng 三路异构：Host/Cube/Vector→Fatbin→可执行；SIMT 走 `--enable-simt` 支线且与 SIMD 头文件互斥；产物终点=第5章 binary_loader 调用侧）；② `--npu-arch`（dav-2201/dav-3510；**决策：骨架期登记的 dav-2002 检索不到，明示不采信**，架构号以官方对应表为准；2201→3510 迁移 CMake 真码；reserved-ubuf 选项跨架构语义差异）；③ 四种编译形态（全程序/`-dc` 单独编译+extern 纪律+LTO/动态库/静态库隐藏流程）+ ops-nn `custom_kernel.cmake` 真仓「目录即约定」组织；④ RTC 七接口流程（rtc_hello_world 真码、模板核函数 aclrtcAddNameExpr/GetLoweredName、aclrtcGetCompileLog）；⑤ NPU Simulator（bit 级精度+指令流水、npusim 更名时效标注、约束清单）+ 与 `--run-mode=sim` 两条仿真路径辨析；⑥ 部署（多算子包/交叉编译/加速/调试）+ 实用选项表（--cce-auto-sync 呼应第10章）。
