@@ -55,11 +55,30 @@
 
 **验收**：CUDA 老手 30 分钟能写出第一个 SIMT gather；读者能判断自己的算子该用 SIMD/SIMT/混合/RegBase 四条路中的哪条；verify 绿。
 
-### 第12章 编译、工具链与部署（边界最明确的章）
-- **骨架**：Host/Device 混合编译流程；`--npu-arch` 与目标芯片映射（dav-3510/2201/2002）；CMake 工程组织；kernel 二进制产物与加载（衔接第 5 章 binary_loader）；调试工具（衔接第 7 章 DFX）。
-- **锚点**：`docs/zh/guide/compilation_and_execution/`、examples 各 `CMakeLists.txt`、`asc-devkit/build.sh`/`classify_rule.yaml`。
-- **明示边界**：BiSheng 编译器源码不在开源仓（§8），写「文档+产物+用法」级。
-- **图**：从 `.asc` 到可执行 kernel 的编译流水线图。
+### 第12章 编译、工具链与部署（M3-4 详细方案）
+
+**章节结构（骨架 8 节收拢为 6 节）**
+1. **编译总流程与产物**：bisheng 命令行（`bisheng x.asc -o out --npu-arch=dav-xxxx`）；异构编译四路（Host 编译 / Cube 二进制 / Vector 二进制 → Fatbin 链接 → 与 Host 二进制合并 → 可执行）；产物 anatomy 与第 5 章 binary_loader 衔接（编译终点=加载起点）；真码：`examples/01_simd_cpp_api/02_features/04_compile/00_basic_compile/`
+2. **`--npu-arch` 与跨代际编译**：dav-2201（A2/A3）/dav-3510（950）映射与查证方法（文档实际只出现这两个值+`dav-xxxx` 占位，**不硬造 dav-2002**——骨架期登记的值待写作时再证）；950 编译迁移（`2201_to_3510_guide/op_compilation_migration.md`）
+3. **工程组织与四种编译形态**：全程序（默认）/ 单独编译（`-dc` + extern 强制约束 + LTO 补性能）/ 动态库 / 静态库（四例真码）；CMake 实战（`ops-nn/cmake/{custom_kernel,gen_ops_info}.cmake` 真仓组织 + asc-devkit `tools/build`）
+4. **RTC 运行时编译**：动机（大模型动态 shape 逐个最优 + 源码交付迭代便利）→ `aclrtc` 接口流程（`ACL_RTC_NPU_ARCH` 宏默认 dav-2201 真码）→ 静态 vs RTC 对比；锚点博客 `ascendc_rtc_compilation`
+5. **NPU Simulator 无卡开发**：SoC 级仿真（bit 级精度 + 指令流水图）、与真板二进制兼容；**约束表**（仅 950PR/950DT、单卡、不支持 MC2/HCCL、不支持 arm 宿主）
+6. **部署与工具箱**：单算子/多算子包（`multi_operator_package.md`）、交叉编译、编译加速、编译调试（`compilation_debug.md`，衔接第 7 章 DFX）+ 陷阱表（-dc 忘 extern、arch 选错、Simulator 约束踩坑）
+
+**配图方案（3 张）**
+| 图 | 类型 | 内容 |
+|---|---|---|
+| 图 12-1 从 .asc 到可执行：异构编译流水线 | SVG | 本章核心记忆图：`.asc`/`.cpp` 源 → bisheng 分三路编译（Host/Cube/Vector）→ Fatbin 链接 → 合并可执行 → 右侧接第 5 章 binary_loader（编译终点=加载起点）；标注 `--npu-arch` 在分路口选型 |
+| 图 12-2 静态编译 vs RTC 运行时编译 | Mermaid | 双泳道流程对比：离线（编译→部署二进制→加载）vs 在线（部署源码/中间码→运行时 aclrtc 编译→执行）；标动态 shape 动机 |
+| 图 12-3 编译形态选型树 | Mermaid | 全程序/单独/动态库/静态库/RTC 五分支决策树，叶节点给适用场景与代价 |
+
+Simulator 节用表格（约束多、无图必要）。
+
+**锚点（≤5）**：`compilation_and_execution/operator_compilation/{bisheng_compiler.md,rtc_runtime_compilation.md,ai_core_operator_compilation.md}`、`examples/01_simd_cpp_api/02_features/04_compile/`、`ops-nn/cmake/`、`cann-learning-hub/blogs/operator/ascendc_rtc_compilation/`、`ops-nn/docs/zh/debug/npu_sim.md`。其余（cross_compilation、multi_operator_package、compilation_acceleration、2201→3510 迁移）进脚注。
+
+**明示边界（§8）**：BiSheng 编译器源码不在开源仓——只写「文档+产物+用法」级；`dav-2002` 等骨架期猜测值写作时逐个取证，证不到就删。
+
+**验收**：读者能把一个 `.asc` 沿静态/RTC 两条路走到能跑；`--npu-arch` 会选会查；没卡时知道用 Simulator；verify 绿。
 
 ### 第13章 算子库体系（四仓横览）
 - **骨架**：为什么要算子库（复用/性能/覆盖）；ops-nn 结构与 aclnn 算子生成（衔接第 4 章 aclnnop）；ops-transformer（大模型算子族）；ops-sparse；算子库视角的选型——先用库、再改模板、最后手写。
