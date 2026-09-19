@@ -10,7 +10,7 @@ export default withMermaid({
   },
   markdown: {
     lineNumbers: true,
-    theme: { light: 'github-dark', dark: 'github-dark' },
+    theme: { light: 'github-light', dark: 'github-dark' },
     config: (md) => {
       md.use(footnote)
     }
