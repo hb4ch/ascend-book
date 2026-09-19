@@ -103,11 +103,26 @@ Simulator 节用表格（约束多、无图必要）。
 
 **验收**：读者能按图索骥找到目标算子并跑通「编译→安装→aclnn 调用」；知道改动后往哪贡献；verify 绿。
 
-### 第14章 经典算子实战（端到端收口章）
-- **骨架**：一条龙旅程——Add 全家族（入门→Tiling→双流水）；MatMul（Cube 路径、分形、L0C）；Softmax 高阶 API 复用；融合算子设计（衔接第 8 章零拷贝动机）；性能验收（衔接第 7 章 msprof、第 15 章预告）。
-- **锚点**：`examples/01_simd_cpp_api/{00_introduction,04_advanced_api,05_best_practices}/` 精选 5 个、`ops-nn/examples/add_example/`。
-- **图**：端到端旅程总览图（设计→Tiling→实现→编译→运行→调试→优化）。
-- **验收**：读者照书可独立完成一个自定义算子的开发闭环（真机步骤齐全）。
+### 第14章 经典算子实战（M3-6 详细方案，本编收口）
+
+**章节结构（骨架 7 节收拢为 6 节，核心任务：还三笔预支债）**
+1. **工程级开发流程总览**：需求→选型（图13-2决策树）→四件套（图13-1）→编译→验证→优化→贡献；tutorials `01_basic_overview` + `09_course_practice` 定坐标系；图 14-1 端到端旅程总览（全书 Ascend C 编地图，各站标章号）
+2. **Add 收口 + 还债③ Tiling 完整回路**（第9章 9.4 预支）：add_example 四件套全链走通——shape → tiling 账本三笔 → TilingKey/Data → kernel 分支 → 调用侧；图 14-2 Tiling 回路 Mermaid
+3. **搬运收口 + 还债② 高维切分实操**（第10章 N-DMA 预支）：`04_memory_access` 四例——data_copy 减少无效搬运、bank_conflict_ub / bank_conflict_3510（第8章 UB bank 变化的实战面）/ bank_conflict_nd2nz（NZ 转换搬运）
+4. **RegBase 实操收口 + 还债① VF 融合链**（第10/11章 RegTensor 预支）：`02_reg_compute` softmax_high_performance / gelu_high_performance 真码——VF 循环优化、VF 指令双发、VF 融合优化三法落地
+5. **MatMul Cube 路径**：tutorials `04_matmul_basic` + `01_matrix_compute` 调优——GM→L1→L0A/B→Cube→L0C→UB→GM 实战版（对照第8章图8-1）；NZ/分形落点
+6. **融合算子与 FA 收尾**：`03_fusion_compute` matmul_gelu（Cube-Vector 融合，UB 交接面，图 14-3）、quant_group_matmul；**FA 不重造轮子**——精要指向 ops-transformer 现成实现（第13章）+ 教科书原理外链；收尾段：第三编旅程闭环回第9章决策树
+
+**配图方案（3 张）**
+| 图 | 类型 | 内容 |
+|---|---|---|
+| 图 14-1 端到端开发旅程总览 | SVG | 核心：需求→选型→四件套→编译→验证→优化→贡献的站点图，每站标对应章号（第9-13章+第7章调试），本编收官地图 |
+| 图 14-2 Tiling 完整回路 | Mermaid | shape→tiling 计算→TilingKey/Data→kernel 分支→执行流程，把第9章账本与第10章实现焊在一起 |
+| 图 14-3 Cube-Vector 融合算子设计 | Mermaid | matmul_gelu 的 UB 交接面决策：哪些算子能融、融合边界、量化融合的随路机会 |
+
+**锚点（≤5）**：`cann-learning-hub/tutorials/ascendc_operator_development/`、`asc-devkit/examples/01_simd_cpp_api/05_best_practices/{02_reg_compute,04_memory_access}/`、`05_best_practices/03_fusion_compute/matmul_gelu_high_performance/`、`ops-nn/examples/add_example/`、`05_best_practices/01_matrix_compute/`。FA 与量化融合走脚注（ops-transformer/attention、quant_group_matmul）。
+
+**验收**：读者能独立走完一个经典算子的需求→优化全程；三笔预支债（RegTensor/高维切分/Tiling 回路）逐一兑现并在文中显式标记「还债」；本编收口回指第9章决策树；verify 绿。
 
 ## 3. 执行顺序与落地
 
