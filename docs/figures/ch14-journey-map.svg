@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+  </defs>
+  <text x="460" y="28" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">端到端算子开发旅程：八站流水线（第三编总纲）</text>
+  <text x="460" y="48" text-anchor="middle" font-size="11" fill="#6b7280">每站标注对应章节；三笔预支债在兑现站挂「还债」标记——读到对应节请特别留意</text>
+
+  <!-- 主干道 -->
+  <line x1="70" y1="180" x2="850" y2="180" stroke="#495057" stroke-width="3"/>
+
+  <!-- 八个站点 -->
+  <g>
+    <!-- 站1 -->
+    <circle cx="90" cy="180" r="26" fill="#eef2fb" stroke="#4263eb" stroke-width="2"/>
+    <text x="90" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#4263eb">需求</text>
+    <text x="90" y="191" text-anchor="middle" font-size="10" fill="#495057">shape/dtype</text>
+    <text x="90" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">① 需求分析</text>
+    <text x="90" y="248" text-anchor="middle" font-size="10" fill="#6b7280">契约与支持域</text>
+
+    <!-- 站2 -->
+    <circle cx="200" cy="180" r="26" fill="#eef2fb" stroke="#4263eb" stroke-width="2"/>
+    <text x="200" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#4263eb">选型</text>
+    <text x="200" y="191" text-anchor="middle" font-size="10" fill="#495057">API 决策树</text>
+    <text x="200" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">② API 选型</text>
+    <text x="200" y="112" text-anchor="middle" font-size="10" fill="#c92a2a">第9章 9.6</text>
+
+    <!-- 站3 -->
+    <circle cx="310" cy="180" r="26" fill="#e8f4ec" stroke="#2f9e63" stroke-width="2"/>
+    <text x="310" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#2f9e63">四件套</text>
+    <text x="310" y="191" text-anchor="middle" font-size="10" fill="#495057">--genop</text>
+    <text x="310" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">③ 工程骨架</text>
+    <text x="310" y="248" text-anchor="middle" font-size="10" fill="#6b7280">第13章</text>
+
+    <!-- 站4 -->
+    <circle cx="420" cy="180" r="26" fill="#fdf0e5" stroke="#e8590c" stroke-width="2.5"/>
+    <text x="420" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#e8590c">实现</text>
+    <text x="420" y="191" text-anchor="middle" font-size="10" fill="#495057">kernel</text>
+    <text x="420" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">④ 核函数实现</text>
+    <text x="420" y="112" text-anchor="middle" font-size="10" fill="#c92a2a">第10-11章 · 还债②③</text>
+
+    <!-- 站5 -->
+    <circle cx="530" cy="180" r="26" fill="#f6fbf7" stroke="#2f9e63" stroke-width="2"/>
+    <text x="530" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#2f9e63">编译</text>
+    <text x="530" y="191" text-anchor="middle" font-size="10" fill="#495057">bisheng</text>
+    <text x="530" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">⑤ 编译构建</text>
+    <text x="530" y="248" text-anchor="middle" font-size="10" fill="#6b7280">第12章</text>
+
+    <!-- 站6 -->
+    <circle cx="640" cy="180" r="26" fill="#f8f0fc" stroke="#9c36b5" stroke-width="2"/>
+    <text x="640" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#862e9c">验证</text>
+    <text x="640" y="191" text-anchor="middle" font-size="10" fill="#495057">npusim/真机</text>
+    <text x="640" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">⑥ 验证调试</text>
+    <text x="640" y="112" text-anchor="middle" font-size="10" fill="#c92a2a">第7章 + 第12章</text>
+
+    <!-- 站7 -->
+    <circle cx="740" cy="180" r="26" fill="#fff7e6" stroke="#e8590c" stroke-width="2.5"/>
+    <text x="740" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#e8590c">优化</text>
+    <text x="740" y="191" text-anchor="middle" font-size="10" fill="#495057">六级阶梯</text>
+    <text x="740" y="230" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">⑦ 性能优化</text>
+    <text x="740" y="248" text-anchor="middle" font-size="10" fill="#c92a2a">本章 · 还债①</text>
+
+    <!-- 站8 -->
+    <circle cx="840" cy="180" r="26" fill="#e8f4ec" stroke="#2f9e63" stroke-width="2"/>
+    <text x="840" y="176" text-anchor="middle" font-size="12" font-weight="bold" fill="#2f9e63">贡献</text>
+    <text x="840" y="191" text-anchor="middle" font-size="10" fill="#495057">experimental</text>
+    <text x="840" y="130" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">⑧ 贡献回库</text>
+    <text x="840" y="112" text-anchor="middle" font-size="10" fill="#c92a2a">第13章</text>
+  </g>
+
+  <!-- 箭头提示 -->
+  <path d="M116 180 L174 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M226 180 L284 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M336 180 L394 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M446 180 L504 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M556 180 L614 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M666 180 L714 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M766 180 L814 180" stroke="#495057" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- 三笔债标注框 -->
+  <rect x="70" y="300" width="840" height="88" rx="10" fill="#fceff1" stroke="#c92a2a" stroke-width="1.4"/>
+  <text x="90" y="326" font-size="12" font-weight="bold" fill="#c92a2a">三笔预支债的兑付点（本书写作时的承诺）： </text>
+  <text x="90" y="350" font-size="11.5" fill="#1f2937">债① RegTensor/VF 融合链（第10/11章预支）→ 14.4 softmax 六级阶梯 · 债② 高维切分搬运（第10章 N-DMA）→ 14.3 bank_conflict 四例 ·</text>
+  <text x="90" y="372" font-size="11.5" fill="#1f2937">债③ Tiling 完整回路（第9章 9.4 预支）→ 14.2 Key/Data/账本首尾相连</text>
+
+  <!-- 底部结论 -->
+  <rect x="70" y="412" width="840" height="50" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
+  <text x="490" y="433" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">回指第9章决策树：读完本编，树上每个分叉你都能答对，并且知道分叉背后是哪一章的哪个机制</text>
+  <text x="490" y="452" text-anchor="middle" font-size="11" fill="#495057">Ascend C 编闭环 → 第四编性能优化方法论（第15-16章）：从「写对」升级到「写快」</text>
+</svg>

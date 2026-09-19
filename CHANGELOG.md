@@ -2,6 +2,13 @@
 
 《昇腾平台技术实战》里程碑日志。所有来源数据、决策与结论落此文件，可追溯。
 
+## M3-6 第14章 经典算子实战 成稿（0.3k → 3.0k 总字 / 中文 2.3k）——M3 收官（6/6）
+
+- **六节结构，三笔预支债显式兑付**：① 工程级流程八站总览（图14-1 SVG 站牌图，本编总纲）；② **还债③** Tiling 完整回路（add_example 真码：GetPlatformInfo 查核数/UB → 账本三笔 → TilingKey schMode 0/1 模板选择 → TilingData 随 SQE 下发 → kernel 分支，图14-2 焊接第9章账本与第10章实现）；③ **还债②** 搬运收口（data_copy 非对齐/L2复用、bank_conflict 三例含 nd2nz 的 dstNzC0Stride 单参数调优教科书案例）；④ **还债①** RegBase 实操（softmax_high_performance Case 0-5 六级优化阶梯表：MemBase→RegBase→融合+ExpSub+UpdateMask→展开→主尾块→全家桶，VF 三法落地）；⑤ MatMul Cube 路径（GM→L1→L0A/B→L0C→UB/GM 实战版）；⑥ 融合算子决策面（图14-3 CV 融合：Fixpipe 出 UB→AIV 接力）+ **FA 不重造轮子**（指向 ops-transformer 现成实现，践行第13章规矩）。
+- **决策**：① 三笔债在图14-1 与正文双重显式标记「还债」；② FA 只给原理入口+工程指路，不复刻——收官章带头遵守「先用库」；③ 本编收口回指第9章决策树，Ascend C 编闭环。
+- **校验**：`npm run verify` 全绿；脚注配对、XML、色板自审过。
+- 全书进度：74.0k 总字 / 57.9k 中文。M3 完成 6/6。下一编：第四编 性能优化方法论（第15-16章）。
+
 ## M3-5 第13章 算子库体系 成稿（0.2k → 2.9k 总字 / 中文 2.2k）
 
 - **六节结构**：① 三仓定位与版图（ops-nn 高阶 NN 16 域 / ops-transformer 大模型进阶 / ops-sparse 2026-05 新仓；目录结构完全同构；版本配套纪律）；② ops-nn 深看（**add_example 四件套真结构：op_host/op_kernel/op_graph/examples**——骨架期漏了 op_graph，写作时补上：fusion_pass 是第3章图模式收益的真身；量化矩阵 fp8/mxfp8/hifp8/mxfp4×5 粒度；SIMD/SIMT 同构算子）；③ transformer 族谱（attention 月更族系/moe/mc2 通算融合→第17章伏笔）；④ sparse 短节；⑤ 开发贡献路径（--genop 骨架、最小交付件清单、experimental→正式目录）；⑥ 二开五步清单 + torch_extension JIT 桥。
