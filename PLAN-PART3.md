@@ -103,26 +103,34 @@ Simulator 节用表格（约束多、无图必要）。
 
 **验收**：读者能按图索骥找到目标算子并跑通「编译→安装→aclnn 调用」；知道改动后往哪贡献；verify 绿。
 
-### 第14章 经典算子实战（M3-6 详细方案，本编收口）
+### 第14章 经典算子实战（M3-6 详细方案，本编收口）→ **已按 v2 方案重构（见下「实战扩容 v2」）**
 
-**章节结构（骨架 7 节收拢为 6 节，核心任务：还三笔预支债）**
-1. **工程级开发流程总览**：需求→选型（图13-2决策树）→四件套（图13-1）→编译→验证→优化→贡献；tutorials `01_basic_overview` + `09_course_practice` 定坐标系；图 14-1 端到端旅程总览（全书 Ascend C 编地图，各站标章号）
-2. **Add 收口 + 还债③ Tiling 完整回路**（第9章 9.4 预支）：add_example 四件套全链走通——shape → tiling 账本三笔 → TilingKey/Data → kernel 分支 → 调用侧；图 14-2 Tiling 回路 Mermaid
-3. **搬运收口 + 还债② 高维切分实操**（第10章 N-DMA 预支）：`04_memory_access` 四例——data_copy 减少无效搬运、bank_conflict_ub / bank_conflict_3510（第8章 UB bank 变化的实战面）/ bank_conflict_nd2nz（NZ 转换搬运）
-4. **RegBase 实操收口 + 还债① VF 融合链**（第10/11章 RegTensor 预支）：`02_reg_compute` softmax_high_performance / gelu_high_performance 真码——VF 循环优化、VF 指令双发、VF 融合优化三法落地
-5. **MatMul Cube 路径**：tutorials `04_matmul_basic` + `01_matrix_compute` 调优——GM→L1→L0A/B→Cube→L0C→UB→GM 实战版（对照第8章图8-1）；NZ/分形落点
-6. **融合算子与 FA 收尾**：`03_fusion_compute` matmul_gelu（Cube-Vector 融合，UB 交接面，图 14-3）、quant_group_matmul；**FA 不重造轮子**——精要指向 ops-transformer 现成实现（第13章）+ 教科书原理外链；收尾段：第三编旅程闭环回第9章决策树
+## ⭐ 实战扩容 v2（用户反馈驱动：2026-09「内容还是太少，最重要的算子要细讲」）
 
-**配图方案（3 张）**
-| 图 | 类型 | 内容 |
-|---|---|---|
-| 图 14-1 端到端开发旅程总览 | SVG | 核心：需求→选型→四件套→编译→验证→优化→贡献的站点图，每站标对应章号（第9-13章+第7章调试），本编收官地图 |
-| 图 14-2 Tiling 完整回路 | Mermaid | shape→tiling 计算→TilingKey/Data→kernel 分支→执行流程，把第9章账本与第10章实现焊在一起 |
-| 图 14-3 Cube-Vector 融合算子设计 | Mermaid | matmul_gelu 的 UB 交接面决策：哪些算子能融、融合边界、量化融合的随路机会 |
+**问题**：ch14 一章装下 Add/搬运/RegBase/MatMul/融合五类实战，每类只能蜻蜓点水（3.0k 总字），违背「最重要的算子细讲」的要求。
 
-**锚点（≤5）**：`cann-learning-hub/tutorials/ascendc_operator_development/`、`asc-devkit/examples/01_simd_cpp_api/05_best_practices/{02_reg_compute,04_memory_access}/`、`05_best_practices/03_fusion_compute/matmul_gelu_high_performance/`、`ops-nn/examples/add_example/`、`05_best_practices/01_matrix_compute/`。FA 与量化融合走脚注（ops-transformer/attention、quant_group_matmul）。
+**方案：第三编 6 章 → 9 章（ch9–ch17），实战拆为四章，下游编号 +3**
 
-**验收**：读者能独立走完一个经典算子的需求→优化全程；三笔预支债（RegTensor/高维切分/Tiling 回路）逐一兑现并在文中显式标记「还债」；本编收口回指第9章决策树；verify 绿。
+| 章 | 定位 | 核心内容 | 还债/兑现 |
+|---|---|---|---|
+| ch14 实战Ⅰ：Add 与工程链路 | 入门算子 + 工程化全程 | add_example 全链：Tiling 完整回路（Key/Data/账本）、编译→安装→aclnn 调用、npusim 验证 | 还债③ Tiling 回路（第9章） |
+| ch15 实战Ⅱ：向量算子——Softmax 与 GELU | RegBase 旗舰细讲 | softmax Case 0-5 六级阶梯逐 Case 细讲（真码行级 diff）；gelu_high_performance（连续非对齐、指令双发 dual-issue）；UpdateMask/主尾块套路 | 还债① RegTensor/VF 融合链（第10/11章） |
+| ch16 实战Ⅲ：矩阵算子——MatMul Cube 全路径 | Cube 山头 | tutorials 04_matmul_basic 展开；NZ 分形、双缓冲流水重叠、L0C 驻留、Fixpipe；bank_conflict_nd2nz 单参数调优并入本章 | 还债② 高维切分搬运（第10章） |
+| ch17 实战Ⅳ：融合算子 | CV 融合与随路 | matmul_gelu（Fixpipe 出 UB→AIV 接力）、quant_group_matmul（随路量化）；FA 不重造轮子；本编收官回指第9章 | 本编闭环 |
+
+**下游重编号（+3，一次性机械操作）**
+- 第四编 性能优化：ch18-19（原 15-16）
+- 第五编 分布式通信：ch20-22（原 17-19）
+- 第六编 现代编译后端：ch23-26（原 20-23）
+- 第七编 展望：ch27（原 24）
+
+**重编号操作清单（从大到小改避碰撞）**
+1. `git mv` ch24→27、23→26、22→25、21→24、20→23、19→22、18→21、17→20、16→19、15→18（降序执行）
+2. 全库 sed 替换章号引用（22 个文件：frontmatter title、交叉引用「第15章」等、README 目录/nav、sidebar.mjs、PLAN-PART1/2/3、appD 表行）
+3. 新建 ch15/16/17 骨架（status: 提纲预览），旧 ch14 正文拆分迁移
+4. verify 全绿后单次提交（原子性：重编号+拆分一次落库）
+
+**验收**：每个重点算子（Add/Softmax/GELU/MatMul/融合）独立成章且 ≥4k 中文字；三笔债各在专属章兑现并标记；重编号后 verify 全绿、无死链。
 
 ## 3. 执行顺序与落地
 
