@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">Case 1 vs Case 2：消灭的是「冗余」，不是「全部」（softmax 真码）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">Case2 的 exp 仍落 UB——跨全局归约的检查点驻不住寄存器；性能差距来自冗余 UB 往返与同步墙</text>
+
+  <!-- 左：Case1 -->
+  <rect x="40" y="66" width="400" height="430" rx="12" fill="#f8f9fa" stroke="#4263eb" stroke-width="2"/>
+  <text x="240" y="92" text-anchor="middle" font-size="14" font-weight="bold" fill="#4263eb">Case 1：四 Phase 各自为政（31894 cycles）</text>
+
+  <g font-size="11" fill="#1f2937">
+    <rect x="70" y="112" width="150" height="38" rx="6" fill="#eef2fb" stroke="#4263eb" stroke-width="1.3"/>
+    <text x="145" y="135" text-anchor="middle">Phase 1: ReduceMax</text>
+    <rect x="70" y="190" width="150" height="38" rx="6" fill="#eef2fb" stroke="#4263eb" stroke-width="1.3"/>
+    <text x="145" y="213" text-anchor="middle">Phase 2: ExpSub</text>
+    <rect x="70" y="290" width="150" height="38" rx="6" fill="#eef2fb" stroke="#4263eb" stroke-width="1.3"/>
+    <text x="145" y="313" text-anchor="middle">Phase 3: ReduceSum</text>
+    <rect x="70" y="366" width="150" height="38" rx="6" fill="#eef2fb" stroke="#4263eb" stroke-width="1.3"/>
+    <text x="145" y="389" text-anchor="middle">Phase 4: Div</text>
+  </g>
+
+  <!-- UB 中间条 -->
+  <rect x="290" y="140" width="120" height="270" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.6"/>
+  <text x="350" y="164" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">UB</text>
+  <text x="350" y="200" text-anchor="middle" font-size="10" fill="#c92a2a">exp 落这里</text>
+  <text x="350" y="272" text-anchor="middle" font-size="10" fill="#c92a2a">sum 读一次</text>
+  <text x="350" y="292" text-anchor="middle" font-size="10" fill="#c92a2a">div 又读一次（冗余！）</text>
+  <text x="350" y="352" text-anchor="middle" font-size="10" fill="#c92a2a">max 路径也来回</text>
+
+  <!-- Case1 往返箭头 -->
+  <path d="M220 216 L290 196" stroke="#e8590c" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="252" y="192" font-size="9.5" fill="#c92a2a">StoreAlign</text>
+  <path d="M290 262 L224 278" stroke="#e8590c" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <path d="M290 296 L224 312" stroke="#e8590c" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="255" y="322" font-size="9.5" fill="#c92a2a">LoadAlign×2</text>
+
+  <!-- membar -->
+  <rect x="70" y="240" width="150" height="40" rx="6" fill="#fceff1" stroke="#c92a2a" stroke-width="1.4" stroke-dasharray="6 3"/>
+  <text x="145" y="256" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#c92a2a">LocalMemBar ×2+</text>
+  <text x="145" y="272" text-anchor="middle" font-size="9.5" fill="#c92a2a">每对 Phase 之间一堵墙</text>
+
+  <text x="240" y="440" text-anchor="middle" font-size="11" fill="#495057">src 每阶段各读一次；exp 存 1 读 2；max 路径往返</text>
+  <text x="240" y="462" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#c92a2a">寄存器驻留被 Phase 边界人为截断</text>
+
+  <!-- 右：Case2 -->
+  <rect x="480" y="66" width="400" height="430" rx="12" fill="#f6fbf7" stroke="#2f9e63" stroke-width="2"/>
+  <text x="680" y="92" text-anchor="middle" font-size="14" font-weight="bold" fill="#2f9e63">Case 2：两轮循环融合（3413 cycles，9.3×）</text>
+
+  <!-- Phase1 融合 -->
+  <rect x="510" y="112" width="340" height="130" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
+  <text x="680" y="136" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2f9e63">融合循环 ①：max + exp 同轮（src 只读一次）</text>
+  <text x="530" y="160" font-size="10.5" fill="#1f2937">LoadWithCastIfNeed → srcReg（一次 Load）</text>
+  <text x="530" y="182" font-size="10.5" fill="#1f2937">① Max(maxReg, maxReg, srcReg) → ReduceMax</text>
+  <text x="530" y="204" font-size="10.5" fill="#1f2937">② ExpSub(expReg, srcReg, maxReg) 一发算 exp(x−max)</text>
+  <text x="530" y="228" font-size="10" font-weight="bold" fill="#e8590c">expReg 仍 StoreAlign 落 UB —— 全局归约检查点，驻不住</text>
+
+  <!-- 检查点 -->
+  <rect x="560" y="252" width="240" height="40" rx="6" fill="#fff7e6" stroke="#e8590c" stroke-width="1.4" stroke-dasharray="5 3"/>
+  <text x="680" y="269" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#c92a2a">exp 检查点（必要开销）</text>
+  <text x="680" y="285" text-anchor="middle" font-size="9.5" fill="#c92a2a">存 1 次 · 读 1 次（Case1 是读 2 次）</text>
+
+  <!-- Phase2 融合 -->
+  <rect x="510" y="302" width="340" height="100" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
+  <text x="680" y="326" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2f9e63">融合循环 ②：sum + div 同轮（exp 只读一次）</text>
+  <text x="530" y="350" font-size="10.5" fill="#1f2937">LoadAlign(exp) → ① Add(sumReg) → ReduceSum</text>
+  <text x="530" y="372" font-size="10.5" fill="#1f2937">② Div(divReg, exp, sum) → StoreWithCastIfNeed(y)</text>
+  <text x="530" y="392" font-size="10" fill="#2f9e63">maxReg/sumReg/divReg 全程驻留；LocalMemBar 2+ → 1</text>
+
+  <text x="680" y="440" text-anchor="middle" font-size="11" fill="#495057">src 两读变一读；exp 读两次变一次；max 往返取消</text>
+  <text x="680" y="462" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2f9e63">UpdateMask(count) 每轮续期，尾块自动掩蔽</text>
+
+  <!-- 中间对比箭头 -->
+  <path d="M445 280 L475 280" stroke="#495057" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text x="460" y="265" text-anchor="middle" font-size="10" fill="#6b7280">改进</text>
+
+  <!-- 底部结论 -->
+  <rect x="40" y="510" width="840" height="36" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.3"/>
+  <text x="460" y="533" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1f2937">与第11章图11-4 的关系：那张图讲原理，这张图讲真码——「寄存器驻留」有物理上限，优化对象是冗余访存，44113→3413 的近 13 倍就来自这里</text>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2f9e63"/>
+    </marker>
+  </defs>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">softmax 六级优化阶梯（Case 0-5，每级消灭一笔明确的开销）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">官方同文件六级实现（#if SCENARIO_NUM 切换）；这架梯子对所有逐元素/行归约算子通用</text>
+
+  <!-- 阶梯：从左下到右上 -->
+  <!-- Case0 -->
+  <rect x="50" y="430" width="230" height="80" rx="8" fill="#f8f9fa" stroke="#4263eb" stroke-width="1.6"/>
+  <text x="165" y="456" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#4263eb">Case 0 · MemBase</text>
+  <text x="165" y="472" text-anchor="middle" font-size="10.5" fill="#495057">四步全落 UB：约 12 次 UB 访问/行</text>
+  <text x="165" y="490" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4263eb">44113 cycles（基线 1×）</text>
+  <text x="165" y="494" text-anchor="middle" font-size="10.5" fill="#c92a2a">开销：中间结果（exp/sum）搬运税</text>
+
+  <!-- Case1 -->
+  <rect x="150" y="350" width="230" height="80" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.6"/>
+  <text x="265" y="376" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#4263eb">Case 1 · RegBase 半吊子</text>
+  <text x="265" y="392" text-anchor="middle" font-size="10.5" fill="#495057">寄存器化，但 exp/sum 仍落 UB 再读回</text>
+  <text x="265" y="410" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4263eb">31894 cycles（1.4×，只赚 34%）</text>
+  <text x="265" y="414" text-anchor="middle" font-size="10.5" fill="#c92a2a">消灭：LocalTensor 封装开销（LocalMemBar 仍在）</text>
+
+  <!-- Case2 -->
+  <rect x="250" y="270" width="230" height="80" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.8"/>
+  <text x="365" y="296" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#2f9e63">Case 2 · 真融合 ★核心</text>
+  <text x="365" y="312" text-anchor="middle" font-size="10.5" fill="#495057">loop fusion 共享 Load + ExpSub + UpdateMask</text>
+  <text x="365" y="330" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#2f9e63">3413 cycles（12.9×，最大跳变）</text>
+  <text x="365" y="334" text-anchor="middle" font-size="10.5" fill="#c92a2a">消灭：中间结果落 UB + 同步墙 + 冗余 Load</text>
+
+  <!-- Case3 -->
+  <rect x="350" y="190" width="230" height="80" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.6"/>
+  <text x="465" y="216" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#e8590c">Case 3 · 外层循环展开</text>
+  <text x="465" y="232" text-anchor="middle" font-size="10.5" fill="#495057">双份寄存器交错发射（无依赖对）</text>
+  <text x="465" y="250" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#e8590c">2197 cycles（20.1×）</text>
+  <text x="465" y="254" text-anchor="middle" font-size="10.5" fill="#c92a2a">消灭：行间切换的流水气泡</text>
+
+  <!-- Case4 -->
+  <rect x="450" y="110" width="230" height="80" rx="8" fill="#f8f0fc" stroke="#9c36b5" stroke-width="1.6"/>
+  <text x="565" y="136" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#862e9c">Case 4 · 主尾块 main-tail</text>
+  <text x="565" y="152" text-anchor="middle" font-size="10.5" fill="#495057">主循环 maskFull 免掩码，尾块 for(1) 特判</text>
+  <text x="565" y="170" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#862e9c">3424 cycles（单独用不赚！为展开铺路）</text>
+  <text x="565" y="174" text-anchor="middle" font-size="10.5" fill="#c92a2a">消灭：主循环每轮 UpdateMask 开销</text>
+
+  <!-- Case5 -->
+  <rect x="560" y="30" width="230" height="80" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="2.4"/>
+  <text x="675" y="56" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#2f9e63">Case 5 · 全家桶</text>
+  <text x="675" y="72" text-anchor="middle" font-size="10.5" fill="#495057">主尾块 + 外层展开 + ExpSub 三项叠加</text>
+  <text x="675" y="90" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#2f9e63">1785 cycles（24.7× 最优）</text>
+  <text x="675" y="94" text-anchor="middle" font-size="10.5" fill="#c92a2a">顺序铁律：先定轮次 → 再展开 → 融合贯穿</text>
+
+  <!-- 阶梯连接箭头 -->
+  <path d="M280 430 L265 430" stroke="#495057" stroke-width="0"/>
+  <path d="M200 430 L240 430 M200 430 L200 390" stroke="none"/>
+  <path d="M240 426 L262 398" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#arrg)"/>
+  <path d="M340 346 L362 318" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#arrg)"/>
+  <path d="M440 266 L462 238" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#arrg)"/>
+  <path d="M540 186 L562 158" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#arrg)"/>
+  <path d="M640 106 L662 78" stroke="#2f9e63" stroke-width="2" fill="none" marker-end="url(#arrg)"/>
+
+  <!-- 右侧收益轴 -->
+  <path d="M840 500 L840 60" stroke="#2f9e63" stroke-width="2.2" marker-end="url(#arrg)"/>
+  <text x="866" y="280" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#2f9e63" transform="rotate(90 866 280)">性能收益（官方基准）</text>
+
+  <!-- 底部结论 -->
+  <rect x="50" y="512" width="850" height="40" rx="8" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
+  <text x="475" y="537" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1f2937">读法：每一级都有真码对照（softmax.asc 的 #if SCENARIO_NUM）——学习方式是 diff 上一级，而不是重写</text>
+</svg>
