@@ -109,20 +109,21 @@ Simulator 节用表格（约束多、无图必要）。
 
 **问题**：ch14 一章装下 Add/搬运/RegBase/MatMul/融合五类实战，每类只能蜻蜓点水（3.0k 总字），违背「最重要的算子细讲」的要求。
 
-**方案：第三编 6 章 → 9 章（ch9–ch17），实战拆为四章，下游编号 +3**
+**方案：第三编 6 章 → 10 章（ch9–ch18），实战拆五章，下游编号 +4**
 
 | 章 | 定位 | 核心内容 | 还债/兑现 |
 |---|---|---|---|
 | ch14 实战Ⅰ：Add 与工程链路 | 入门算子 + 工程化全程 | add_example 全链：Tiling 完整回路（Key/Data/账本）、编译→安装→aclnn 调用、npusim 验证 | 还债③ Tiling 回路（第9章） |
 | ch15 实战Ⅱ：向量算子——Softmax 与 GELU | RegBase 旗舰细讲 | softmax Case 0-5 六级阶梯逐 Case 细讲（真码行级 diff）；gelu_high_performance（连续非对齐、指令双发 dual-issue）；UpdateMask/主尾块套路 | 还债① RegTensor/VF 融合链（第10/11章） |
 | ch16 实战Ⅲ：矩阵算子——MatMul Cube 全路径 | Cube 山头 | tutorials 04_matmul_basic 展开；NZ 分形、双缓冲流水重叠、L0C 驻留、Fixpipe；bank_conflict_nd2nz 单参数调优并入本章 | 还债② 高维切分搬运（第10章） |
-| ch17 实战Ⅳ：融合算子 | CV 融合与随路 | matmul_gelu（Fixpipe 出 UB→AIV 接力）、quant_group_matmul（随路量化）；FA 不重造轮子；本编收官回指第9章 | 本编闭环 |
+| ch17 实战Ⅳ：融合算子 | CV 融合与随路 | matmul_gelu（Fixpipe 出 UB→AIV 接力）、quant_group_matmul（随路量化） | CV 融合决策面 |
+| ch18 实战Ⅴ：Flash Attention（★全书最重单章） | 大模型核心算子拆解 | 教科书精要（online softmax/tile 化，公共知识简述）；**ops-transformer/attention 真仓解剖**：flash_attn 的 op_api（aclnn 层封装）+ op_kernel/arch35（Cube/Vec 分块、ND/DN 双布局、flash_decode 变体、template tiling key）；attention 目录 84 算子的族谱地图（fused_infer/sparse_flash_mla/lightning_indexer/DSV4 场景）；attention_update/worker_combine/scheduler 三件套拆分设计 | 本编皇冠，回指第9-17章全部机制 |
 
-**下游重编号（+3，一次性机械操作）**
-- 第四编 性能优化：ch18-19（原 15-16）
-- 第五编 分布式通信：ch20-22（原 17-19）
-- 第六编 现代编译后端：ch23-26（原 20-23）
-- 第七编 展望：ch27（原 24）
+**下游重编号（+4，一次性机械操作）**
+- 第四编 性能优化：ch19-20（原 15-16）
+- 第五编 分布式通信：ch21-23（原 17-19）
+- 第六编 现代编译后端：ch24-27（原 20-23）
+- 第七编 展望：ch28（原 24）
 
 **重编号操作清单（从大到小改避碰撞）**
 1. `git mv` ch24→27、23→26、22→25、21→24、20→23、19→22、18→21、17→20、16→19、15→18（降序执行）
