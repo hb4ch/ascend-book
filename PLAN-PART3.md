@@ -85,7 +85,7 @@ Simulator 节用表格（约束多、无图必要）。
 **章节结构（骨架 6 节保持，重排重心）**
 1. **三仓定位与版图**：ops-nn（高阶 NN：matmul/activation/quant/index/loss/conv/pooling/rnn/optim/foreach…）/ ops-transformer（进阶：attention/moe/mc2/ffn/gmm/posembedding）/ ops-sparse（2026-05 上线：SpMM/SpMV，仅 CANN 9.0.0+）；三仓同构（build.sh/cmake/classify_rule.yaml/CONTRIBUTING/experimental）；**版本配套纪律**（配 release 标签，master 有风险）；「先用库→再改模板→最后手写」呼应第9章决策树
 2. **ops-nn 深看**：add_example 全链解剖（op_host def + op_kernel + config binary.json → 编译 → aclnn，衔接第4章两段式与第12章「目录即约定」）；量化矩阵（fp8/mxfp8/hifp8/mxfp4 × pertensor/perchannel/pertoken/pergroup/perblock，真例 quant_batch_matmul_v4）；SIMD/SIMT 同构算子（MapIndex/ScatterSub，衔接第11章）；ops-tensor 分层结构优化 Cube 类
-3. **ops-transformer：大模型算子族谱**：attention 族（flash_attn/quant_flash_attn/sparse_flash_mla/lightning_indexer…DSV4 场景）/ moe / **mc2 通算融合**（matmul_allto_all、engram_fetch，衔接第17章通信伏笔）；时效性纪律：A5 每月上新，写作时以 CHANGELOG 当期为准；onnx 算子插件（framework 目录）
+3. **ops-transformer：大模型算子族谱**：attention 族（flash_attn/quant_flash_attn/sparse_flash_mla/lightning_indexer…DSV4 场景）/ moe / **mc2 通算融合**（matmul_allto_all、engram_fetch，衔接第21章通信伏笔）；时效性纪律：A5 每月上新，写作时以 CHANGELOG 当期为准；onnx 算子插件（framework 目录）
 4. **ops-sparse 短节**：稀疏计算定位、SpMM/SpMV、与稀疏 4:2 量化 matmul 呼应
 5. **开发与贡献路径**：`build.sh --genop=examples/add_example` 工程创建、最小交付件（aicore_develop_guide）、QUICKSTART（Docker）、experimental→正式目录贡献流（CONTRIBUTING）、npusim 调试衔接第12章
 6. **二开方法论**：读一个库算子的标准动作清单（README→binary.json→tiling→kernel→调用侧）；torch_extension/NpuOpsTransformerExt 工程模板（PyTorch 张量操作+自动微分+GPU/NPU 统一接口）
@@ -127,7 +127,7 @@ Simulator 节用表格（约束多、无图必要）。
 
 **重编号操作清单（从大到小改避碰撞）**
 1. `git mv` ch24→27、23→26、22→25、21→24、20→23、19→22、18→21、17→20、16→19、15→18（降序执行）
-2. 全库 sed 替换章号引用（22 个文件：frontmatter title、交叉引用「第15章」等、README 目录/nav、sidebar.mjs、PLAN-PART1/2/3、appD 表行）
+2. 全库 sed 替换章号引用（22 个文件：frontmatter title、交叉引用「第19章」等、README 目录/nav、sidebar.mjs、PLAN-PART1/2/3、appD 表行）
 3. 新建 ch15/16/17 骨架（status: 提纲预览），旧 ch14 正文拆分迁移
 4. verify 全绿后单次提交（原子性：重编号+拆分一次落库）
 

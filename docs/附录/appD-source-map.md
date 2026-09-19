@@ -37,34 +37,38 @@ description: 每章 → 源仓路径对照，写作自我一致性的基准
 | 第11章 SIMD/SIMT 与高级特性 | `asc-devkit/impl/{simt_api,c_api}/`，`asc-devkit/docs/zh/asc_950_feature_guide.md`，`asc-devkit/docs/zh/guide/programming_guide/language_extension/{simt_builtin_keywords.md,simd_builtin_keywords.md}`，`asc-devkit/docs/zh/api/SIMD-API/basic_api/sync_control/system_sync_overview.md`，`asc-devkit/examples/05_simd_simt_hybrid/00_introduction/simd_simt_gather_and_adds/gather_and_adds.asc`，`asc-devkit/examples/03_simt_api/00_introduction/00_quickstart/hello_world_simt/hello_world.asc`，`asc-devkit/examples/03_simt_api/05_troubleshooting/stack_overflow/`，`asc-devkit/examples/04_aicpu/README.md`，`asc-devkit/examples/02_simd_c_api/03_c_api/02_reg_vector_compute/`，`cann-learning-hub/blogs/operator/regbase_vec_add/` |
 | 第12章 编译、工具链与部署 | `asc-devkit/docs/zh/guide/programming_guide/compilation_and_execution/operator_compilation/{bisheng_compiler.md,ai_core_operator_compilation.md,rtc_runtime_compilation.md,constraints.md}`，`asc-devkit/docs/zh/guide/programming_guide/language_extension/simd_builtin_keywords.md`（npu-arch 对应表），`asc-devkit/docs/zh/guide/cross_gen_migration_guide/3510_arch_migration/2201_to_3510_guide/op_compilation_migration.md`，`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/aclnn_operator_development/compilation_and_deployment/`，`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/aot_compilation_optimization.md`，`asc-devkit/examples/01_simd_cpp_api/02_features/04_compile/`，`asc-devkit/examples/01_simd_cpp_api/02_features/05_aclrtc/`，`ops-nn/cmake/{custom_kernel.cmake,gen_ops_info.cmake}`，`ops-nn/docs/zh/debug/npu_sim.md`，`cann-learning-hub/blogs/operator/ascendc_rtc_compilation/` |
 | 第13章 算子库体系 | `ops-nn/README.md`、`ops-nn/docs/QUICKSTART.md`、`ops-nn/docs/zh/develop/aicore_develop_guide.md`、`ops-nn/examples/add_example/`、`ops-nn/cmake/custom_kernel.cmake`，`ops-transformer/README.md`、`docs/zh/develop/aicore_develop_guide.md`、`docs/zh/ascend950_op_list.md`、`torch_extension/`，`ops-sparse/README.md`，两仓 CONTRIBUTING 与 experimental/ |
+| 第15章 向量算子实战 | `asc-devkit/examples/01_simd_cpp_api/05_best_practices/02_reg_compute/{softmax_high_performance,gelu_high_performance}/`，`asc-devkit/docs/zh/guide/operator_practice/simd_operator_optimization/vector_compute/vf_optimization/{vf_fusion_optimization.md,vf_loop_optimization.md,dual_issue_optimization.md}` |
+| 第16章 矩阵算子实战 | `cann-learning-hub/tutorials/ascendc_operator_development/04_matmul_basic/`，`asc-devkit/examples/01_simd_cpp_api/05_best_practices/{01_matrix_compute,04_memory_access}/`，`ops-nn/matmul/` |
+| 第17章 融合算子实战 | `asc-devkit/examples/01_simd_cpp_api/05_best_practices/03_fusion_compute/{matmul_gelu_high_performance,quant_group_matmul_high_performance}/`，`ops-nn/vfusion/` |
+| 第18章 Flash Attention | `ops-transformer/attention/flash_attn/`，`ops-transformer/attention/{attention_update,attention_worker_combine,attention_worker_scheduler}/`，`ops-transformer/attention/{fused_infer_attention_score,sparse_flash_mla,lightning_indexer_v2}/`，`ops-transformer/docs/zh/ascend950_op_list.md` |
 | 第14章 算子实战 | `cann-learning-hub/tutorials/ascendc_operator_development/`（01_basic_overview、04_matmul_basic、09_course_practice），`asc-devkit/examples/01_simd_cpp_api/05_best_practices/{02_reg_compute,04_memory_access,03_fusion_compute,01_matrix_compute}/`，`ops-nn/examples/add_example/{op_host,op_kernel}/`，`ops-transformer/attention/`（FA 入口，脚注） |
 
 ## 第四编 性能优化方法论
 
 | 章 | 主来源路径 |
 |---|---|
-| 第15章 性能分析 | `runtime/src/dfx/msprof/`，`runtime/docs/zh/`，`asc-devkit/docs/zh/guide/programming_guide/debug_and_tuning/`，`pto-isa/docs/coding/opt_zh.md`，`asc-devkit/examples/01_simd_cpp_api/06_profiling/` |
-| 第16章 优化专题 | `asc-devkit/examples/01_simd_cpp_api/05_best_practices/`，`asc-devkit/docs/zh/asc_950_feature_guide.md`，`cann-learning-hub/blogs/operator/{mx_quantized_matmul_optimization,scalar_npu_operator_performance_optimization,cross_entropy_zloss_fusion,ascend_c_mmad_selection_guide}/`，`ops-nn/docs/` |
+| 第19章 性能分析 | `runtime/src/dfx/msprof/`，`runtime/docs/zh/`，`asc-devkit/docs/zh/guide/programming_guide/debug_and_tuning/`，`pto-isa/docs/coding/opt_zh.md`，`asc-devkit/examples/01_simd_cpp_api/06_profiling/` |
+| 第20章 优化专题 | `asc-devkit/examples/01_simd_cpp_api/05_best_practices/`，`asc-devkit/docs/zh/asc_950_feature_guide.md`，`cann-learning-hub/blogs/operator/{mx_quantized_matmul_optimization,scalar_npu_operator_performance_optimization,cross_entropy_zloss_fusion,ascend_c_mmad_selection_guide}/`，`ops-nn/docs/` |
 
 ## 第五编 分布式通信
 
 | 章 | 主来源路径 |
 |---|---|
-| 第17章 HCCL | `hcomm/README.md`，`hcomm/src/base_comm/`，`hcomm/src/coll_communicator_mgr/`，`hcomm/docs/zh/`，`hcomm/examples/`，`cann-learning-hub/tutorials/hccl_development/`，`blogs/operator/{hccl_custom_operator_aicpu_p2p,hccl_reducescatter_high_precision_redevelopment}/` |
-| 第18章 HIXL | `hixl/README.md`，`hixl/docs/zh/{api,guide}/`，`hixl/examples/`，`hixl/src/hixl/`，`hixl/benchmarks/`，`cann-learning-hub/tutorials/hixl_development/`，`blogs/inference/hixl_{fabricmem_kv_cache_transfer,mooncake_vllm_kv_cache_pooling,...}/` |
-| 第19章 通算融合与大规模系统 | `ops-transformer/mc2/`，`pto-isa/kernels/manual/a2a3/gemm_ar/`，`cann-learning-hub/tutorials/MC2_fused_operator_development/`，`blogs/inference/deepseek_*`、`blogs/training/*` |
+| 第21章 HCCL | `hcomm/README.md`，`hcomm/src/base_comm/`，`hcomm/src/coll_communicator_mgr/`，`hcomm/docs/zh/`，`hcomm/examples/`，`cann-learning-hub/tutorials/hccl_development/`，`blogs/operator/{hccl_custom_operator_aicpu_p2p,hccl_reducescatter_high_precision_redevelopment}/` |
+| 第22章 HIXL | `hixl/README.md`，`hixl/docs/zh/{api,guide}/`，`hixl/examples/`，`hixl/src/hixl/`，`hixl/benchmarks/`，`cann-learning-hub/tutorials/hixl_development/`，`blogs/inference/hixl_{fabricmem_kv_cache_transfer,mooncake_vllm_kv_cache_pooling,...}/` |
+| 第23章 通算融合与大规模系统 | `ops-transformer/mc2/`，`pto-isa/kernels/manual/a2a3/gemm_ar/`，`cann-learning-hub/tutorials/MC2_fused_operator_development/`，`blogs/inference/deepseek_*`、`blogs/training/*` |
 
 ## 第六编 现代编译后端与编程范式
 
 | 章 | 主来源路径 |
 |---|---|
-| 第20章 PTO 虚拟 ISA | `pto-isa/docs/{README_zh,PTO-Virtual-ISA-Manual_zh,isa/,coding/,machine/,figures}`，`pto-isa/include/pto/`，`pto-isa/kernels/`，`pto-isa/demos/`，`pto-isa/tests/` |
-| 第21章 PyPTO | `pypto/README.md`，`pypto/framework/{src/passes,src/codegen,include}`，`pypto/python/pypto/`，`pypto/docs/zh/tutorials/`，`pypto/examples/{01_beginner,02_intermediate,03_advanced}/`，`pypto/models/` |
-| 第22章 生态与前沿 | `pypto/README.md`，`pto-isa/README_zh.md`，`cann-learning-hub/blogs/{inference/torchair_fx_pass_multi_stream,aot_superkernel_graph_execution,npugraph_ex_third_party_framework_integration,operator/tilelang_ascend_operator_optimization}/`，`asc-devkit`（PyAsc 规划） |
-| 第23章 综合案例 | `ops-transformer/attention/`、`cann-learning-hub/blogs/inference/longcat_*`、`deepseek_*`、`pto-isa/kernels/manual/`（MLA 落点待定） |
+| 第24章 PTO 虚拟 ISA | `pto-isa/docs/{README_zh,PTO-Virtual-ISA-Manual_zh,isa/,coding/,machine/,figures}`，`pto-isa/include/pto/`，`pto-isa/kernels/`，`pto-isa/demos/`，`pto-isa/tests/` |
+| 第25章 PyPTO | `pypto/README.md`，`pypto/framework/{src/passes,src/codegen,include}`，`pypto/python/pypto/`，`pypto/docs/zh/tutorials/`，`pypto/examples/{01_beginner,02_intermediate,03_advanced}/`，`pypto/models/` |
+| 第26章 生态与前沿 | `pypto/README.md`，`pto-isa/README_zh.md`，`cann-learning-hub/blogs/{inference/torchair_fx_pass_multi_stream,aot_superkernel_graph_execution,npugraph_ex_third_party_framework_integration,operator/tilelang_ascend_operator_optimization}/`，`asc-devkit`（PyAsc 规划） |
+| 第27章 综合案例 | `ops-transformer/attention/`、`cann-learning-hub/blogs/inference/longcat_*`、`deepseek_*`、`pto-isa/kernels/manual/`（MLA 落点待定） |
 
 ## 第七编 展望
 
 | 章 | 主来源路径 |
 |---|---|
-| 第24章 路线图 | 各仓 `README`/`ReleaseNote_zh.md`/`CHANGELOG.md` 的 Roadmap 声明，`cann-learning-hub/blogs/README.md` |
+| 第28章 路线图 | 各仓 `README`/`ReleaseNote_zh.md`/`CHANGELOG.md` 的 Roadmap 声明，`cann-learning-hub/blogs/README.md` |

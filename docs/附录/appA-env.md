@@ -51,7 +51,7 @@ docker run --device /dev/davinci0 --device /dev/davinci_manager \
 ## A.5 NPU Simulator（真机替代方案）
 
 - CANN 官方 NPU-Simulator（需 Toolkit 配套）：昇腾社区版。
-- `pto-isa` 自带 CPU-Simulator：见第20章/`pto-isa/docs/getting-started_zh.md`。
+- `pto-isa` 自带 CPU-Simulator：见第24章/`pto-isa/docs/getting-started_zh.md`。
 - `asc-devkit` 程序可通过 simulator 编译执行（`[可用 CPU-SIM 运行]` 的前提是本机真实安装了 AscendC Toolkit，因此这部分在本机直接标 `[需真机验证]`）。
 
 ## A.6 验证任一算子端到端

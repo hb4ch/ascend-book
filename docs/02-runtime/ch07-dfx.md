@@ -167,4 +167,4 @@ mssanitizer ./demo --tool=initcheck      # 未初始化检测
 [^dumptensor]: DumpTensor 调试（LocalTensor/GlobalTensor、desc/dumpSize、ShapeInfo 矩阵形态输出、白盒调试）：`cann-learning-hub/blogs/operator/dumptensor_operator_debugging/dumptensor_operator_debugging.md`。
 [^errcode]: 错误码编号规律与示例：`runtime/include/external/acl/error_codes/{rt_error_codes.h,ge_error_codes.h}`（ACL_RT_SUCCESS=0、ACL_ERROR_RT_PARAM_INVALID=107000、ACL_ERROR_RT_ADDR_UNALIGNED=107008、ACL_ERROR_RT_STREAM_CONTEXT=107003；GE 域 ACL_ERROR_GE_PARAM_INVALID=145000、ACL_ERROR_GE_EXEC_MODEL_PATH_INVALID=145002）。
 [^mssan]: msSanitizer 四类检测（内存/竞争/未初始化/同步）、命令（--leak-check/--tool=racecheck/--tool=initcheck）、报错格式、建议先 msOpST 真机跑通：`cann-learning-hub/blogs/operator/ms_sanitizer/算子开发的守护神-深度解析msSanitizer异常检测工具.md`。
-- 继续读：第15章性能分析（msprof 实战）、第5章（launch 埋点/TIMESTAMP）、第3章（三笔账 Host 调度费）、`runtime/docs/zh/{api_ref,design,log_ref,error_code_ref}`。
+- 继续读：第19章性能分析（msprof 实战）、第5章（launch 埋点/TIMESTAMP）、第3章（三笔账 Host 调度费）、`runtime/docs/zh/{api_ref,design,log_ref,error_code_ref}`。

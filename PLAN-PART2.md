@@ -46,7 +46,7 @@
 
 | 位置 | 新增内容 | 源码抓手（已核对存在） | 估字 | 性质 |
 |---|---|---|---|---|
-| 2.1.1 | 「搬运字节数怎么数」最小方法论：一个算子的流量 = 各层 ELT×次数，教读者自己估（不只是我给的结论） | 复用 `basic_architecture.md`、`nddma_introduction` 口径 | +600 | 方法论，真数字留给第15章实测 |
+| 2.1.1 | 「搬运字节数怎么数」最小方法论：一个算子的流量 = 各层 ELT×次数，教读者自己估（不只是我给的结论） | 复用 `basic_architecture.md`、`nddma_introduction` 口径 | +600 | 方法论，真数字留给第19章实测 |
 | 2.2 | 三拍子读法实战：从「翻译腔」升级为 add.asc 真码—— CopyIn→`PipeBarrier`→`Add`→`PipeBarrier`→CopyOut，逐行配“这在干嘛” | `asc-devkit/examples/01_simd_cpp_api/00_introduction/01_add/add/add.asc` | +800 | `[需真机验证]`；衔接 1.6 |
 | 2.3.4 | L1 中转的**手算复用例子**：直接 GM→L0 要搬 N 趟 vs 过 L1 复用省多少趟，把“为什么必须过 L1”算给读者看 | `basic_architecture.md`（L0/L1 口径）、`cann-learning-hub/blogs/operator/nddma_introduction/` | +700 | 手算直觉 |
 | 2.4 | 补「同步的代价」：每次 barrier 都是一排气泡，为什么同步不能到处插（为 16 章双缓冲埋伏笔） | 复用 `memory_vector_computation.md`、`regbase_vec_add` | +400 | |
@@ -57,10 +57,10 @@
 
 | 位置 | 新增内容 | 源码抓手（已核对存在） | 估字 | 性质 |
 |---|---|---|---|---|
-| 3.1 | eager 四阶段的「下单调料」落地为表：找菜谱/取食材/递单/登记 → 各对应真实源码目录 + 一行说明；时间戳宏是什么、msprof 为什么看得到四段 | `runtime/src/runtime/core/src/launch/`（aix_stars.cc 等）、`runtime/src/runtime/core/src/kernel/`、`runtime/src/runtime/core/src/stream/stream_c.cc` | +800 | 与第15章点到为止 |
+| 3.1 | eager 四阶段的「下单调料」落地为表：找菜谱/取食材/递单/登记 → 各对应真实源码目录 + 一行说明；时间戳宏是什么、msprof 为什么看得到四段 | `runtime/src/runtime/core/src/launch/`（aix_stars.cc 等）、`runtime/src/runtime/core/src/kernel/`、`runtime/src/runtime/core/src/stream/stream_c.cc` | +800 | 与第19章点到为止 |
 | 3.2 | SQE 字段级拆解：用 `task_to_sqe.cc` 讲清一张订单的机器形态（任务类型、cmd、blockDim 落哪、静态/动态），配「任务类型形态表」 | `runtime/src/runtime/core/src/task/task_to_sqe.cc`、`core/inc/task/*.hpp` | +900 | 深挖留给第5章，这里给“长什么样” |
 | 3.3 | BQS 状态机（Full/NotFull/Range 事件在 `fsm//queue_manager` 真存在）+ TSD 客户端「进程/线程模式」一句话图 | `runtime/src/queue_schedule/server/{queue_manager.h,fsm/,state_manager.cpp}`、`runtime/src/tsd/tsdclient/` | +700 | 状态机完整翻版留第5章 |
-| 3.4 | 新增「图模式上手代码」：`torch.npu.NPUGraph()` + `g.replay()` 两段真码 `[需真机验证]`；「该不该用」扩成决策表 | `cann-learning-hub/blogs/inference/npugraph_ex_aclgraph_graph_mode/` | +700 | 承接第22章 |
+| 3.4 | 新增「图模式上手代码」：`torch.npu.NPUGraph()` + `g.replay()` 两段真码 `[需真机验证]`；「该不该用」扩成决策表 | `cann-learning-hub/blogs/inference/npugraph_ex_aclgraph_graph_mode/` | +700 | 承接第26章 |
 | 3.5 | 三笔账做一个**量级估算实例**（elemwise 4096²）每笔账怎么估、谁主导，标注为本书分析框架 | 复用 2.1.1 口径 + `launch/` 时间戳来源 | +800 | 方法论，不编厂商数字 |
 | 3.6 | 源码线索表扩充一列「形态/状态」（区分 runtime 的 api/core/队列三层入口） | 复用上文路径 | +400 | |
 | FAQ 新增 | 「常见疑问三连」小节（你会在第几章看见哪一层？FAQ 收口） | 复用 | +300 | |
@@ -187,7 +187,7 @@ M2 专属新增：
 1. 日志子系统：`dfx/log/`——日志级别、渠道、`ASCEND_GLOBAL_LOG_LEVEL` 落入哪、`log_ref`
 2. 错误管理与 watchdog：`dfx/error_manager/` + `dfx/trace/`（atrace、awatchdog）——错误上报、任务失败回调、设备异常检测
 3. 数据 Dump：`dfx/adump/` + api_ref 18_dump——算子/张量 dump 的原理与落盘格式（对接第三编调试）
-4. 性能 Profiling：`dfx/msprof/` + api_ref 19-*——msprof 的采集架构、API 插桩（本章只给架构与关键 API，量化解读留给第15章）
+4. 性能 Profiling：`dfx/msprof/` + api_ref 19-*——msprof 的采集架构、API 插桩（本章只给架构与关键 API，量化解读留给第19章）
 5. 综合排查案例：拿一个"算子结果不对/超时"的场景，四张单子怎么依次用（参考 hub 博客 ms_sanitizer / dumptensor_operator_debugging）
 
 **源码抓手（已核对存在）**：
@@ -209,7 +209,7 @@ M2 专属新增：
 **章节骨架**：
 
 1. 存储层次全图：GM / L1 / UB / 寄存器 / L0A/L0B/L0C / 参数区，一张带"谁拥有、谁访问"的表（这是全书能背的第四张图）
-2. 搬运单元分工：MTE1/2/3 与 FixPipe、NDMA 与 950 的 URMA/SHMEM（预告，详写在第18章）——只讲"谁能搬谁"
+2. 搬运单元分工：MTE1/2/3 与 FixPipe、NDMA 与 950 的 URMA/SHMEM（预告，详写在第22章）——只讲"谁能搬谁"
 3. 数据通路形态：DAT/带步长搬运/广播/转置/压缩搬——给形态不给全部细节
 4. 内存的"量"与"时"：UB 容量、分配/释放、暂存区生命周期、`LocalMemAllocator`
 5. 成本心智模型落地：一次 copy 的字节数 × 单位带宽 vs 一次计算的 FLOPs——算给读者看的三笔账（呼应 3.5）

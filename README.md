@@ -22,11 +22,11 @@
 | M0 | 站点骨架 + 风格指南 + 术语表 v1 + 来源映射表 + 第1章试写样章 | ✅ 完成 |
 | M1 | 第1–3章（平台全景） | ✅ 三轮重写 + 选B补齐（真码/图表/能力菜单13项/图模上手）：第1章 8.2k、第2章 7.8k、第3章 6.8k（总字；纯中文 6.9k/6.5k/5.9k）。`verify` 全绿已收口，见 CHANGELOG B-3/B-4 |
 | M2 | 第4–8章（runtime/驱动/DFX/内存） | ✅ 已成稿：第4章 ACL（4.5k/3.7k）、第5章 runtime（4.2k/3.3k）、第6章驱动（2.7k/2.2k）、第7章 DFX（2.7k/2.2k）、第8章内存（3.5k/2.7k），verify 绿，全编 17.6k总/14.1k中文 |
-| M3 | 第9–14章（Ascend C+算子库+实战） | ✅ 收官（6/6）：[PLAN-PART3.md](./PLAN-PART3.md) 已定方案；第9章已成稿（4.4k总字/3.4k中文）；第10章已成稿（4.3k总字/3.0k中文，4图5表，还清第8章 N-DMA 债）；第11章已成稿（约4.3k总字/3.3k中文，6图，含 CUDA 迁移对照表，还清 RegTensor 债）；第12章已成稿（3.8k总字/2.9k中文，3图，dav-2002 证伪不采信）；第13章已成稿（2.9k总字/2.2k中文，3图）；第14章已成稿（3.0k总字/2.3k中文，3图，三笔债兑付，M3 收官 6/6） |
-| M4 | 第15–16章（性能） | ⬜ 未开始 |
-| M5 | 第17–19章（通信） | ⬜ 未开始 |
-| M6 | 第20–23章（现代编译后端） | ⬜ 未开始 |
-| M7 | 第24章 + 附录 + 全书校对 | ⬜ 未开始 |
+| M3 | 第9–18章（Ascend C+算子库+实战，实战扩容 v2 后 10 章） | 🔄 实战扩容 v2：ch9-13 成稿，实战系列 1/5（ch14）：[PLAN-PART3.md](./PLAN-PART3.md) 已定方案；第9章已成稿（4.4k总字/3.4k中文）；第10章已成稿（4.3k总字/3.0k中文，4图5表，还清第8章 N-DMA 债）；第11章已成稿（约4.3k总字/3.3k中文，6图，含 CUDA 迁移对照表，还清 RegTensor 债）；第12章已成稿（3.8k总字/2.9k中文，3图，dav-2002 证伪不采信）；第13章已成稿（2.9k总字/2.2k中文，3图）；第14章 v2 瘦身为「Add 与工程链路」（还债③）；ch15-18 骨架已建（含 FA 独立成章） |
+| M4 | 第19–20章（性能） | ⬜ 未开始 |
+| M5 | 第21–23章（通信） | ⬜ 未开始 |
+| M6 | 第24–27章（现代编译后端） | ⬜ 未开始 |
+| M7 | 第28章 + 附录 + 全书校对 | ⬜ 未开始 |
 
 > 详细进度、决策与变更记录见 [CHANGELOG.md](./CHANGELOG.md)；写作计划见 [PLAN-PART1.md](./PLAN-PART1.md) / [PLAN-PART2.md](./PLAN-PART2.md)。
 
@@ -37,11 +37,11 @@
 - [导读：如何使用本书](./docs/index.md)
 - **第一编 昇腾平台全景**（[编导语](./docs/01-platform/index.md)）：[第1章 平台与生态总览](./docs/01-platform/ch01-overview.md) · [第2章 硬件体系结构](./docs/01-platform/ch02-hardware.md) · [第3章 软件栈执行主链路](./docs/01-platform/ch03-exec-path.md)
 - **第二编 运行时、驱动与维测底层**（[编导语](./docs/02-runtime/index.md)）：[第4章 ACL 编程接口](./docs/02-runtime/ch04-acl.md) · [第5章 运行时核心实现](./docs/02-runtime/ch05-runtime-impl.md) · [第6章 驱动与系统软件协同](./docs/02-runtime/ch06-driver.md) · [第7章 维测子系统 DFX](./docs/02-runtime/ch07-dfx.md) · [第8章 内存与数据通路](./docs/02-runtime/ch08-memory.md)
-- **第三编 算子开发：Ascend C**（[编导语](./docs/03-ascendc/index.md)）：[第9章 编程模型与 API 选择](./docs/03-ascendc/ch09-api-map.md) · [第10章 核心编程能力详解](./docs/03-ascendc/ch10-core-programming.md) · [第11章 SIMD/SIMT 与高级特性](./docs/03-ascendc/ch11-simd-simt.md) · [第12章 编译、工具链与部署](./docs/03-ascendc/ch12-compile-tools.md) · [第13章 算子库体系](./docs/03-ascendc/ch13-operator-libs.md) · [第14章 经典算子实战](./docs/03-ascendc/ch14-op-practice.md)
-- **第四编 性能优化方法论**（[编导语](./docs/04-perf/index.md)）：[第15章 性能分析与瓶颈定位](./docs/04-perf/ch15-perf-analysis.md) · [第16章 优化技术专题](./docs/04-perf/ch16-opt-topics.md)
-- **第五编 分布式通信**（[编导语](./docs/05-comm/index.md)）：[第17章 HCCL 集合通信](./docs/05-comm/ch17-hccl.md) · [第18章 HIXL 单边通信](./docs/05-comm/ch18-hixl.md) · [第19章 通算融合与大规模系统](./docs/05-comm/ch19-supernode.md)
-- **第六编 现代编译后端与编程范式**（[编导语](./docs/06-backend/index.md)）：[第20章 PTO 虚拟 ISA](./docs/06-backend/ch20-pto-isa.md) · [第21章 PyPTO 框架深入](./docs/06-backend/ch21-pypto.md) · [第22章 生态与前沿编译技术](./docs/06-backend/ch22-ecosystem.md) · [第23章 全栈综合案例](./docs/06-backend/ch23-case.md)
-- **第七编 展望与总结**（[编导语](./docs/07-outlook/index.md)）：[第24章 路线图与展望](./docs/07-outlook/ch24-roadmap.md)
+- **第三编 算子开发：Ascend C**（[编导语](./docs/03-ascendc/index.md)）：[第9章 编程模型与 API 选择](./docs/03-ascendc/ch09-api-map.md) · [第10章 核心编程能力详解](./docs/03-ascendc/ch10-core-programming.md) · [第11章 SIMD/SIMT 与高级特性](./docs/03-ascendc/ch11-simd-simt.md) · [第12章 编译、工具链与部署](./docs/03-ascendc/ch12-compile-tools.md) · [第13章 算子库体系](./docs/03-ascendc/ch13-operator-libs.md) · [第14章 实战Ⅰ：Add 与工程链路](./docs/03-ascendc/ch14-op-practice.md) · [第15章 实战Ⅱ：向量算子 Softmax/GELU](./docs/03-ascendc/ch15-vector-softmax.md) · [第16章 实战Ⅲ：MatMul Cube 全路径](./docs/03-ascendc/ch16-matmul-cube.md) · [第17章 实战Ⅳ：融合算子](./docs/03-ascendc/ch17-fusion.md) · [第18章 实战Ⅴ：Flash Attention](./docs/03-ascendc/ch18-flash-attention.md)
+- **第四编 性能优化方法论**（[编导语](./docs/04-perf/index.md)）：[第19章 性能分析与瓶颈定位](./docs/04-perf/ch19-perf-analysis.md) · [第20章 优化技术专题](./docs/04-perf/ch20-opt-topics.md)
+- **第五编 分布式通信**（[编导语](./docs/05-comm/index.md)）：[第21章 HCCL 集合通信](./docs/05-comm/ch21-hccl.md) · [第22章 HIXL 单边通信](./docs/05-comm/ch22-hixl.md) · [第23章 通算融合与大规模系统](./docs/05-comm/ch23-supernode.md)
+- **第六编 现代编译后端与编程范式**（[编导语](./docs/06-backend/index.md)）：[第24章 PTO 虚拟 ISA](./docs/06-backend/ch24-pto-isa.md) · [第25章 PyPTO 框架深入](./docs/06-backend/ch25-pypto.md) · [第26章 生态与前沿编译技术](./docs/06-backend/ch26-ecosystem.md) · [第27章 全栈综合案例](./docs/06-backend/ch27-case.md)
+- **第七编 展望与总结**（[编导语](./docs/07-outlook/index.md)）：[第28章 路线图与展望](./docs/07-outlook/ch28-roadmap.md)
 - **附录**：[A 环境搭建](./docs/附录/appA-env.md) · [B 术语表](./docs/附录/appB-glossary.md) · [C 资源索引](./docs/附录/appC-resources.md) · [D 来源映射表](./docs/附录/appD-source-map.md) · [E 风格规范](./docs/附录/appE-style.md)
 
 ## 目录结构

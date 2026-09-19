@@ -2,6 +2,13 @@
 
 《昇腾平台技术实战》里程碑日志。所有来源数据、决策与结论落此文件，可追溯。
 
+## 实战扩容 v2：第三编 6→10 章，下游编号 +4（用户反馈驱动）
+
+- **决策**：用户审阅后指出 ch14 一章装五类实战太薄、且漏了 Flash Attention。定稿：ch14 瘦身为「Add 与工程链路」；新建 ch15 向量（Softmax/GELU）、ch16 矩阵（MatMul）、ch17 融合、**ch18 Flash Attention（全书最重单章：op_api/arch35 kernel 双层解剖 + 84 算子族谱 + 三件套拆分设计）**。
+- **重编号**：第四编 ch19-20、第五编 ch21-23、第六编 ch24-27、第七编 ch28；10 个文件 git mv、22+ 文件引用替换；sidebar 链式替换事故以文件名为权威修复。
+- **迁移**：ch14 v1 的搬运/RegBase/MatMul/融合段落作为初稿迁入 ch15-17 骨架；图 14-1（旅程总览）与图 14-2（Tiling 回路）留在 ch14。
+- **校验**：verify 全绿（42 文件）。M3 状态改为「实战系列进行中 1/5」。
+
 ## M3-6 第14章 经典算子实战 成稿（0.3k → 3.0k 总字 / 中文 2.3k）——M3 收官（6/6）
 
 - **六节结构，三笔预支债显式兑付**：① 工程级流程八站总览（图14-1 SVG 站牌图，本编总纲）；② **还债③** Tiling 完整回路（add_example 真码：GetPlatformInfo 查核数/UB → 账本三笔 → TilingKey schMode 0/1 模板选择 → TilingData 随 SQE 下发 → kernel 分支，图14-2 焊接第9章账本与第10章实现）；③ **还债②** 搬运收口（data_copy 非对齐/L2复用、bank_conflict 三例含 nd2nz 的 dstNzC0Stride 单参数调优教科书案例）；④ **还债①** RegBase 实操（softmax_high_performance Case 0-5 六级优化阶梯表：MemBase→RegBase→融合+ExpSub+UpdateMask→展开→主尾块→全家桶，VF 三法落地）；⑤ MatMul Cube 路径（GM→L1→L0A/B→L0C→UB/GM 实战版）；⑥ 融合算子决策面（图14-3 CV 融合：Fixpipe 出 UB→AIV 接力）+ **FA 不重造轮子**（指向 ops-transformer 现成实现，践行第13章规矩）。

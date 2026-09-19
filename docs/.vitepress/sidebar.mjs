@@ -41,7 +41,11 @@ export const sidebar = {
         { text: '第11章 SIMD/SIMT 与高级特性', link: '/03-ascendc/ch11-simd-simt' },
         { text: '第12章 编译、工具链与部署', link: '/03-ascendc/ch12-compile-tools' },
         { text: '第13章 算子库体系', link: '/03-ascendc/ch13-operator-libs' },
-        { text: '第14章 经典算子实战（端到端）', link: '/03-ascendc/ch14-op-practice' }
+        { text: '第14章 实战Ⅰ：Add 与工程链路', link: '/03-ascendc/ch14-op-practice' },
+        { text: '第15章 实战Ⅱ：向量算子 Softmax/GELU', link: '/03-ascendc/ch15-vector-softmax' },
+        { text: '第16章 实战Ⅲ：MatMul Cube 全路径', link: '/03-ascendc/ch16-matmul-cube' },
+        { text: '第17章 实战Ⅳ：融合算子', link: '/03-ascendc/ch17-fusion' },
+        { text: '第18章 实战Ⅴ：Flash Attention', link: '/03-ascendc/ch18-flash-attention' }
       ]
     }
   ],
@@ -51,8 +55,8 @@ export const sidebar = {
       text: '第四编 性能优化方法论',
       items: [
         { text: '编导语', link: '/04-perf/' },
-        { text: '第15章 性能分析与瓶颈定位', link: '/04-perf/ch15-perf-analysis' },
-        { text: '第16章 优化技术专题', link: '/04-perf/ch16-opt-topics' }
+        { text: '第19章 性能分析与瓶颈定位', link: '/04-perf/ch19-perf-analysis' },
+        { text: '第20章 优化技术专题', link: '/04-perf/ch20-opt-topics' }
       ]
     }
   ],
@@ -62,9 +66,9 @@ export const sidebar = {
       text: '第五编 分布式通信',
       items: [
         { text: '编导语', link: '/05-comm/' },
-        { text: '第17章 HCCL 集合通信', link: '/05-comm/ch17-hccl' },
-        { text: '第18章 HIXL 单边通信', link: '/05-comm/ch18-hixl' },
-        { text: '第19章 通算融合与大规模系统', link: '/05-comm/ch19-supernode' }
+        { text: '第21章 HCCL 集合通信', link: '/05-comm/ch21-hccl' },
+        { text: '第22章 HIXL 单边通信', link: '/05-comm/ch22-hixl' },
+        { text: '第23章 通算融合与大规模系统', link: '/05-comm/ch23-supernode' }
       ]
     }
   ],
@@ -74,10 +78,10 @@ export const sidebar = {
       text: '第六编 现代编译后端与编程范式',
       items: [
         { text: '编导语', link: '/06-backend/' },
-        { text: '第20章 PTO 虚拟 ISA', link: '/06-backend/ch20-pto-isa' },
-        { text: '第21章 PyPTO 框架深入', link: '/06-backend/ch21-pypto' },
-        { text: '第22章 生态与前沿编译技术', link: '/06-backend/ch22-ecosystem' },
-        { text: '第23章 全栈综合案例（可选）', link: '/06-backend/ch23-case' }
+        { text: '第24章 PTO 虚拟 ISA', link: '/06-backend/ch24-pto-isa' },
+        { text: '第25章 PyPTO 框架深入', link: '/06-backend/ch25-pypto' },
+        { text: '第26章 生态与前沿编译技术', link: '/06-backend/ch26-ecosystem' },
+        { text: '第27章 全栈综合案例（可选）', link: '/06-backend/ch27-case' }
       ]
     }
   ],
@@ -87,7 +91,7 @@ export const sidebar = {
       text: '第七编 展望与总结',
       items: [
         { text: '编导语', link: '/07-outlook/' },
-        { text: '第24章 路线图与展望', link: '/07-outlook/ch24-roadmap' }
+        { text: '第28章 路线图与展望', link: '/07-outlook/ch28-roadmap' }
       ]
     }
   ],

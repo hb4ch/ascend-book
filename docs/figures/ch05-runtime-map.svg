@@ -64,7 +64,7 @@
     <text x="415" y="464" text-anchor="middle" font-size="11" fill="#495057">算子逃逸到 AI CPU 执行时的调度通道（第11章）</text>
     <rect x="610" y="420" width="290" height="60" rx="10" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
     <text x="755" y="444" text-anchor="middle" font-weight="bold">tprt/ · 传输运行层（5.1.1）</text>
-    <text x="755" y="464" text-anchor="middle" font-size="11" fill="#495057">跨设备传输的平台抽象，供上层 core/ 调用（第8章零拷贝 / 第18章）</text>
+    <text x="755" y="464" text-anchor="middle" font-size="11" fill="#495057">跨设备传输的平台抽象，供上层 core/ 调用（第8章零拷贝 / 第22章）</text>
   </g>
   <path d="M365 186 L365 318" stroke="#adb5bd" stroke-width="1.4" fill="none"/>
   <path d="M365 386 L365 420" stroke="#adb5bd" stroke-width="1.4" fill="none"/>

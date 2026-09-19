@@ -1,10 +1,10 @@
 ---
-title: 第22章 生态与前沿编译技术
+title: 第26章 生态与前沿编译技术
 description: PyAsc、tilelang-ascend、PTO-AS/PTO-DSL、torch.compile 路径（torchair/autofuse/ACLNN）、图模式与 AOT、模型级工具链
 status: 提纲预览
 ---
 
-# 第22章 生态与前沿编译技术
+# 第26章 生态与前沿编译技术
 
 > 本章为提纲预览，正文将随写作推进逐步填充。
 

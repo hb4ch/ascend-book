@@ -1,10 +1,10 @@
 ---
-title: 第20章 PTO 虚拟 ISA
+title: 第24章 PTO 虚拟 ISA
 description: 设计动机、tile 编程模型、90+ 指令体系、事件同步、CPU-Simulator、跨代际、性能参考
 status: 提纲预览
 ---
 
-# 第20章 PTO 虚拟 ISA
+# 第24章 PTO 虚拟 ISA
 
 > 本章为提纲预览，正文将随写作推进逐步填充。
 

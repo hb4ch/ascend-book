@@ -1,10 +1,10 @@
 ---
-title: 第18章 HIXL 单边通信
+title: 第22章 HIXL 单边通信
 description: 单边零拷贝机制、D2D/D2H/H2D、直传/中转/FabricMem、链路池、LLM-DataDist 与 KV Cache、集成场景
 status: 提纲预览
 ---
 
-# 第18章 HIXL 单边通信
+# 第22章 HIXL 单边通信
 
 > 本章为提纲预览，正文将随写作推进逐步填充。
 

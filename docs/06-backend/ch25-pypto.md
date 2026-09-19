@@ -1,10 +1,10 @@
 ---
-title: 第21章 PyPTO 框架深入
+title: 第25章 PyPTO 框架深入
 description: 架构分层、多级 IR 与 Pass、CodeGen、MPMD 调度、工具链、0.2.0 新前端、示例性能方法
 status: 提纲预览
 ---
 
-# 第21章 PyPTO 框架深入
+# 第25章 PyPTO 框架深入
 
 > 本章为提纲预览，正文将随写作推进逐步填充。
 

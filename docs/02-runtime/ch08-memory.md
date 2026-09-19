@@ -164,7 +164,7 @@ N-DMA 和 DataCopy 都有**对齐要求**：不同数据类型不同，`float` �
 走到这，第二编逻辑上就闭环了。数据通路这一章，直接为第三编（算子开发）和性能编（第15、16章）埋了三根线[^next]：
 
 1. **N-DMA 是写算子首先要摸清的工具**——第9章起你写 `DataCopy` / `DataCopyPad`，底层就是它。
-2. **对齐与缓存**是性能分析的头号疑犯——第15章做 msprof 画像，若搬运带宽上不去，先查对齐、再查乒乓。
+2. **对齐与缓存**是性能分析的头号疑犯——第19章做 msprof 画像，若搬运带宽上不去，先查对齐、再查乒乓。
 3. **零拷贝与数据复用**是 kernel 融合的动机——多算子合并成一个大 kernel，本质就是「多搬几次 vs 少搬一次」的权衡。
 
 所以这一章不是终点，是给「写算子 / 调性能」做准备。
@@ -184,7 +184,7 @@ N-DMA 和 DataCopy 都有**对齐要求**：不同数据类型不同，`float` �
 ## 本章小结
 
 ::: tip 一句话总结
-**内存层级（GM→L2→L1→UB）决定了「搬」要付费；NDDMA 用「步长即变换」把搬 + 变一步做完，是算子数据通路的主角；对齐（32B / Cache Line）、乒乓（搬算重叠）、零拷贝（少搬）是压低搬运开销的三板斧；AIPP 把预处理随路做掉。数据通路是第三编写算子与第15章性能分析的地基。**
+**内存层级（GM→L2→L1→UB）决定了「搬」要付费；NDDMA 用「步长即变换」把搬 + 变一步做完，是算子数据通路的主角；对齐（32B / Cache Line）、乒乓（搬算重叠）、零拷贝（少搬）是压低搬运开销的三板斧；AIPP 把预处理随路做掉。数据通路是第三编写算子与第19章性能分析的地基。**
 :::
 
 ## 本章来源与进一步阅读
@@ -198,5 +198,5 @@ N-DMA 和 DataCopy 都有**对齐要求**：不同数据类型不同，`float` �
 [^pong]: 乒乓与多级队列（`TPipe::InitBuffer`）、搬算重叠：`asc-devkit/examples/01_simd_cpp_api/03_basic_api/00_data_movement/`、`asc-devkit/docs/zh/api/SIMD-API/`（DataCopy 系列）。
 [^zerocopy]: 零拷贝 / one-sided 与跨设备传输：`runtime/src/tprt/`（传输运行层）、`runtime/src/runtime/core/src/device/`；跨设备零拷贝语义见第2章 HCCS / 灵衢 URMA（one-sided）。
 [^aipp]: AIPP 预处理随路：`asc-devkit/docs/zh/guide/programming_guide/`（图像预处理相关章节）。
-[^next]: 为第三编与第15章铺路（N-DMA/对齐/乒乓/零拷贝 → 算子开发与性能画像）：`asc-devkit/docs/zh/api/SIMD-API/basic_api/memory_vector_compute/data_move/`、`cann-learning-hub/blogs/operator/nddma_introduction/`。
-- 继续读：第9章起 Ascend C（`asc-devkit/examples/01_simd_cpp_api/`）、第15章性能分析（`runtime/src/dfx/msprof/`、第8章对齐/带宽/乒乓三大斧）。
+[^next]: 为第三编与第19章铺路（N-DMA/对齐/乒乓/零拷贝 → 算子开发与性能画像）：`asc-devkit/docs/zh/api/SIMD-API/basic_api/memory_vector_compute/data_move/`、`cann-learning-hub/blogs/operator/nddma_introduction/`。
+- 继续读：第9章起 Ascend C（`asc-devkit/examples/01_simd_cpp_api/`）、第19章性能分析（`runtime/src/dfx/msprof/`、第8章对齐/带宽/乒乓三大斧）。

@@ -16,6 +16,10 @@ description: 编程模型与 API 选择、核心编程、SIMD/SIMT、编译工�
 - [第11章 SIMD/SIMT 与高级特性](./ch11-simd-simt.md)
 - [第12章 编译、工具链与部署](./ch12-compile-tools.md)
 - [第13章 算子库体系](./ch13-operator-libs.md)
-- [第14章 经典算子实战（端到端）](./ch14-op-practice.md)
+- [第14章 实战Ⅰ：Add 与工程链路](./ch14-op-practice.md)
+- [第15章 实战Ⅱ：向量算子 Softmax/GELU](./ch15-vector-softmax.md)
+- [第16章 实战Ⅲ：MatMul Cube 全路径](./ch16-matmul-cube.md)
+- [第17章 实战Ⅳ：融合算子](./ch17-fusion.md)
+- [第18章 实战Ⅴ：Flash Attention](./ch18-flash-attention.md)
 
 **主要来源**：`asc-devkit`（impl/docs/examples）、`ops-nn`、`ops-transformer`、`ops-sparse`、`cann-learning-hub/tutorials/ascendc_operator_development` 与 `blogs/operator`。
