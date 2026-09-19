@@ -133,6 +133,26 @@ Simulator 节用表格（约束多、无图必要）。
 
 **验收**：每个重点算子（Add/Softmax/GELU/MatMul/融合）独立成章且 ≥4k 中文字；三笔债各在专属章兑现并标记；重编号后 verify 全绿、无死链。
 
+### 第15章 实战Ⅱ：向量算子（M3-7 详细方案）
+
+**章节结构（5 节，目标 ≥4.5k 中文字）**
+1. **问题拆解与 Case 0 基线**：softmax 四步（max/exp/sum/div）的 MemBase 单循环实现；数 UB 往返次数——每步中间结果都落 UB 的搬运税账单；图 15-1 阶梯全景开章立锚
+2. **Case 1→2：RegBase 化与循环融合【还债①】**：Case 1 真码——寄存器化了但 exp/sum 中间结果仍 StoreAlign 落 UB + LocalMemBar 同步（半吊子 RegBase）；Case 2 真码——maxReg/expReg/sumReg/divReg 全程驻留 + loop fusion 共享 Load + **ExpSub 融合指令** + UpdateMask 尾块；图 15-2 双栏数据流对比（本章核心图）
+3. **Case 2→4：循环展开与主尾块**：外层循环展开（aDim 维）收益来源；主尾块模式 main-tail（主循环满 repeat + 尾块 mask，第 8 章纪律的 kernel 侧落地）；图 15-3
+4. **Case 5 全家桶与阶梯复盘**：三项优化叠加的实现顺序与收益叠加逻辑；为什么这个顺序不能乱
+5. **GELU 与指令双发**：gelu.asc（251 行，基础版 vs eltwise 版）；dual_issue 三节落地——合理拆分 VF 循环（相邻无依赖指令双发）、手动展开 `#pragma unroll`、**寄存器超限反效果**（双发挤占寄存器→依赖链变长）；gelu 的连续非对齐场景
+
+**配图方案（3 张）**
+| 图 | 类型 | 内容 |
+|---|---|---|
+| 图 15-1 softmax 六级优化阶梯 | SVG | 本章核心记忆图：六级台阶，每级标关键动作 + 消掉的代价（Case0 满地 UB 往返 → Case5 全家桶）；右侧收益箭头 |
+| 图 15-2 Case1 vs Case2 数据流对比 | SVG | 左：Case1 四阶段中间结果 exp/sum 落 UB 再读回 + LocalMemBar 同步墙；右：Case2 寄存器驻留 + loop fusion 共享 Load + ExpSub；对照第11章图11-4 但落到 softmax 真码 |
+| 图 15-3 UpdateMask 与主尾块机制 | Mermaid | repeatTimes 计算 → 满轮 mask → 尾块 UpdateMask → main/tail 分支流程 |
+
+**锚点（≤5）**：`02_reg_compute/softmax_high_performance/`（README+softmax.asc 844行）、`02_reg_compute/gelu_high_performance/`、`vf_optimization/` 三篇（fusion/loop/dual_issue）。其余进脚注。
+
+**验收**：读者能复演 Case0→5 每步并说清收益来源；UpdateMask/主尾块能默写；知道指令双发何时反效果；verify 绿。
+
 ## 3. 执行顺序与落地
 
 | 步骤 | 内容 | 收口动作 |
