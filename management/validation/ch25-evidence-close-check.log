@@ -1,0 +1,9 @@
+=== git status (read-only check, 2026-10-10) ===
+883e7df feat(pass): Fold assemble toOffset into L0C2UB copy in ReplaceTensor
+=== py_compile with PYTHONPYCACHEPREFIX=/tmp/ch25-pycache ===
+py_compile-ok
+home
+mnt
+=== source tree pycache after compile ===
+examples/01_beginner/compute/__pycache__
+examples/01_beginner/basic/__pycache__
