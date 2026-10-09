@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-CH22提交3af94f8已推送origin/main。CH23提交ac56be4已推送origin/main；CH24已提交b68c212并推送origin/main；CH25已验收待本轮推送；原pi修订CH26-R2。第21/22章可读性重写仍待安排，用户新增规范已持久化。
+CH22提交3af94f8已推送origin/main。CH23提交ac56be4已推送origin/main；CH24已提交b68c212并推送origin/main；CH25已验收并推送732d1a1；原pi修订CH26-R2。第21/22章可读性重写仍待安排，用户新增规范已持久化。
 
 ## 已完成
 
@@ -342,3 +342,13 @@ CH26已交付，经理亲读正文及AutoFuse/Kernel直调原文，发现手工N
 
 ## 03:58 CH25验收、CH26再次修订
 CH25最终verify和bash -n退出0，diff检查通过，两图真实页面目检通过，验收见CH25-ACCEPTED；准备只提交25章及对应证据。CH26实际正文仍有shape重捕泛化、融合全留片上及长段残余，已派R2；不纳入本次提交。
+
+推送确认：b68c212..732d1a1 main -> main成功；26章活动稿未包含。
+
+## 04:08 CH26经理收尾、CH27研究
+R2已交付，经理接管26章，修正仍残留的手工shape一对一捕获泛化、框架无法表达流的绝对句、GM中转漏字及安装前提。原pi已派CH27-RESEARCH，不再改26章；26章待实际页面图检与最终验证，未验收。
+
+04:08验证：ch26-manager-verify.log完整verify退出0，git diff --check通过；真实站点两幅图ch26-manager-fig1/2.png已实际目检，文字完整无遮挡。待最后来源与全局记录收口，不把此验证直接当全章验收。原pi继续27章研究。
+
+## 04:18 CH26验收、CH27补证
+26章来源与图文收口完成，验收见CH26-ACCEPTED，准备按章提交推送。27章研究已交，经理亲读SFA例子发现dtype非全fp16、PrintOutResult疑似无调用、launch后必须同步；CPU参考与主例shape/layout不同。已派CH27-EVIDENCE-CLOSE追真实host/kernel及数学对拍，暂不正文。
