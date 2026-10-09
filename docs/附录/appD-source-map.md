@@ -55,7 +55,7 @@ description: 每章 → 源仓路径对照，写作自我一致性的基准
 | 章 | 主来源路径 |
 |---|---|
 | 第21章 HCCL | `hcomm/examples/01_communicators/01_one_device_per_process/main.cc`；`hcomm/src/legacy/ascend910/algorithm/impl/operator/all_reduce_operator.cc`；`hcomm/docs/zh/architecture/architecture-brief.md`；`asc-devkit/impl/adv_api/detail/hccl/common/hccl_aicpu_impl.h`；`asc-devkit/impl/adv_api/detail/hccl/impl/platform_v310/hccl_ccu_v0.h`。完整接口来源见本章脚注；Host到legacy的weak断点未闭合。 |
-| 第22章 HIXL | `hixl/README.md`，`hixl/docs/zh/{api,guide}/`，`hixl/examples/`，`hixl/src/hixl/`，`hixl/benchmarks/`，`cann-learning-hub/tutorials/hixl_development/`，`blogs/inference/hixl_{fabricmem_kv_cache_transfer,mooncake_vllm_kv_cache_pooling,...}/` |
+| 第22章 HIXL | `hixl/examples/cpp/hixl_example_quickstart.cpp`；`hixl/src/hixl/engine/hixl_engine.cc`；`hixl/src/hixl/cs/hixl_cs_client.cc`；`hixl/src/hixl/common/hixl_checker.h`；`hixl/benchmarks/performance.md`。完整API与后端边界见本章脚注；无本书NPU实测。 |
 | 第23章 通算融合与大规模系统 | `ops-transformer/mc2/`，`pto-isa/kernels/manual/a2a3/gemm_ar/`，`cann-learning-hub/tutorials/MC2_fused_operator_development/`，`blogs/inference/deepseek_*`、`blogs/training/*` |
 
 ## 第六编 现代编译后端与编程范式

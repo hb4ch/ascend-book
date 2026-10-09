@@ -1,0 +1,9 @@
+# CH22 补证：修主线与完成边界
+保持模型，仅CH22研究，不写正文。经理亲读源码发现：
+1. quickstart main是--role选择，不是双角色单进程。逐行读main参数及RunClient/RunServer，准确写双进程/设备0和2、两个终端命令，不能用d2rd运行命令冒充quickstart。
+2. Client先ExchangeAddr后RegisterMem，Server先注册后ExchangeAddr，不能泛化两端都先注册再交换。done在Client Disconnect之前发送，Server recv done后立即Finalize：给双端时序图并核实Finalize实际如何等待断链，未证则明确可能的收尾窗口，不能宣称生命周期顺序满足全部接口约束。
+3. completion host_flag不是kernel notify直接置位：代码LaunchDeviceChunkedKernels后同stream aclrtMemcpyAsync从dev_const_one拷1到Host。追device kernel notify与此D2H之间完成保障，区分提交、stream顺序、Host可读，别偷换归因。
+4. transfer_failure_latched_复位就在hixl_cs_client.cc L339。读所属函数及调用点、检查新传输入口L988/1028与query L1102；把失败后是否可重试/何时重建讲清，不能以没搜到标缺证。
+5. GetTransferStatus返回Status和输出TransferStatus是不同层，TIMEOUT是否消费/删除、FAILED返回值是否写输出、单条与批量skip_waiting语义逐条追到manager删除。同步返回必须SUCCESS才说完成，timeout不等于buffer可复用。
+6. 路由匹配表只能证明候选优先级，不能说一定选中；主线给实际options/endpoint构造条件。BUFFER_POOL默认开不等于每次实际走中转。FabricMem具体路径与极值性能不能将文档宣传CPU零介入泛化为无Host控制。
+完整路径/版本不变，补证给实际符号与行区，研究交付待经理。

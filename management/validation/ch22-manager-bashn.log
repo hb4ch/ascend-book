@@ -1,0 +1,4 @@
+Syntax only; no NPU or build execution.
+block 1: exit=0
+block 2: exit=0
+block 3: exit=0
