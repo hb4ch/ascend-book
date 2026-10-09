@@ -1,0 +1,20 @@
+== A2 复算 vs 总表 ==
+case2 read: calc=1.2457 table=1.2457 diff=+0.0000
+case3 read: calc=1.4560 table=1.456 diff=-0.0000
+case4 mix: calc=1.6072 table=1.6072 diff=+0.0000
+case5 mix: calc=2.2878 table=2.2755 diff=+0.0123
+case6 mix: calc=2.3463 table=2.3456 diff=+0.0007
+== 有效吞吐(3D/TaskDur,另一口径,非带宽实测) ==
+  case4: 1.525 TB/s
+  case5: 2.145 TB/s
+  case6: 2.182 TB/s
+== 百分比/倍数 ==
+0->1 Task降: 99.44% (源表179.4x)
+1->2: 95.5630% (源表95.5为近似表达)
+case0->6: 6718.45x (源表6718.5x)
+case0 scalar实现/向量理论: 4353.3x
+== 理论vector ==
+A2: 5.904us  950: 4.965us
+== 均值算例(48核:47x5+1x50) ==
+mean = 5.9375 us
+case4 ratio和: 1.364

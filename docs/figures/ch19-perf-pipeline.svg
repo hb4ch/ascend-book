@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="280" viewBox="0 0 940 280" font-family="sans-serif">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#666"/></marker></defs>
+<rect width="940" height="280" fill="white"/>
+<text x="470" y="30" text-anchor="middle" font-size="18" fill="#222">性能分析：两类证据共同约束解释（非工具实现调用图）</text>
+<g stroke-width="1.5">
+<rect x="25" y="65" width="300" height="65" rx="6" fill="#eef1fb" stroke="#4263eb"/>
+<rect x="25" y="155" width="300" height="65" rx="6" fill="#eef7f1" stroke="#2f9e63"/>
+<rect x="390" y="105" width="240" height="80" rx="6" fill="#fdf1e7" stroke="#e8590c"/>
+<rect x="700" y="105" width="215" height="80" rx="6" fill="#f3eefb" stroke="#9c36b5"/>
+</g>
+<g font-size="14" fill="#222" text-anchor="middle">
+<text x="175" y="90">源码证据：runtime 结构与分析器</text>
+<text x="175" y="113" font-size="12">事件字段、关联键、时间戳换算</text>
+<text x="175" y="180">工具文档与样例测量表</text>
+<text x="175" y="203" font-size="12">msopprof 命令、产物、指标定义</text>
+<text x="510" y="132">核对边界与分母</text>
+<text x="510" y="155" font-size="12">任务 / 核 / 单元、均值、时钟</text>
+<text x="510" y="174" font-size="12">源码结构不能代替工具列生成证据</text>
+<text x="807" y="133">观察 → 假设 → 补证</text>
+<text x="807" y="158" font-size="12">记录原始表、重复采样与时间线</text>
+</g>
+<g fill="none" stroke="#666" stroke-width="1.5" marker-end="url(#arrow)"><path d="M325 98L390 130"/><path d="M325 188L390 160"/><path d="M630 145L700 145"/></g>
+<text x="25" y="253" font-size="13" fill="#555">两源并列；不声称已证明 runtime 分析器直接生成 msopprof CSV。图中箭头表示分析步骤。</text>
+</svg>

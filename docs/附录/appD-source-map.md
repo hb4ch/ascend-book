@@ -47,7 +47,7 @@ description: 每章 → 源仓路径对照，写作自我一致性的基准
 
 | 章 | 主来源路径 |
 |---|---|
-| 第19章 性能分析 | `runtime/src/dfx/msprof/`，`runtime/docs/zh/`，`asc-devkit/docs/zh/guide/programming_guide/debug_and_tuning/`，`pto-isa/docs/coding/opt_zh.md`，`asc-devkit/examples/01_simd_cpp_api/06_profiling/` |
+| 第19章 性能分析 | `runtime/src/dfx/msprof/collector/dvvp/analyze/{inc/data_struct.h,src/analyzer_base.cpp,src/analyzer_hwts.cpp}`，`runtime/src/dfx/msprof/inc/toolchain/prof_acl_api.h`，`runtime/src/dfx/msprof/collector/dvvp/acp/src/op_analyzer.cpp`，`asc-devkit/docs/zh/guide/programming_guide/debug_and_tuning/performance_tuning.md`，`asc-devkit/examples/01_simd_cpp_api/05_best_practices/00_vector_compute/add_high_performance/README.md`，`pto-isa/docs/coding/opt_zh.md` |
 | 第20章 优化专题 | `asc-devkit/examples/01_simd_cpp_api/05_best_practices/`，`asc-devkit/docs/zh/asc_950_feature_guide.md`，`cann-learning-hub/blogs/operator/{mx_quantized_matmul_optimization,scalar_npu_operator_performance_optimization,cross_entropy_zloss_fusion,ascend_c_mmad_selection_guide}/`，`ops-nn/docs/` |
 
 ## 第五编 分布式通信
