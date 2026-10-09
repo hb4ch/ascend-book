@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-CH18已推送7777923；CH19已通过源码与文稿审查，准备本轮提交推送，最终依据reviews/CH19-ACCEPTED.md。原pi按tasks/CH20-EVIDENCE-CLOSE.md进行20章补证，保持GLM-5.3-Flash，不改19章。用户已授权验收后推送origin/main。
+CH18已推送7777923；CH19已通过源码与文稿审查并推送origin/main，提交45b88d6，最终依据reviews/CH19-ACCEPTED.md。原pi按tasks/CH20-EVIDENCE-CLOSE.md进行20章补证，保持GLM-5.3-Flash，不改19章。用户已授权验收后推送origin/main。
 
 ## 已完成
 
@@ -137,3 +137,37 @@ CH19 R2已交付，经理发现重复bash围栏、SVG仍错误直连、原句残
 研究交付存在nd2nz形状笔误及“950无case6”串用Add案例，稀疏dtype/执行链和MX开销未闭。经理抽查真实nd2nz README与LoadDataWithSparse API后，派tasks/CH20-EVIDENCE-CLOSE.md补证，暂不派正文。CH19仍由经理独占收尾。
 
 17:17收尾：CH19最终verify通过（270引用/347路径，约7050中文），图已实际渲染检查、离线复算已独立执行，diff检查通过。源表不一致如实保留，不声称NPU验证。只提交19章及对应账本/日志，20章活动研究排除。
+
+推送确认：7777923..45b88d6 main -> main成功。原pi继续20章补证，无需用户续派。
+
+## 17:27 CH20进入正文
+
+补证已读并独立抽查稀疏API原文、nd2nz实际UB分配及数学脚本。已派tasks/CH20-WRITE.md，强调950还有bank8偏移非单参数、Reg不等于SIMT、地址核验不能预测周期、脚本须覆盖整块/尾块且纠正Task差值。原pi写20章，前19章验收边界不变。
+
+## 17:47 CH20独立初审
+
+初稿约4.4k中文已交付；经理完整读稿并回源核查L2公式/混编表及脚本，发现950公式漏miss、均升与微降冲突、UB账混平台、百分比和warp行大小错误、未证同步/量化泛化及复现缺项。已派reviews/CH20-R1.md，未验收、不推送。
+
+## 18:07 CH20 R1复审
+
+经理已独立运行数学脚本，复算正常；但正文新增虚构build.sh/verify_result.sh，与README真实cmake/python链不符，标签规则反写，脚注仍略写。已派CH20-R2精确纠正命令、unitflag置位语义和残余前后矛盾。未验收不推送。
+
+## 18:17 CH20 R2复审
+
+R2已交付，经理全文核查发现传统量化/MX同步泛化仍原样保留，命令缺cwd与FloorMod变量，新增组间距和分母算术错误。已派CH20-R3按实际句子对账，未验收未推送；模型未变。
+
+## 18:27 CH20交接与CH21研究
+
+R3已交付，经理回源发现新增cwd错误：gen_data与demo均按当前目录访问input/output，必须全在build执行。经理接管CH20收尾并修复该问题；原pi派CH21-RESEARCH，仅研究21章，不再改20章。CH20尚未验收推送。
+
+## 18:37 经理收尾核查
+
+原pi仍正常研究CH21，未打断。CH20经理修正残余互素无条件全分散断言、Fixpipe目的位置泛化及图中把GM/L2套用UB bank模型的问题。SVG已渲染实际查看，布局可读。重跑verify及diff检查；最终全文收口和验收提交仍待完成，未推送。
+
+## 18:47 CH21研究评审
+
+研究已交付，经理抽查Host样例、legacy选择器路径与LocalReduce文档，发现Host/Device异步证据混用、legacy条件外推及LocalReduce输入表与示例类型不一致。已派CH21-EVIDENCE-CLOSE补证，暂不正文。CH20补全gen_data脚注、核查独立CMake依赖与环境脚本路径；最终验收未完成，不将路径检查当事实通过。
+
+## 18:57 CH20验收与CH21正文
+
+CH20经理完成源码/图文审查，验收依据reviews/CH20-ACCEPTED.md；约5.3k中文，未NPU验证。准备按指定文件提交推送。CH21补证已核，纠正AllReduce元素归约与isMesh变量混用后派CH21-WRITE，模型不变。
