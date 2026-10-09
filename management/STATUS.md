@@ -1,12 +1,12 @@
 # 全书执行状态
 
-更新时间：2026-10-09。项目经理：当前Codex任务；主要执行者：tmux ascend-book-pi，模型(dgx) GLM-5.3-Flash-EXL3，禁止切换。
+更新时间：2026-10-09 13:05（北京时间）。项目经理：当前Codex任务；主要执行者：tmux ascend-book-pi，模型(dgx) GLM-5.3-Flash-EXL3，禁止切换。
 
 ## 当前任务
 
-**CH16 写作进行中**。任务文件：management/tasks/CH16.md。pi已完成P0源码基线及提纲，并补读U1–U5，正在生成完整正文和图。
-请先观察tmux状态；Working期间不要重复派发、不要覆盖ch16文件。已创建持续调度 pi，每10分钟唤醒当前任务，读取本文件接续评审和派发。
-本轮最新用户授权为“嗯，开始”，范围是完成全书及质量改善，无需每章询问用户继续。
+**CH16已验收，CH17源码研究进行中**。第16章经理收尾与验收记录见reviews/CH16-ACCEPTED.md，约5.5k中文，未真机验证。pi已被要求停止修改ch16与appD。
+当前任务文件：tasks/CH17-RESEARCH.md，交付CH17-EVIDENCE.md与CH17-OUTLINE.md，完成后经理核查并立即派正文。pi仍正常Working，保持原模型。
+用户再次要求“别停”，持续推进，不等待用户逐章批准。
 
 ## 已完成
 
@@ -17,7 +17,7 @@
 - PTO CPU GEMM真实执行通过，最大绝对误差1.19209e-07；validation/PTO-CPU-GEMM.md与三个日志。未进行NPU验证。
 - P0证据已评审并提出7项修正：reviews/P0-REVIEW.md。方向通过，正文仍需独立验收。
 
-## CH16评审须特别复查
+## CH16历史评审要点（已收口，最终以CH16-ACCEPTED为准）
 
 - pi已修正文档中的主要口径，但CH16-EVIDENCE和P0-REPORT仍有残留：表内“六对事件”、bank判据“更严/问号”、报告“16 bank×8组”。不要把研究报告自称全部修复当成验收证据。
 - 严格区分4类HardEvent与6个反向预置flag实例（分属2类）；设备路径输出GM不经过UB。
@@ -28,7 +28,7 @@
 
 ## 后续
 
-CH16修订验收后派CH17（融合），再CH18（FA），之后按PLAN-COMPLETION阶段推进。下一章重要风险：融合不必然消除GM中转；matmul_gelu README与代码有Scenario1 GM中转和Scenario2 UB直通，按架构范围表述。不要把“共享UB”泛化。
+CH17研究后写融合正文，再CH18（FA），之后按PLAN-COMPLETION阶段推进。下一章重要风险：融合不必然消除GM中转；matmul_gelu README与代码有Scenario1 GM中转和Scenario2 UB直通，按架构范围表述。不要把“共享UB”泛化。
 按章本地提交；不自动push（main push会触发站点发布）。pi已被要求不自行commit/push，由经理验收后处理。
 
 ## 调度操作
@@ -37,3 +37,15 @@ CH16修订验收后派CH17（融合），再CH18（FA），之后按PLAN-COMPLET
 默认exec沙箱在本会话遇到 `bubblewrap mountinfo path is not absolute`，已通过 require_escalated 的自动审查执行授权的只读/工作区操作；若再次发生按实际权限处理，不绕过拒绝。
 图片view_image也遇同一错误；已通过rsvg-convert输出PNG并读取图片完成视觉检查。
 所有调度进度写回本文件。仅章节完成/重大问题/失败/用户需行动时通知，正常等待保持安静。
+
+## 本轮评审结论
+
+R1独立核查确认流水图提前写回、UnitFlag控制模式混为flag值、性能数据跨架构混用、错误LoadData分支、错误2046B写成2022B、构建脚本不存在及关键脚注未引用。详见CH16-R1.md。本轮未验收、未提交正文，不进入CH17。
+
+## 13:10 调度检查
+
+pi仍正常Working，模型未变；正文已增修至约34.7KB，正在重画R1要求的流水图，尚无CH16-R1-RESPONSE.md。未重复派发、未打断、未覆盖活动文件，待完整交付再审。
+
+## 最新收口
+
+CH16 R1后经理收尾已验收，前述退修信息保留为历史。第17章重点待核：matmul_gelu是否存在UB复用反向握手，不能从单向通知推断通用无竞态；按CrossCore文档核查并陈述样例边界。

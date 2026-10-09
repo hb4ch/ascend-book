@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 620" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#495057"/></marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#4263eb"/></marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e63"/></marker>
+    <marker id="arro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker>
+    <marker id="arrp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9c36b5"/></marker>
+  </defs>
+  <text x="470" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">基础 API MatMul 四级流水：双缓冲 × 4 类 HardEvent（mmad.asc 真码结构）</text>
+  <text x="470" y="46" text-anchor="middle" font-size="11" fill="#6b7280">绿=HardEvent 正向（数据就绪）紫=反向（缓冲释放）；另有 L0C 块粒度 UnitFlag（2 保持/3 翻转）。A 大包 stepKa=8、B 大包 stepKb=4，深度不同各自跟踪。示意，非真实耗时比例</text>
+
+  <!-- 五个存储层 -->
+  <g font-size="12" font-weight="bold">
+    <rect x="30" y="90" width="120" height="70" rx="8" fill="#e7f0e8" stroke="#2f9e63" stroke-width="1.6"/><text x="90" y="120" text-anchor="middle" fill="#1f2937">GM</text><text x="90" y="140" text-anchor="middle" font-size="9.5" font-weight="normal" fill="#6b7280">A[M,K] B[N,K] half</text>
+    <rect x="215" y="90" width="120" height="70" rx="8" fill="#e7f0fa" stroke="#4263eb" stroke-width="1.6"/><text x="275" y="116" text-anchor="middle" fill="#1f2937">L1（A1/B1）</text><text x="275" y="136" text-anchor="middle" font-size="9.5" font-weight="normal" fill="#6b7280">Ping / Pong 双缓冲</text><text x="275" y="151" text-anchor="middle" font-size="9.5" font-weight="normal" fill="#c92a2a">搬入随路 ND2NZ</text>
+    <rect x="400" y="90" width="110" height="70" rx="8" fill="#e7f0fa" stroke="#4263eb" stroke-width="1.6"/><text x="455" y="116" text-anchor="middle" fill="#1f2937">L0A / L0B</text><text x="455" y="136" text-anchor="middle" font-size="9.5" font-weight="normal" fill="#6b7280">Ping / Pong 双缓冲</text>
+    <rect x="575" y="90" width="100" height="70" rx="8" fill="#fdf3e7" stroke="#e8590c" stroke-width="1.8"/><text x="625" y="116" text-anchor="middle" fill="#1f2937">L0C</text><text x="625" y="136" text-anchor="middle" font-size="9.5" font-weight="normal" fill="#6b7280">单份 cLocal</text>
+    <rect x="740" y="90" width="120" height="70" rx="8" fill="#e7f0e8" stroke="#2f9e63" stroke-width="1.6"/><text x="800" y="120" text-anchor="middle" fill="#1f2937">GM（C）</text><text x="800" y="140" text-anchor="middle" font-size="9.5" font-weight="normal" fill="#6b7280">Fixpipe 直写不经过 UB</text>
+  </g>
+
+  <!-- 四级主流程箭头 -->
+  <g font-size="11">
+    <path d="M150 112 L213 112" stroke="#4263eb" stroke-width="2.2" marker-end="url(#arrb)"/>
+    <text x="181" y="104" text-anchor="middle" fill="#4263eb">① DataCopyIn</text>
+    <text x="181" y="128" text-anchor="middle" font-size="9" fill="#6b7280">MTE2</text>
+    <path d="M335 112 L398 112" stroke="#4263eb" stroke-width="2.2" marker-end="url(#arrb)"/>
+    <text x="366" y="104" text-anchor="middle" fill="#4263eb">② DataLoad</text>
+    <text x="366" y="128" text-anchor="middle" font-size="9" fill="#6b7280">MTE1</text>
+    <path d="M510 112 L573 112" stroke="#e8590c" stroke-width="2.2" marker-end="url(#arro)"/>
+    <text x="541" y="104" text-anchor="middle" fill="#e8590c">③ Mmad</text>
+    <text x="541" y="128" text-anchor="middle" font-size="9" fill="#6b7280">Cube</text>
+    <path d="M675 112 L738 112" stroke="#9c36b5" stroke-width="2.2" marker-end="url(#arrp)"/>
+    <text x="706" y="104" text-anchor="middle" fill="#9c36b5">④ CopyOut</text>
+    <text x="706" y="128" text-anchor="middle" font-size="9" fill="#6b7280">Fixpipe</text>
+  </g>
+
+  <!-- 同步标注：正向 -->
+  <g font-size="10">
+    <rect x="140" y="180" width="700" height="118" rx="8" fill="#f6fbf7" stroke="#2f9e63" stroke-width="1.2"/>
+    <text x="155" y="200" font-size="11" font-weight="bold" fill="#2f9e63">正向同步（数据就绪才动手）——生产者 SetFlag → 消费者 WaitFlag</text>
+    <text x="160" y="222" fill="#1f2937">MTE2→MTE1：L1 大包就绪（A1 flag 0/1，B1 flag 2/3）　——「A1 Ping 数据在 L1 了，DataLoad 可读」</text>
+    <text x="160" y="244" fill="#1f2937">MTE1→M：L0 就绪（mte1DBFlag 0/1 交替）　——「L0A/L0B 块搬好了，Cube 可算」</text>
+    <text x="160" y="266" fill="#1f2937">L0C 块状态：中间 Mmad(2) 保持 0；最终 Mmad(3) 置 1；Fixpipe(3) 等 1、读后复位 0</text>
+    <text x="160" y="288" fill="#6b7280">对应 mmad.asc：Compute 内 SetFlag/WaitFlag（MTE1_M） → Mmad(unitFlag) → CopyOut(Fixpipe unitFlag=3)</text>
+  </g>
+
+  <!-- 反向 -->
+  <g font-size="10">
+    <rect x="140" y="312" width="700" height="96" rx="8" fill="#f8f0fc" stroke="#9c36b5" stroke-width="1.2"/>
+    <text x="155" y="332" font-size="11" font-weight="bold" fill="#862e9c">反向同步（缓冲用完还给你）——消费者 SetFlag → 生产者 WaitFlag</text>
+    <text x="160" y="354" fill="#1f2937">MTE1→MTE2：L1 大包消费完，DataCopyIn 可覆盖（A1/B1 各 Ping/Pong，flag 0/1/2/3）</text>
+    <text x="160" y="376" fill="#1f2937">M→MTE1：L0 块算完，DataLoad 可覆盖（mte1DBFlag 0/1）</text>
+    <text x="160" y="398" fill="#c92a2a" font-weight="bold">⚠ 6 个反向 flag 实例必须先预置 SetFlag（L155–166），否则首轮 WaitFlag 死锁</text>
+  </g>
+
+  <!-- 源码发射顺序与硬件块级依赖；不是耗时比例图 -->
+  <g font-size="10" fill="#1f2937">
+    <rect x="140" y="424" width="700" height="158" rx="8" fill="#f8f9fa" stroke="#adb5bd" stroke-width="1.2"/>
+    <text x="155" y="446" font-size="11" font-weight="bold">一个输出基块：源码发射顺序与硬件依赖（2201 示例，非耗时比例）</text>
+    <text x="160" y="470">搬入与加载</text>
+    <text x="270" y="470">A 每包 8 个基块 / B 每包 4 个基块；各自 Ping/Pong 轮换</text>
+    <text x="160" y="493">K 迭代发射</text>
+    <text x="270" y="493">Mmad(2) × 127 → 最后一次 Mmad(3) → 发射 Fixpipe(3)</text>
+    <text x="160" y="516">硬件执行</text>
+    <text x="270" y="516">最终 Mmad 写完一个 512B 块并置 1 → Fixpipe 可读该块</text>
+    <text x="270" y="537">后续块仍可计算；Fixpipe 读完的块复位 0，允许下个输出基块写</text>
+    <text x="160" y="560" fill="#6b7280">L0C 只有一份 cLocal；CopyOut 在 K 循环外，不等于等待末次 Mmad 整条指令完成</text>
+  </g>
+  <text x="470" y="603" text-anchor="middle" font-size="11" font-weight="bold" fill="#1f2937">HardEvent 协调执行单元；UnitFlag 协调 L0C 每个数据块的读写权</text>
+</svg>
