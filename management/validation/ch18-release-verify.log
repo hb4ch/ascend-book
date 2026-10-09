@@ -1,0 +1,90 @@
+npm notice run ascend-book@0.1.0 verify
+npm notice run npm run docs:build && npm run check:internal && npm run check:source && npm run check:terms && npm run word:count
+npm notice run ascend-book@0.1.0 predocs:build
+npm notice run npm run sync:glossary
+npm notice run ascend-book@0.1.0 sync:glossary
+npm notice run node scripts/sync-glossary.mjs
+[sync-glossary] 已同步 glossary.md -> docs/附录/appB-glossary.md
+npm notice run ascend-book@0.1.0 docs:build
+npm notice run vitepress build docs
+
+  vitepress v1.6.4
+
+- building client + server bundles...
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32m✓[0m building client + server bundles...
+- rendering pages...
+[32m✓[0m rendering pages...
+build complete in 12.84s.
+npm notice run ascend-book@0.1.0 check:internal
+npm notice run node scripts/check-internal-links.mjs
+[check-internal-links] OK: 42 个文件站内链接全部可解析
+npm notice run ascend-book@0.1.0 check:source
+npm notice run node scripts/check-source.mjs
+[check-source] OK: 42 个文件，264 条引用，展开 342 条路径模式，0 处无效。仅校验路径，不验证论断。
+npm notice run ascend-book@0.1.0 check:terms
+npm notice run node scripts/check-terms.mjs
+[check-terms] 术语表 106 条；其中纯中文/无需在正文计入的不统计。
+[check-terms] 无高置信误用词
+npm notice run ascend-book@0.1.0 word:count
+npm notice run node scripts/word-count.mjs docs
+== 目录汇总 ==
+docs/01-platform                22,975   字 (中文 19,410)
+docs/02-runtime                 18,609   字 (中文 14,867)
+docs/03-ascendc                 52,499   字 (中文 38,257)
+docs/04-perf                    4,793    字 (中文 3,630)
+docs/05-comm                    1,076    字 (中文 834)
+docs/06-backend                 1,429    字 (中文 1,112)
+docs/07-outlook                 305      字 (中文 242)
+docs/index.md                   690      字 (中文 629)
+docs/附录                         5,013    字 (中文 2,827)
+
+== 分文件 ==
+docs/01-platform/ch01-overview.md                 8,146   字 (中文 6,879)
+docs/01-platform/ch02-hardware.md                 7,781   字 (中文 6,464)
+docs/01-platform/ch03-exec-path.md                6,778   字 (中文 5,866)
+docs/01-platform/index.md                         270     字 (中文 201)
+docs/02-runtime/ch04-acl.md                       4,682   字 (中文 3,823)
+docs/02-runtime/ch05-runtime-impl.md              4,315   字 (中文 3,357)
+docs/02-runtime/ch06-driver.md                    2,765   字 (中文 2,284)
+docs/02-runtime/ch07-dfx.md                       2,816   字 (中文 2,280)
+docs/02-runtime/ch08-memory.md                    3,728   字 (中文 2,889)
+docs/02-runtime/index.md                          303     字 (中文 234)
+docs/03-ascendc/ch09-api-map.md                   4,432   字 (中文 3,395)
+docs/03-ascendc/ch10-core-programming.md          4,290   字 (中文 2,995)
+docs/03-ascendc/ch11-simd-simt.md                 4,691   字 (中文 3,424)
+docs/03-ascendc/ch12-compile-tools.md             3,848   字 (中文 2,954)
+docs/03-ascendc/ch13-operator-libs.md             2,941   字 (中文 2,224)
+docs/03-ascendc/ch14-op-practice.md               1,379   字 (中文 1,051)
+docs/03-ascendc/ch15-vector-softmax.md            5,431   字 (中文 4,120)
+docs/03-ascendc/ch16-matmul-cube.md               7,936   字 (中文 5,547)
+docs/03-ascendc/ch17-fusion.md                    9,453   字 (中文 6,631)
+docs/03-ascendc/ch18-flash-attention.md           7,814   字 (中文 5,733)
+docs/03-ascendc/index.md                          284     字 (中文 183)
+docs/04-perf/ch19-perf-analysis.md                4,277   字 (中文 3,224)
+docs/04-perf/ch20-opt-topics.md                   317     字 (中文 260)
+docs/04-perf/index.md                             199     字 (中文 146)
+docs/05-comm/ch21-hccl.md                         335     字 (中文 271)
+docs/05-comm/ch22-hixl.md                         296     字 (中文 228)
+docs/05-comm/ch23-supernode.md                    250     字 (中文 201)
+docs/05-comm/index.md                             195     字 (中文 134)
+docs/06-backend/ch24-pto-isa.md                   333     字 (中文 264)
+docs/06-backend/ch25-pypto.md                     324     字 (中文 251)
+docs/06-backend/ch26-ecosystem.md                 252     字 (中文 187)
+docs/06-backend/ch27-case.md                      270     字 (中文 221)
+docs/06-backend/index.md                          250     字 (中文 189)
+docs/07-outlook/ch28-roadmap.md                   204     字 (中文 166)
+docs/07-outlook/index.md                          101     字 (中文 76)
+docs/index.md                                     690     字 (中文 629)
+docs/附录/appA-env.md                               538     字 (中文 298)
+docs/附录/appB-glossary.md                          1,753   字 (中文 1,353)
+docs/附录/appC-resources.md                         289     字 (中文 121)
+docs/附录/appD-source-map.md                        1,797   字 (中文 536)
+docs/附录/appE-style.md                             479     字 (中文 408)
+docs/附录/index.md                                  157     字 (中文 111)
+
+总字数(含英文代码标记等): 107,389  纯中文: 81,808

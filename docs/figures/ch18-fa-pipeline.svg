@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0L7,3.5L0,7z" fill="#555"/></marker>
+  </defs>
+  <text x="550" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="#222">FA 四级软件流水：门控错相（arch35 非量化训练 · 示意）</text>
+  <!-- 时间轴 -->
+  <g font-size="11" fill="#666">
+    <text x="150" y="58">逻辑拍 →</text>
+    <line x1="150" y1="64" x2="150" y2="470" stroke="#ccc"/>
+    <line x1="150" y1="470" x2="980" y2="470" stroke="#ccc" marker-end="url(#arr)"/>
+  </g>
+  <!-- 泳道 -->
+  <g font-size="12">
+    <text x="30" y="92" fill="#2f9e63" font-weight="bold">AIC 级1</text>
+    <rect x="150" y="78" width="820" height="26" fill="#eef7f1" stroke="#2f9e63" stroke-dasharray="3"/>
+    <text x="30" y="152" fill="#4263eb" font-weight="bold">AIV 级2</text>
+    <rect x="150" y="138" width="820" height="26" fill="#eef1fb" stroke="#4263eb" stroke-dasharray="3"/>
+    <text x="30" y="212" fill="#2f9e63" font-weight="bold">AIC 级3</text>
+    <rect x="150" y="198" width="820" height="26" fill="#eef7f1" stroke="#2f9e63" stroke-dasharray="3"/>
+    <text x="30" y="272" fill="#4263eb" font-weight="bold">AIV 级4</text>
+    <rect x="150" y="258" width="820" height="26" fill="#eef1fb" stroke="#4263eb" stroke-dasharray="3"/>
+  </g>
+  <!-- 任务块 t0..t5 错相 -->
+  <g font-size="10.5" text-anchor="middle">
+    <!-- AIC1 IterateBmm1: t 从0起, 每task宽90, 错相22 -->
+    <g fill="#2f9e63" opacity="0.92">
+      <rect x="155" y="82" width="82" height="18" rx="3"/><rect x="245" y="82" width="82" rx="3" height="18"/><rect x="335" y="82" width="82" rx="3" height="18"/><rect x="425" y="82" width="82" rx="3" height="18"/><rect x="515" y="82" width="82" rx="3" height="18"/><rect x="605" y="82" width="82" rx="3" height="18"/>
+    </g>
+    <g fill="#fff">
+      <text x="196" y="95">mm1 t0</text><text x="286" y="95">mm1 t1</text><text x="376" y="95">mm1 t2</text><text x="466" y="95">mm1 t3</text><text x="556" y="95">mm1 t4</text><text x="646" y="95">mm1 t5</text>
+    </g>
+    <g fill="#4263eb" opacity="0.92">
+      <rect x="245" y="142" width="82" height="18" rx="3"/><rect x="335" y="142" width="82" rx="3" height="18"/><rect x="425" y="142" width="82" rx="3" height="18"/><rect x="515" y="142" width="82" rx="3" height="18"/><rect x="605" y="142" width="82" rx="3" height="18"/><rect x="695" y="142" width="82" rx="3" height="18"/>
+    </g>
+    <g fill="#fff">
+      <text x="286" y="155">vec1 t0</text><text x="376" y="155">vec1 t1</text><text x="466" y="155">vec1 t2</text><text x="556" y="155">vec1 t3</text><text x="646" y="155">vec1 t4</text><text x="736" y="155">vec1 t5</text>
+    </g>
+    <g fill="#2f9e63" opacity="0.92">
+      <rect x="335" y="202" width="82" height="18" rx="3"/><rect x="425" y="202" width="82" rx="3" height="18"/><rect x="515" y="202" width="82" rx="3" height="18"/><rect x="605" y="202" width="82" rx="3" height="18"/><rect x="695" y="202" width="82" rx="3" height="18"/><rect x="785" y="202" width="82" rx="3" height="18"/>
+    </g>
+    <g fill="#fff">
+      <text x="376" y="215">mm2 t0</text><text x="466" y="215">mm2 t1</text><text x="556" y="215">mm2 t2</text><text x="646" y="215">mm2 t3</text><text x="736" y="215">mm2 t4</text><text x="826" y="215">mm2 t5</text>
+    </g>
+    <g fill="#4263eb" opacity="0.92">
+      <rect x="425" y="262" width="82" height="18" rx="3"/><rect x="515" y="262" width="82" rx="3" height="18"/><rect x="605" y="262" width="82" rx="3" height="18"/><rect x="695" y="262" width="82" rx="3" height="18"/><rect x="785" y="262" width="82" rx="3" height="18"/><rect x="875" y="262" width="82" rx="3" height="18"/>
+    </g>
+    <g fill="#fff">
+      <text x="466" y="275">vec2 t0</text><text x="556" y="275">vec2 t1</text><text x="646" y="275">vec2 t2</text><text x="736" y="275">vec2 t3</text><text x="826" y="275">vec2 t4</text><text x="916" y="275">vec2 t5</text>
+    </g>
+  </g>
+  <!-- 缓冲环标注 -->
+  <g font-size="11">
+    <rect x="150" y="310" width="900" height="150" fill="#fafafa" stroke="#999"/>
+    <text x="165" y="332" font-weight="bold" fill="#333">数据面缓冲（同步类型见正文 §18.7；id0=生产就绪 / id1=释放回执，两 AIV 各用 id 与 id+OFFSET）</text>
+    <circle cx="200" cy="368" r="17" fill="#eef1fb" stroke="#4263eb"/><text x="200" y="372" text-anchor="middle" font-size="10">UB×2</text>
+    <text x="225" y="372" font-size="11" fill="#333">bmm1ResUb：AIC mm1 Fixpipe(fp32→fp32) → vec1；双向四调用齐（真闭环）</text>
+    <circle cx="200" cy="398" r="17" fill="#eef7f1" stroke="#2f9e63"/><text x="200" y="402" text-anchor="middle" font-size="10">L1</text>
+    <text x="225" y="402" font-size="11" fill="#333">mm2A(l1PBuffers 3环)：vec1 → AIC mm2；就绪 id0；无释放回执——3 深轮转，充分性未证</text>
+    <circle cx="200" cy="428" r="17" fill="#fdf1e7" stroke="#e8590c"/><text x="200" y="432" text-anchor="middle" font-size="10">GM×3</text>
+    <text x="225" y="432" font-size="11" fill="#333">bmm2Res GM×3：mm2 → vec2；仅就绪 id0（无显式释放调用）——复用靠 3buff 轮转</text>
+  </g>
+  <text x="165" y="490" font-size="11" fill="#666">同 AIV 私有：vec2ResUb（fp32 累计）、softmaxExp/Max/SumBuf[3]（错相环，无跨核显式同步——同核程序序，复用次序尚待完整核查）</text>
+  <text x="165" y="508" font-size="11" fill="#666">控制面：CrossCoreWaitFlag&lt;4,PIPE_S&gt;(15) 仅启动期 kfc host 消息（ssbuf→CVSharedParams），不承担数据面握手</text>
+  <text x="165" y="530" font-size="10" fill="#999">示意：t=2 三级/t=3 四级齐（taskId&gt;0/&gt;1/&gt;2 门控）；AIC 两级共享 Cube、AIV 两级共享 V，非四物理单元并行</text>
+</svg>
