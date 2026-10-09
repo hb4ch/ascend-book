@@ -12,7 +12,7 @@ status: 提纲预览
 
 ## 本章来源
 
-- 📦 源码/📄 资料: `pto-isa/docs/{README_zh,PTO-Virtual-ISA-Manual_zh,isa/,coding/,machine/}`
+- 📦 源码/📄 资料: `pto-isa/docs/{README_zh.md,PTO-Virtual-ISA-Manual_zh.md,isa/,coding/,machine/}`
 - 📦 源码/📄 资料: `pto-isa/include/pto/`
 - 📦 源码/📄 资料: `pto-isa/kernels/`
 - 📦 源码/📄 资料: `pto-isa/demos/`

@@ -10,7 +10,7 @@
 
 ## 写作原则（务必阅读 [STYLEGUIDE.md](./STYLEGUIDE.md)）
 
-1. **以源码为准**：任何 API、行为、性能结论都必须能在开源仓中找到出处，正文用 `📦 源码:` / `📄 资料:` 行内标注精确路径。
+1. **以源码为准**：任何 API、行为、性能结论都必须能在开源仓中找到出处，正文使用轻量脚注，章末列出精确源码路径与用途；禁止密集的行内来源标注。
 2. **不写水货**：所有示例来自仓内 examples/docs，标注运行性分级（`[可在 NPU 运行]` / `[可用 CPU-SIM 运行]` / `[需真机验证]` / `[示意代码]`）。
 3. **术语统一**：写作前查 `glossary.md`；新增术语先评审再使用。
 4. **自我一致性**：每章成稿后运行 `npm run verify`（构建 + 链接 + 术语 + 字数）。
@@ -27,6 +27,8 @@
 | M5 | 第21–23章（通信） | ⬜ 未开始 |
 | M6 | 第24–27章（现代编译后端） | ⬜ 未开始 |
 | M7 | 第28章 + 附录 + 全书校对 | ⬜ 未开始 |
+
+> 当前完成计划见 [PLAN-COMPLETION.md](./PLAN-COMPLETION.md)，执行标准见 [management/ACCEPTANCE.md](./management/ACCEPTANCE.md)。
 
 > 详细进度、决策与变更记录见 [CHANGELOG.md](./CHANGELOG.md)；写作计划见 [PLAN-PART1.md](./PLAN-PART1.md) / [PLAN-PART2.md](./PLAN-PART2.md)。
 

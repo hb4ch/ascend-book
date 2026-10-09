@@ -76,9 +76,9 @@
     <text x="668" y="272">global 直取 → __gm__ 直访</text>
     <text x="668" y="296">warp 掩蔽 → 硬件自动</text>
     <text x="668" y="320">bank conflict → UB bank 优化</text>
-    <text x="668" y="344">（950：8 组 × 16KB）</text>
+    <text x="668" y="344">（950：8组×2 bank×16KB）</text>
     <text x="668" y="368">cudaDeviceSynchronize →</text>
-    <text x="668" y="384">aclrtSynchronizeStream（第4章）</text>
+    <text x="668" y="384">aclrtSynchronizeDevice（第4章）</text>
     <text x="668" y="416" fill="#c92a2a">仅 950PR/950DT（dav-3510）</text>
     <text x="668" y="432" fill="#c92a2a">支持；A2/A3 无 SIMT 单元</text>
   </g>

@@ -89,8 +89,8 @@ __global__ void hello_world()
 | `__launch_bounds__` | 同名限定符 | 一致；另有 `__maxnreg__` 配寄存器 |
 | global memory 直取 | `__gm__` 指针直访 | 一致（gather_1d 已见，9.2） |
 | warp 分支掩蔽 | Warp Scheduler 硬件掩蔽 | 官方口径：调度/切换/掩蔽由硬件自动完成 |
-| bank conflict 优化 | UB bank 冲突优化（950：8 组 × 16KB） | 官方另有 SIMT 版避坑指南[^guide950] |
-| `cudaDeviceSynchronize` | `aclrtSynchronizeStream`（第 4 章） | 回到 ACL/runtime 世界 |
+| bank conflict 优化 | UB bank 冲突优化（950：8 组，每组 2 个 16KB bank） | 官方另有 SIMT 版避坑指南[^guide950] |
+| `cudaDeviceSynchronize` | `aclrtSynchronizeDevice`（第 4 章） | 设备级等待；`aclrtSynchronizeStream` 只等待指定流，范围不同[^aclsync] |
 
 **何时逃逸到 AICPU**：SIMT 再灵活也是「核函数」形态；如果逻辑本质是复杂串行控制流（解析、查表、动态 shape 预处理），直接用 **AICPU 算子**更省心——官方样例给出的主场景就是「**Tiling 下沉计算**」（把 host 侧分块账本挪到 AI CPU 上算），且 A2/A3/950 全系支持[^aicpu]。第 5 章 5.1.1 的 `aicpu_sched/` 就是它的 runtime 侧通道。
 
@@ -195,7 +195,7 @@ flowchart LR
         S1["Mutex 核内锁（11.4）"]
         S2["CrossCore：AIV 独立触发 AIC（11.4）"]
         S3["SSBuffer 核间存储（11.4）"]
-        S4["UB bank 结构变化：8 组 × 16KB"]
+        S4["UB bank 结构变化：8 组，每组 2 个 16KB bank"]
     end
     subgraph arch["架构范式"]
         A1["SIMT（11.2）"]
@@ -249,7 +249,7 @@ flowchart LR
 
 [^hybrid]: 混合编程官方案例全码（`__simt_vf__`/`__simd_vf__`/`asc_vf_call`/`__launch_bounds__`/动态 `__ubuf__`/`asc_get_vf_len`/`asc_update_mask_b32`/`asc_loadalign`/`asc_add_scalar`/`asc_storealign`/`asc_sync_notify/wait(PIPE_V,PIPE_MTE3)`/`asc_copy_ub2gm_align`，11.1/11.3 代码摘自本文件）：`asc-devkit/examples/05_simd_simt_hybrid/00_introduction/simd_simt_gather_and_adds/gather_and_adds.asc` 及同目录 README（仅支持 950PR/950DT，CANN Open 2.0）。
 [^simtkw]: SIMT 内建关键字（内存空间限定符 `__ubuf__` 静态/动态、`ASC_UB_SIZE`、`dim3`、内置变量、`__launch_bounds__`/`__maxnreg__` 核函数配置）：`asc-devkit/docs/zh/guide/programming_guide/language_extension/simt_builtin_keywords.md`（官方文档）。
-[^guide950]: 950 特性指南 13 项特性表（SIMT 三件套 DCache/Warp Scheduler/128KB Register File、混合编程、HiF8、MX 低比特与 `asc_mmad_mx`、UB→L1/L0C→UB 通路、Mutex、CrossCore AIV 独立触发、SSBuffer、UB bank 8×16KB、Fixpipe NZ2DN、ND-DMA）：`asc-devkit/docs/zh/asc_950_feature_guide.md`（官方文档）。
+[^guide950]: 950 特性指南 13 项特性表（SIMT 三件套 DCache/Warp Scheduler/128KB Register File、混合编程、HiF8、MX 低比特与 `asc_mmad_mx`、UB→L1/L0C→UB 通路、Mutex、CrossCore AIV 独立触发、SSBuffer、UB bank 为 8 组、每组 2 个 16KB bank、Fixpipe NZ2DN、ND-DMA）：`asc-devkit/docs/zh/asc_950_feature_guide.md`（官方文档）。
 [^helloworld]: SIMT Hello World 样例（`asc_printf` 头文件 `utils/debug/asc_printf.h`、`aclGetRecentErrMsg` 用法、`<<<>>>` 四槽位启动）：`asc-devkit/examples/03_simt_api/00_introduction/00_quickstart/hello_world_simt/hello_world.asc`（CANN Open 2.0）。
 [^stack]: SIMT 栈溢出排障样例：`asc-devkit/examples/03_simt_api/05_troubleshooting/stack_overflow/`（CANN Open 2.0）。
 [^aicpu]: AICPU 样例（Tiling 下沉计算、图模式自定义算子，A2/A3/950 全系支持）：`asc-devkit/examples/04_aicpu/README.md` 及 `00_introduction/`（CANN Open 2.0）。
@@ -261,3 +261,5 @@ flowchart LR
 
 - **下一站**：第 12 章「编译、工具链与部署」——本章的 `.asc` 文件是怎么变成 kernel 二进制、`--npu-arch` 在哪里选、CMake 工程怎么组织。
 - **交叉引用**：SIMD/SIMT 编程四步法见第 9 章 9.3；`<<<>>>` 槽位语义见第 9 章 9.2；流水同步的 ISASI 版见第 10 章 10.2；MemBase/RegBase 架构背景见第 2 章 2.5；DumpTensor/msSanitizer 见第 7 章。
+
+[^aclsync]: 设备与流同步接口声明及范围：`runtime/include/external/acl/acl_rt.h` 中 `aclrtSynchronizeDevice`、`aclrtSynchronizeStream`（CANN Open 2.0）。
