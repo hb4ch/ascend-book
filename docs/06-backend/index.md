@@ -14,6 +14,6 @@ description: PTO 虚拟 ISA、PyPTO 框架、生态与前沿、全栈案例
 - [第24章 PTO 虚拟 ISA](./ch24-pto-isa.md)
 - [第25章 PyPTO 框架深入](./ch25-pypto.md)
 - [第26章 生态与前沿编译技术](./ch26-ecosystem.md)
-- [第27章 全栈综合案例（可选）](./ch27-case.md)
+- [第27章 全栈综合案例：一次稀疏注意力的库调用与核验](./ch27-case.md)
 
 **主要来源**：`pto-isa`、`pypto`、`cann-learning-hub/blogs/*`。第20/21章以 pto-isa CPU-Simulator 实际跑通 demo 佐证。

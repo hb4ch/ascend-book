@@ -4,7 +4,7 @@
 
 ## 当前任务
 
-CH22提交3af94f8已推送origin/main。CH23提交ac56be4已推送origin/main；CH24已提交b68c212并推送origin/main；CH25已验收并推送732d1a1；原pi修订CH26-R2。第21/22章可读性重写仍待安排，用户新增规范已持久化。
+CH22提交3af94f8已推送origin/main。CH23提交ac56be4已推送origin/main；CH24已提交b68c212并推送origin/main；CH25已验收并推送732d1a1；CH26已验收并推送6b9dbb9；原pi补证CH27。第21/22章可读性重写仍待安排，用户新增规范已持久化。
 
 ## 已完成
 
@@ -352,3 +352,26 @@ R2已交付，经理接管26章，修正仍残留的手工shape一对一捕获�
 
 ## 04:18 CH26验收、CH27补证
 26章来源与图文收口完成，验收见CH26-ACCEPTED，准备按章提交推送。27章研究已交，经理亲读SFA例子发现dtype非全fp16、PrintOutResult疑似无调用、launch后必须同步；CPU参考与主例shape/layout不同。已派CH27-EVIDENCE-CLOSE追真实host/kernel及数学对拍，暂不正文。
+
+推送确认：732d1a1..6b9dbb9 main -> main成功；27章活动文件未包含。
+
+## 04:38 CH27补证复审
+补证证实example无PrintOutResult调用，dtype已分开；经理已读数学对拍并独立重跑通过（ch27-manager-refcheck.log），仅证明选定golden路径与NumPy复算相符，不证明NPU或主例。内核计算/同步仍未闭合，已派CH27-KERNEL-CLOSE追一个arch22分支及buffer事件；暂不正文。pi自述曾生成并删除源仓pycache且含原有311缓存，已记录为只读违规，禁止继续清理/恢复猜测内容；此前用户pyenv安装tensorflow亦留痕，后续只用已有或/tmp隔离环境。
+
+## 04:48 CH27进入正文
+经理已独立回源ComputeMm1/Mm2及ProcessBalance，确认Gather就绪syncV0C1与Mm2后flag3复用回执成对，以及mm1/softmax/mm2跨核事件。派CH27-WRITE，限定arch22条件分支、不连接Inner/bin选择未证边；特别要求主例全量索引与CPU子集参考分开，golden复算不充当NPU正确性。保持原模型，源仓禁止写入/清理。
+
+## 04:58 CH27初稿评审
+经理全文阅读并回源释放段、Vec2及golden分支：发现纯host无设备保证未证、就绪与复用主线漏写、flag配对混用、free计数错误/actSeq设备buffer未显式释放、mm2环槽索引混写、pytest唯一权威泛化及来源略写。已派CH27-R1；未验收不推送。原模型继续修订，源仓只读。
+
+## 05:08 CH27 R1复审
+经理独立rg全部arch22头发现R1新增错误：循环Mm2后仅一次Set flag3，四次仅开局/尾部；图回Vec1的flag3无消费者证据。已派CH27-R2纠正次数与虚构回边，保持模型；本章未验收未推送。
+
+## 05:18 CH27经理收尾与CH28研究
+R2已交付，经理回源确认mm1/mm2不同环槽索引。接管27章，原pi已派CH28-RESEARCH。真实页面图①可读；图②被子图跨边挤成宽图、字体过小，经理改为纵向五阶段和单一复用回边，待重建后再目检。27章未验收未推送。
+
+## 05:28 CH28研究复审、CH27图检通过
+CH28研究把目录存在当两项实现回源，并推断默认学习路径/旧打印限制变化。经理核查CHANGELOG后派CH28-EVIDENCE-CLOSE实际读样例/API条件，暂不正文。CH27经理verify退出0，重排图②已在真实页面重新截图并实际目检，字体清晰且单一复用回边正确；全章最终收口尚待完成，未推送。
+
+## 05:38 CH27收口、CH28正文
+CH27经理已完成最终图文与源代码收口，准备最终验证后提交。CH28补证已回源抽查，纠正设备核体printf误称host侧，已派CH28-WRITE；共享appD由经理持有，不让pi改。

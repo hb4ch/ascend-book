@@ -1,0 +1,13 @@
+cpu执行中...
+[INFO]before trans: [3]
+[INFO]after trans: [3]
+[INFO]before trans: [10]
+[INFO]after trans: [10]
+golden attn_out (3, 4, 512) finite True
+max abs diff 2.480e-04; mean abs 5.676e-05; max rel 1.787e-01
+std golden 0.3420 / ref 0.3421
+PASS: this input max abs 2.480e-04 < tol 2.0e-03; seed 20261010
+NOT an NPU verification. golden regenerated sparse_indices (unseeded randperm; global seed set here)
+and replaces v by k[...,:512] (D=512 assumption) -- both documented in CH27-EVIDENCE.
+coverage: index-subset YES; -1 terminator NOT exercised (regen indices fill all K=8 slots, no -1);
+coverage: out-of-range clip NOT exercised (max idx 7 < act 10); empty-selection NOT exercised (sel nonempty)

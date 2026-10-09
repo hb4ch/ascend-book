@@ -1,0 +1,17 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791578333.818643 2346816 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1791578333.838355 2346816 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI AVX512_BF16 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791578338.057089 2346816 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+cpu执行中...
+[INFO]before trans: [3]
+[INFO]after trans: [3]
+[INFO]before trans: [10]
+[INFO]after trans: [10]
+golden attn_out (3, 4, 512) finite True
+max abs diff 2.480e-04; mean abs 5.676e-05; max rel 1.787e-01
+std golden 0.3420 / ref 0.3421
+PASS within tol 5.00e-02; seed 20261010
+NOT an NPU verification. golden regenerated sparse_indices (unseeded randperm; global seed set here)
+and replaces v by k[...,:512] (D=512 assumption) -- both documented in CH27-EVIDENCE.

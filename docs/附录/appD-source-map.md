@@ -65,7 +65,7 @@ description: 每章 → 源仓路径对照，写作自我一致性的基准
 | 第24章 PTO 虚拟 ISA | `pto-isa/docs/{README_zh,PTO-Virtual-ISA-Manual_zh,isa/,coding/,machine/,figures}`，`pto-isa/include/pto/`，`pto-isa/kernels/`，`pto-isa/demos/`，`pto-isa/tests/` |
 | 第25章 PyPTO | `pypto/README.md`，`pypto/framework/{src/passes,src/codegen,include}`，`pypto/python/pypto/`，`pypto/docs/zh/tutorials/`，`pypto/examples/{01_beginner,02_intermediate,03_advanced}/`，`pypto/models/` |
 | 第26章 生态与前沿 | `pypto/README.md`，`pto-isa/README_zh.md`，`cann-learning-hub/blogs/{inference/torchair_fx_pass_multi_stream,aot_superkernel_graph_execution,npugraph_ex_third_party_framework_integration,operator/tilelang_ascend_operator_optimization}/`，`asc-devkit`（PyAsc 规划） |
-| 第27章 综合案例 | `ops-transformer/attention/`、`cann-learning-hub/blogs/inference/longcat_*`、`deepseek_*`、`pto-isa/kernels/manual/`（MLA 落点待定） |
+| 第27章 全栈综合案例 | `ops-transformer/attention/sparse_flash_attention/{examples,op_host,op_kernel/op_kernel/arch22,tests/pytest,docs,README.md}`（快照 `e75072d7`），`cann-learning-hub/blogs/operator/dsa_operator_*`；完整锚点与断点见本章脚注及 `management/CH27-EVIDENCE.md` rev3 |
 
 ## 第七编 展望
 

@@ -1,0 +1,6 @@
+case: sfa_bsnd_basic layout BSND B 1 S1 5 S2 262144 N1 8 N2 1 D 512 K 16
+generate_input_tensors OK 1.3s
+cpu执行中...
+compute_cpu OK 0.3s
+attn_out: shape=(1, 5, 8, 512) dtype=torch.float32 mean=42.367191 std=32.110580 nan=False
+CPU golden smoke done (NOT an NPU verification).
