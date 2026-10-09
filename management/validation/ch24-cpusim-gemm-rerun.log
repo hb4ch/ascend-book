@@ -1,0 +1,7 @@
+gemm_demo: M=32 K=16 N=32
+max_abs_diff=1.19209e-07
+perf: avg_ms=0.668746 matmul_flops=32768 gflops=0.0489992
+
+# toolchain (2026-10-10)
+g++ --version => g++ (GCC) 16.2.1 20260810
+cmake --version => cmake version 4.4.2

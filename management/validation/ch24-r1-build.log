@@ -1,0 +1,12 @@
+[ 50%] Building CXX object CMakeFiles/gemm_demo.dir/gemm_demo.cpp.o
+In file included from /usr/include/c++/16/x86_64-pc-linux-gnu/bits/os_defines.h:39,
+                 from /usr/include/c++/16/x86_64-pc-linux-gnu/bits/c++config.h:733,
+                 from /usr/include/c++/16/bits/stl_algobase.h:59,
+                 from /usr/include/c++/16/algorithm:62,
+                 from /mnt/SATASSDEXT4/cann/pto-isa/demos/cpu/gemm_demo/gemm_demo.cpp:11:
+/usr/include/features.h:451:4: warning: #warning _FORTIFY_SOURCE requires compiling with optimization (-O) [-Wcpp]
+  451 | #  warning _FORTIFY_SOURCE requires compiling with optimization (-O)
+      |    ^~~~~~~
+cc1plus: note: unrecognized command-line option ‘-Wno-macro-redefined’ may have been intended to silence earlier diagnostics
+[100%] Linking CXX executable gemm_demo
+[100%] Built target gemm_demo

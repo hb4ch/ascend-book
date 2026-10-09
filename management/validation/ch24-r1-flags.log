@@ -1,0 +1,2 @@
+CXX_DEFINES = -D__CPU_SIM -D__PTO_AUTO__
+CXX_INCLUDES = -I/mnt/SATASSDEXT4/cann/pto-isa/include

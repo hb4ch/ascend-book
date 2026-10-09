@@ -1,0 +1,8 @@
+inner block: 16x8 float = 512 bytes
+blocks: 2x2; capacity 32x16 float = 2048 bytes
+elem( 0, 0) -> storage offset    0 (float), byte     0
+elem( 0, 1) -> storage offset    1 (float), byte     4
+elem( 1, 0) -> storage offset    8 (float), byte    32
+elem( 1, 1) -> storage offset    9 (float), byte    36
+elem(31,15) -> storage offset  511 (float), byte  2044
+GM row-major elem(1,1) offset: 17 (stride kK,1)
