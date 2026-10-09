@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" font-family="'PingFang SC',sans-serif">
+<text x="480" y="24" text-anchor="middle" font-size="14" font-weight="bold" fill="#222">HCCL/HCOMM：三个证据范围×服务端两路实现（虚线=未证链接，不画实线）</text>
+<g font-size="12">
+<rect x="16" y="44" width="292" height="118" rx="8" fill="#eef1fb" stroke="#4263eb"/>
+<text x="30" y="64" font-size="12.5" font-weight="bold" fill="#4263eb">① Host 公开契约（21.2/21.3）</text>
+<text x="30" y="84" font-size="11">样例 main.cc＋comm_mgr_c 接口页</text>
+<text x="30" y="102" font-size="11">Init(RootInfo/Cluster)→AllReduce 入 stream</text>
+<text x="30" y="120" font-size="11">完成=aclrtSynchronizeStream</text>
+<text x="30" y="138" font-size="10" fill="#555">Barrier=下发对齐；销毁序仅样例正序</text>
+<text x="30" y="154" font-size="10" fill="#555">Inner→V2 为 weak 断点 ✂（见②）</text>
+
+<rect x="334" y="44" width="292" height="118" rx="8" fill="#eef7f1" stroke="#2f9e63"/>
+<text x="348" y="64" font-size="12.5" font-weight="bold" fill="#2f9e63">② legacy 内部选路（21.4）独立案例</text>
+<text x="348" y="84" font-size="11">hcomm/src/legacy/ascend910 真码</text>
+<text x="348" y="102" font-size="11">Communicator::AllReduce(L3089)→ExecOp</text>
+<text x="348" y="120" font-size="11">SelectAlg(L4649)→资源→Orchestrate(L4809)</text>
+<text x="348" y="138" font-size="10" fill="#555">条件式判定＋HCCL_ALGO；不涉 CCU 新路径</text>
+<text x="348" y="154" font-size="10" fill="#555">引擎=算法选择产物，非本图服务端实现</text>
+
+<rect x="652" y="44" width="292" height="118" rx="8" fill="#fdf1e7" stroke="#e8590c"/>
+<text x="666" y="64" font-size="12.5" font-weight="bold" fill="#e8590c">③ Device 高阶API＋服务端实现（21.6）</text>
+<text x="666" y="84" font-size="11">asc-devkit hccl.h＋impl/adv_api/detail/hccl</text>
+<text x="666" y="102" font-size="11">消息区 Prepare→Commit→Wait/Query</text>
+<text x="666" y="120" font-size="11">3510：含两种特化；产品文档仅支持 CCU</text>
+<text x="666" y="138" font-size="10" fill="#555">2201：仅 AICPU 特化（无 CCU 文件）</text>
+<text x="666" y="154" font-size="10" fill="#555">头注 OnlyAICPU 过窄；Finalize 等最后任务</text>
+</g>
+<g font-size="11">
+<rect x="60" y="196" width="840" height="118" rx="8" fill="#f3eefb" stroke="#9c36b5"/>
+<text x="76" y="218" font-size="12" font-weight="bold">服务端执行形态（按范围分立陈述，跨范围汇流不画实线＝未证）</text>
+<text x="76" y="240" font-size="11">①Host 样例确认 stream 完成；不由②legacy 案例推定其实际引擎</text>
+<text x="76" y="260" font-size="11">③消息区→AI CPU（AICPU 特化）或 CCU 特化（Commit 计数＋轮询等待）</text>
+<text x="76" y="280" font-size="11">核型指定=模板二参 HcclServerConfig→InitWorkingFlag（编译期定死）</text>
+<text x="76" y="298" font-size="10" fill="#777">完成语义三分：①stream 同步／③Wait 同序＋Commit 计数／②notify 配对（一次交接已证）</text>
+</g>
+<path d="M162,162 L162,196 M480,162 L480,196 M798,162 L798,196" stroke="#666" stroke-dasharray="4,3" fill="none"/>
+<text x="20" y="342" font-size="10.5" fill="#555">②→服务端：legacy 选择器产出的引擎与③的 AICPU/CCU 特化是<b>两代两套代码</b>（legacy vs impl/），本书不画互证箭头。</text>
+<text x="20" y="360" font-size="10.5" fill="#555">①→服务端：Host 契约不暴露引擎路由；③→服务端：AICPU 特化即消息区协议本体。</text>
+<text x="20" y="382" font-size="10" fill="#999">本书无多机环境：全章 [需真机验证]；源码节录/改写标 [示意代码]；行号阅时实核。</text>
+<text x="20" y="402" font-size="10" fill="#999">图注：框内为已证文件/行号锚；任何跨框调用须回正文对应节核对证据边界。</text>
+</svg>

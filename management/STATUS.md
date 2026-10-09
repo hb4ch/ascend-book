@@ -1,10 +1,10 @@
 # 全书执行状态
 
-更新时间：2026-10-09 16:17（北京时间）。项目经理：当前Codex任务；主要执行者：tmux ascend-book-pi，模型(dgx) GLM-5.3-Flash-EXL3，禁止切换。
+更新时间：2026-10-09 21:07（北京时间）。项目经理：当前Codex任务；主要执行者：tmux ascend-book-pi，模型(dgx) GLM-5.3-Flash-EXL3，禁止切换。
 
 ## 当前任务
 
-CH18已推送7777923；CH19已通过源码与文稿审查并推送origin/main，提交45b88d6，最终依据reviews/CH19-ACCEPTED.md。原pi按tasks/CH20-EVIDENCE-CLOSE.md进行20章补证，保持GLM-5.3-Flash，不改19章。用户已授权验收后推送origin/main。
+CH21已通过源码与文稿审查，准备按章提交推送，最终依据reviews/CH21-ACCEPTED.md。CH22 R1已交付待经理复审，尚未验收；原pi保持GLM-5.3-Flash。无NPU验证。
 
 ## 已完成
 
@@ -171,3 +171,43 @@ R3已交付，经理回源发现新增cwd错误：gen_data与demo均按当前目
 ## 18:57 CH20验收与CH21正文
 
 CH20经理完成源码/图文审查，验收依据reviews/CH20-ACCEPTED.md；约5.3k中文，未NPU验证。准备按指定文件提交推送。CH21补证已核，纠正AllReduce元素归约与isMesh变量混用后派CH21-WRITE，模型不变。
+
+提交7686c14；暂存差异检查仅报告原始复算日志gcd输出行尾空格，正文无该问题。保留原始日志，不将此警告称全绿。
+
+推送确认：45b88d6..7686c14 main -> main成功。第21章活动文件未纳入提交，原pi继续正文。
+
+## 19:27 CH21初稿独立评审
+
+初稿已交付约5.4k中文。经理全文审读并核查HCCL_usage/Makefile/Suspend源页，发现weak断点被重新接成实线、伪复现命令、Finalize完成语义遗漏、AIV算例前提不全及接口支持外推。已派CH21-R1，未验收未推送。
+
+## 19:47 CH21 R1复审
+
+R1已交付，经理实际读稿并回源Read接口/Hccl头文件，发现Read/Write方向总结反写、模板AICPU与CCU差异无证解释、主线又推AIV选路、脚注仍未展开。已派CH21-R2修复，未验收未推送。
+
+## 19:57 CH21服务端实现补证
+
+R2已交付约7.8k中文。经理rg确认HcclImpl实际位于impl/adv_api/detail/hccl，含AICPU及platform_v310 CCU特化，不能将未搜到当缺仓。已派CH21-SERVER-FINAL钉死头文件包含与架构分支，同时修SVG越框/层次混用；未验收未推送。
+
+## 20:07 CH21交接与CH22研究
+
+服务端补证已交付，经理亲读hccl_impl.h和AICPU消息组装，确认双特化存在但不能证明3510产品支持AICPU；已修正正文，经理接管CH21全量收尾。原pi派CH22-RESEARCH，不再改21章。CH21尚未验收推送。
+
+## 20:17 CH22研究评审
+
+研究已交付，经理亲读quickstart和CS异步实现，发现双进程误写单进程、done早于Disconnect未交代、host_flag置位来源混用以及可查latch复位漏检。已派CH22-EVIDENCE-CLOSE补证。CH21继续经理收尾，未验收。
+
+## 20:27 经理核查
+
+原pi仍正常补证CH22，未重复派发。CH21经理verify通过（331引用/405路径），diff检查通过；SVG已实际渲染目检，修正图中代码双特化与产品支持混用、Host样例推legacy引擎的残余句。全章最终收口待继续，尚未验收。
+
+## 20:37 CH22进入正文
+
+补证交付后经理亲读AutoConnect/AutoDisconnect，确认自动重建受auto_connect_门控，原“直接重试即可”错误。已派CH22-WRITE先纠该结论再写正文，要求保留超时部分写与quickstart收尾窗口边界。CH21仍经理收尾。
+
+## 20:47 CH21源码收尾
+
+原pi正常撰写22章，未打断。经理亲读InitWorkingFlag确认工作核由config.type/blockId选择，修正“所有配置仅核0”泛化；修正AssembleHcclMsgV2的实际文件归属，移除正文评审历史句。独立verify重跑中，未验收推送。
+
+## 20:57 CH22初稿独立评审
+
+经理全文审读并亲核性能原表及批量查询，发现Host展开D2rD误取约30（实际1MiB为175.102GB/s）、倍率错误、空client分支误写出FAILED结果、ret与status以及重试安全混用。CH22-R1已记录并交原pi修订，暂不验收推送。CH21仍由经理收尾。
