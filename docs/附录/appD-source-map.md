@@ -71,4 +71,4 @@ description: 每章 → 源仓路径对照，写作自我一致性的基准
 
 | 章 | 主来源路径 |
 |---|---|
-| 第28章 路线图 | 各仓 `README`/`ReleaseNote_zh.md`/`CHANGELOG.md` 的 Roadmap 声明，`cann-learning-hub/blogs/README.md` |
+| 第28章 路线图 | `asc-devkit/CHANGELOG.md` 与 Tensor/VF 样例（完整路径见本章脚注），`hixl/README.md`、`hixl/docs/zh/FabricMem.md`，`pto-isa/README_zh.md` 路线图及 `pto-isa/ReleaseNote_zh.md`，`pypto/README.md`；公告、计划、代码阅读与未运行边界分开 |
