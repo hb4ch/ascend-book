@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="460" viewBox="0 0 880 460" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+  <rect width="880" height="460" fill="#ffffff"/>
+  <text x="440" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="#1f2937">__mix__(1,2) 逻辑核解剖与 CrossCore 计数配对</text>
+  <text x="440" y="50" text-anchor="middle" font-size="11" fill="#6b7280">按 mmad_gelu.asc / quant_group_matmul_custom.asc 结构绘制｜示意，非真实布局比例</text>
+  <!-- 逻辑核外框 -->
+  <rect x="60" y="70" width="760" height="250" rx="10" fill="#f8f9fa" stroke="#343a40" stroke-width="1.6"/>
+  <text x="80" y="92" font-size="12" font-weight="bold" fill="#1f2931">逻辑核（__mix__(1,2)：1 AIC + 2 AIV）</text>
+  <!-- AIC -->
+  <rect x="90" y="104" width="330" height="200" rx="8" fill="#e7f5ee" stroke="#2f9e63" stroke-width="1.4"/>
+  <text x="255" y="124" text-anchor="middle" font-size="13" font-weight="bold" fill="#2f9e63">AIC（GetBlockIdx 独立编号）</text>
+  <g font-size="10.5" fill="#1f2931">
+    <rect x="106" y="136" width="90" height="22" rx="4" fill="#ffffff" stroke="#2f9e63"/><text x="151" y="151" text-anchor="middle">A1 Ping/Pong</text>
+    <rect x="204" y="136" width="90" height="22" rx="4" fill="#ffffff" stroke="#2f9e63"/><text x="249" y="151" text-anchor="middle">B1 Ping/Pong</text>
+    <rect x="106" y="166" width="90" height="22" rx="4" fill="#ffffff" stroke="#2f9e63"/><text x="151" y="181" text-anchor="middle">A2 / B2 (L0)</text>
+    <rect x="204" y="166" width="90" height="22" rx="4" fill="#ffffff" stroke="#2f9e63"/><text x="249" y="181" text-anchor="middle">CO1 cLocal</text>
+    <text x="106" y="212">四级流水：MTE2→MTE1→Cube→Fixpipe</text>
+    <text x="106" y="230">内部预置：4+2 个 flag 实例</text>
+    <text x="106" y="252" fill="#2f9e63" font-weight="bold">CopyOut 后：CrossCoreSetFlag&lt;0x2,PIPE_FIX&gt;(0x8)</text>
+    <text x="106" y="270" fill="#2f9e63">quant 范式另含：Wait(AIV回执)→复写 slot→Set</text>
+    <text x="106" y="290" fill="#6b7280">收尾：WaitAicSyncFlags 仅内部 HardEvent；PostCompute 排空</text>
+  </g>
+  <!-- AIV x2 -->
+  <g>
+    <rect x="470" y="104" width="160" height="92" rx="8" fill="#e7f0fb" stroke="#4263eb" stroke-width="1.4"/>
+    <text x="550" y="124" text-anchor="middle" font-size="12" font-weight="bold" fill="#4263eb">AIV0（SubBlockIdx=0）</text>
+    <text x="484" y="144" font-size="10.5" fill="#1f2931">VECCALC xUB（baseM/2 行）</text>
+    <text x="484" y="160" font-size="10.5" fill="#1f2931">VECCALC geluOutUB</text>
+    <text x="484" y="180" font-size="10" fill="#4263eb">Wait(0x8)→GELU→输出</text>
+  </g>
+  <g>
+    <rect x="470" y="208" width="160" height="92" rx="8" fill="#e7f0fb" stroke="#4263eb" stroke-width="1.4"/>
+    <text x="550" y="228" text-anchor="middle" font-size="12" font-weight="bold" fill="#4263eb">AIV1（SubBlockIdx=1）</text>
+    <text x="484" y="248" font-size="10.5" fill="#1f2931">同左，领连续后半块（M 对半）</text>
+    <text x="484" y="268" font-size="10" fill="#4263eb">taskRation 过滤只跳内层计算</text>
+    <text x="484" y="284" font-size="10" fill="#4263eb">SetFlag(回执)无条件执行</text>
+  </g>
+  <!-- 右侧计数配对 -->
+  <rect x="650" y="104" width="150" height="196" rx="8" fill="#fdf3e7" stroke="#e8590c" stroke-width="1.4"/>
+  <text x="725" y="126" text-anchor="middle" font-size="12" font-weight="bold" fill="#e8590c">计数配对（总量）</text>
+  <g font-size="10.5" fill="#1f2931">
+    <text x="664" y="150">方向①就绪广播</text>
+    <text x="664" y="168">AIC 1×Set ↔ 2×AIV Wait</text>
+    <text x="664" y="192">方向②完成汇合/回执</text>
+    <text x="664" y="210">2×AIV Set ↔ AIC 1×Wait</text>
+    <text x="664" y="234" fill="#e8590c">两方向独立编码</text>
+    <text x="664" y="252" fill="#e8590c">做①不自动获得②</text>
+    <text x="664" y="276" fill="#6b7280">flagId 每核计数器</text>
+    <text x="664" y="292" fill="#6b7280">950 模板生效/旧架构否</text>
+  </g>
+  <!-- 底部通路 -->
+  <rect x="60" y="336" width="760" height="98" rx="8" fill="#f1f3f5" stroke="#adb5bd"/>
+  <g font-size="11" fill="#1f2931">
+    <text x="80" y="360" font-weight="bold" fill="#9c36b5">通路（按架构）</text>
+    <text x="80" y="382">S1 GM 中转（A2/A3/950）：L0C→Fixpipe→GM；AIV MTE2 读 GM——数据可能驻 L2（观测，非契约）</text>
+    <text x="80" y="402">S2 UB 直通（样例：950PR）：L0C→Fixpipe dualDstCtl=0b01→xUB；AIV 免 MTE2。A2/A3 static_assert 锁 S1</text>
+    <text x="80" y="422" fill="#6b7280">xUB 复用反向握手：源码未见显式保护证据——待真机验证（勿写成已保证）</text>
+  </g>
+</svg>

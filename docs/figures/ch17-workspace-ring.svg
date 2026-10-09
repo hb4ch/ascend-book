@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="470" viewBox="0 0 900 470" font-family="'PingFang SC','Microsoft YaHei',sans-serif">
+  <rect width="900" height="470" fill="#ffffff"/>
+  <text x="450" y="30" text-anchor="middle" font-size="17" font-weight="bold" fill="#1f2931">GM workspace 环形 slot：DEPTH=1 与 DEPTH=4 对照</text>
+  <text x="450" y="50" text-anchor="middle" font-size="11" fill="#6b7280">slot 地址 = BASE_M×BASE_N×(coreIdx + (taskIdx % DEPTH)×CORE_NUM)｜深 1=来回覆盖，深 4 才成环（示意）</text>
+  <!-- 单核 slot 行：深1 -->
+  <rect x="50" y="70" width="800" height="120" rx="8" fill="#f8f9fa" stroke="#adb5bd"/>
+  <text x="70" y="94" font-size="12.5" font-weight="bold" fill="#1f2931">S0/S1：PIPELINE_DEPTH=1（单缓冲来回）</text>
+  <g font-size="11">
+    <rect x="90" y="106" width="180" height="40" rx="6" fill="#fff3e6" stroke="#e8590c" stroke-width="1.3"/>
+    <text x="180" y="124" text-anchor="middle">slot0｜coreIdx+0×CORE_NUM</text>
+    <text x="180" y="140" text-anchor="middle" fill="#e8590c">AIC 写#0→AIV 读→写#1→…</text>
+    <text x="300" y="130">每轮 Iterate 复写同一 slot：AIC 必须等上一轮回执</text>
+    <text x="300" y="150" fill="#6b7280">S0：1 AIV；S1：2 AIV。单槽限制结果交付进度，不等于完全没有计算重叠</text>
+    <text x="90" y="172" fill="#e8590c" font-weight="bold">回执 flag3（PIPE_MTE2）：仅约束 MTE2 读毕，非计算/输出完成</text>
+  </g>
+  <!-- 深4环 -->
+  <rect x="50" y="206" width="800" height="160" rx="8" fill="#f8f9fa" stroke="#adb5bd"/>
+  <text x="70" y="230" font-size="12.5" font-weight="bold" fill="#1f2931">S2：PIPELINE_DEPTH=4（每核 4 槽环）</text>
+  <g font-size="11">
+    <rect x="90"  y="244" width="150" height="44" rx="6" fill="#e7f5ee" stroke="#2f9e63"/><text x="165" y="262" text-anchor="middle">slot0｜+0</text><text x="165" y="280" text-anchor="middle" fill="#2f9e63">写#0 读#0毕</text>
+    <rect x="260" y="244" width="150" height="44" rx="6" fill="#e7f0fb" stroke="#4263eb"/><text x="335" y="262" text-anchor="middle">slot1｜+1×CORE_NUM</text><text x="335" y="280" text-anchor="middle" fill="#4263eb">写#1 在读</text>
+    <rect x="430" y="244" width="150" height="44" rx="6" fill="#e7f0fb" stroke="#4263eb"/><text x="505" y="262" text-anchor="middle">slot2｜+2×</text><text x="505" y="280" text-anchor="middle" fill="#4263eb">写#2 排队</text>
+    <rect x="600" y="244" width="150" height="44" rx="6" fill="#fce3c9" stroke="#e8590c"/><text x="675" y="262" text-anchor="middle">slot3｜+3×</text><text x="675" y="280" text-anchor="middle" fill="#e8590c">写#3 后满→Wait</text>
+    <text x="90" y="312">AIC：写#k 前，若 taskIdx≥DEPTH 先 Wait(flag3)（等最旧 slot 读毕回执）→写→Set(flag5)</text>
+    <text x="90" y="332">AIV：Wait(flag5)→MTE2 读 slot→五步链→出 GM→无条件 Set(flag3)（发起于输出调度后；通知仅约束 MTE2 读毕，非算完）</text>
+    <text x="90" y="352" fill="#6b7280">容量：DEPTH×BASE_M×BASE_N×4B×CORE_NUM —— 2201=12MiB、950=32MiB（单槽 128/256KB，推算值）</text>
+  </g>
+  <!-- 底部生命周期 -->
+  <rect x="50" y="382" width="800" height="64" rx="8" fill="#f1f3f5" stroke="#adb5bd"/>
+  <text x="70" y="404" font-size="11.5" font-weight="bold" fill="#9c36b5">slot 生命周期：产生(AIC Iterate 写)→通知(flag5)→读取(AIV MTE2)→回执(flag3)→复用(AIC 下轮写)</text>
+  <text x="70" y="426" font-size="10.5" fill="#6b7280">收尾 PostCompute：AIC 补 Wait min(cubeTaskIdx, DEPTH) 次排空未消费回执｜BUFFER_NUM=2 是 UB TQue 队列深，与本环无关</text>
+</svg>
