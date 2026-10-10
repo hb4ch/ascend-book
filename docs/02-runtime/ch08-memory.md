@@ -1,6 +1,6 @@
 ---
 title: 第8章 内存与数据通路
-description: 内存层级（GM/L1/UB）、分配模型、N-DMA 多维搬运、对齐/带宽/乒乓、零拷贝与数据复用、AIPP，以及为性能编铺路
+description: 内存层级与双路（Cube/Vector）、Device/Host 两条分配生命周期与读时机、片内搬运通路（2201/3510 差异）、N-DMA 与对齐、复用边界
 status: 已成稿（第二编）
 ---
 
@@ -8,195 +8,158 @@ status: 已成稿（第二编）
 
 > 前几章你学会了「点单、排队、送菜」。这一章回答另外一半：**菜放在哪、怎么从锅里搬上桌**。昇腾算子性能的天花板往往不在「算」，而在「搬」——数据在 GM、L1、UB 之间来回倒腾的带宽和延迟，决定了你到底是「算得快」还是「被搬运卡死」。本章只讲一件事：**把「数据怎么流动」这条通路讲清楚**，并把最值得掌握的 N-DMA 当作主角。读完你会理解为什么算子优化的第一课是「减少搬动」。
 
-## 8.1 内存层级：从「大而慢」到「小而快」
+## 8.1 在哪里：一个张量的层级地图
 
-第2章说过 AI Core 有存储单元。这一章把它落到「程序员看得见的层级」上。昇腾 AI Core 的存储从使用位置上分两大类[^memlay]：
+第2章见过 AI Core 的存储单元。本章沿一个张量的旅程把它讲全：**分配→搬入→计算→写回→释放**，先解决「在哪里」。
 
-- **Global Memory（GM）**：Device 侧全局存储，大、但离算力远。是数据搬入/搬出的主要来源和目的地。
-- **Local Memory**：AI Core **片内**存储，小、但离算力近。暂存从 GM 搬入的数据分片、保存计算输出和中间结果，Vector/Cube 高效访问它。
+昇腾 AI Core 的存储分两大类[^memlay]：
 
-Local Memory 内部再分级，最常用的是 **UB（Unified Buffer）** 和 **L0/L1**。L1 喂矩阵计算（Cube）用的 L0A/L0B，UB 喂矢量计算（Vector）用的数据分片[^memlay]。
+- **Global Memory（GM）**：编程视图里的 Device 侧全局存储——片上各核共享、容量大、离算力远，是搬入/搬出的主通道。它的物理承载视产品而定（常见为 HBM，见第2章），**「GM」是地址空间概念，不绑定某代存储介质**。
+- **Local Memory**：AI Core **片内**存储，小而近。按服务对象分两条路：
+  - **Cube 路**：L1 Buffer→L0A/L0B（矩阵输入）→Cube→L0C（结果），由 MTE1/固定单元服务；
+  - **Vector 路**：UB（统一缓冲）供 Vector 单元读写（**32 字节访问对齐**）；3510 架构起中间结果还可驻留寄存器（SIMD Register File），不必回 UB。
 
-把这层关系画成一条「从远到近」的线：
-
-| 存储 | 离算力 | 典型用途 | 谁在用 |
+| 存储 | 服务哪条路 | 存储对齐（2201 架构表） | 说明 |
 |---|---|---|---|
-| GM | 最远 | 大块数据、模型权重 | 搬运单元存取 |
-| L2 Cache | 中 | GM 读写的缺省缓存，按 Cache Line 加载（128/256/512B） | 搬运单元 |
-| L1 Buffer | 近 | 喂 Cube 的分片中转 | MTE 搬运 |
-| UB | 最近 | Vector 计算的输入/输出分片 | Vector/Cube |
-| L0A/L0B/L0C | 最近 | Cube 矩阵输入/输出 | Cube |
+| GM | 两路进出 | 1 字节 | 编程视图的全局存储；物理介质视产品（第2章） |
+| L2 Cache | （透明） | 按 Cache Line 加载，大小随硬件规格（128/256/512Byte 等[^memlay]） | 经搬运单元读写 GM 的数据缺省被缓存在 L2（[^memlay]）——这是**缓存加载粒度**，与下面接口对齐是两回事 |
+| L1 Buffer | Cube 中转 | 32 字节 | 矩阵分片中转；与 UB 的搬运支持按目标产品和接口核对（8.2） |
+| L0A/L0B | Cube 输入 | 512 字节 | 左/右矩阵，分形排布（ZZ/ZN）；L0C 见下行 |
+| L0C | Cube 输出 | 64 字节 | 结果/中间结果，NZ 排布；FixPipe 收尾 |
+| UB | Vector | 32 字节 | Vector 数据主战场；排布无硬性分形要求 |
 
-「谁在用」这列其实对应到几个**物理搬运单元**：MTE1（L1→L0A/L0B）、MTE2（GM→{L1, L0A/B}、GM→UB）、MTE3（UB→GM、L1→GM）、FixPipe（L0C→{GM/L1}，可随路做格式/类型转换）[^mte]。想「搬得快」的第一步，就是看清你的数据该由哪个单元搬、要不要经过 L1 中转。
+> 容量随型号与编译选项变化（如 UB 预留 256B/8KB 的差异），**用平台信息接口查询为准**，本书不列通用数字[^memlay]。
 
-以矩阵计算（Cube）为例，数据流长这样[^mte]：
+**两条对齐分开记**：①**架构存储对齐**（2201 表：UB 32B、L0A/L0B 512B、L0C 64B）是**存储单元属性**；②**具体接口的约束以该接口文档为准**（如 NDDMA float 建议 32B）——存储表≠所有 API 一律同约束。L2 CacheLine 大小随硬件规格（128/256/512Byte 等[^basicarch]）是**缓存加载粒度**，属物理行为；别把三者互推，也别指望单一接口对齐解决所有 CacheLine 问题。
 
-```
-GM → L1 → L0A/L0B → Cube → L0C → FixPipe → GM   （一次算完回 GM）
-GM → L1 → L0A/L0B → Cube → L0C → FixPipe → L1 → GM  （中间结果回 L1 继续）
-```
+![存储分类图：Global Memory 与片内 Local Memory 两大类；Local 内按服务对象分 Cube 路存储（L1/L0A/L0B/L0C）与 Vector 路存储（UB）；L2 为共享缓存单列，不属于单核 Local Memory（storage classes: GM vs on-chip local; L2 system-level cache）](../figures/ch08-memory-hierarchy.svg)
 
-![物理搬运单元数据流图：MTE2 负责搬入（GM 到 L1/UB/L0）、MTE1 喂 L0 与 BT、MTE3 搬出（UB/L1 到 GM）、FixPipe 从 L0C 收结果并随路转换（data movement units: MTE2 in, MTE1 L1-to-L0, MTE3 out, FixPipe from L0C with format conversion）](../figures/ch08-mte-units.svg)
+*图 8-1 怎么读：先分 GM/Local；Local 内按算子类型归入两路存储；L2 单独看——缓存 GM 访问，非某核私有。括号内对齐为 2201 存储表属性，接口约束见 8.3。*
 
-*图 8-2 四个搬运单元的分工地图：线色即执行单元——MTE2 蓝（搬入）、MTE1 绿（L1 喂 L0）、MTE3 橙（搬出）、FixPipe 紫（收结果）；Cube/Vector 两个计算单元吃什么、吐到哪，一眼看清。*
+### 8.1.1 谁分配：Device 侧与 Host 侧两条生命周期
 
-注意到没有——**L1 是 Cube 的「粮仓」**，矩阵数据先经 MTE2 进 L1，再经 MTE1 进 L0A/L0B 喂 Cube。所以一个矩阵算子效率高不高，往往看 L1 利用率，而不只看 GM 带宽。
+**Device 侧（显存侧）**：`aclrtMalloc` 家族向 runtime 申请 Device 内存，**用完须 `aclrtFree`**（接口注释明文）[^aclmem]：
 
-![AI Core 存储层级图：寄存器、L0、L1、UB、L2、GM 自上而下容量增大带宽降低，右侧标注 Cube 与 Vector 两条使用路径（memory hierarchy: register, L0, L1, UB, L2, GM with capacity/bandwidth/latency tradeoffs）](../figures/ch08-memory-hierarchy.svg)
+- `aclrtMalloc(ptr,size,policy)`：常用；`policy`＝`HUGE_FIRST/HUGE_ONLY/NORMAL_ONLY`（大页优先/仅大页/仅普通页）。
+- `aclrtMallocAlign32`：32 字节对齐版，服务搬运对齐。
+- `aclrtMallocCached` / `WithCfg` / `ForTaskScheduler`：缓存属性与进阶配置。
+- **VMM 独立路径**（大块自管场景）：`aclrtReserveMemAddress`（虚拟预留）→`aclrtMallocPhysical`（物理分配，`aclrtPhysicalMemProp` 带位置/属性）→`aclrtMapMem`（映射）；**三者各有配对释放**（`aclrtReleaseMemAddress`/FreePhysical/Unmap）——这是与 Malloc/Free **并行的另一条生命周期**，不是它的「可选后三步」（机制细节见第6章）。
 
-*图 8-1 存储层级金字塔：上方这张图值得背下来——每一层「谁在用、由谁服务」对应表 8-1 的每一行；对齐纪律的物理根源在 L2 的 Cache Line 加载。*
+**Host 侧**：
 
-这里有个关键设计：**所有经搬运单元读写 GM 的数据都缺省被 L2Cache 缓存**，按 Cache Line 加载，Cache Line 大小视硬件规格（128/256/512 Byte 不等）[^memlay]。这解释了为什么「对齐」如此重要——如果数据没对齐到 Cache Line，一次加载可能多搬半条线，白耗带宽。
+- `aclrtMallocHost(ptr,size)`：**锁页** Host 内存（系统保证首地址 64B 对齐），**须 `aclrtFreeHost` 释放；不能直接被 Device 访问，须经拷贝**[^hostmem]。
+- `aclrtHostRegister(ptr,size,type,&devPtr)`（V2 带 flags）：把已有 Host 缓冲注册给 Device——`MAPPED` 拿到映射设备指针、`PINNED` 防换出等[^aclmem]。
 
-### 8.1.1 API 层的分配：`aclrtMalloc` 三兄弟
+**何时可读（仅限 `aclrtMemcpyAsync` 族文档适用范围；同步接口 `aclrtMemcpy` 不适用此表）**[^memcpydoc]：
 
-在 Host 侧，程序员用 ACL 接口向 runtime 要 GPU 内存。第4章你见过 `aclrtMalloc`，这里补全它的「家族」[^aclmem]：
+| 场景 | 返回时机 | 你要做什么 |
+|---|---|---|
+| 拷入/拷出目的或源是**锁页** Host 内存（`aclrtMallocHost`/注册 PINNED） | **异步**：接口成功＝任务下发成功 | **须 `aclrtSynchronizeStream`（或事件等待）确认执行完成**，之后 Host 侧才可读/可复用 |
+| Host 内存为**普通 malloc（非锁页）** | **拷贝完成后才返回**（同步语义） | 返回即可用；代价是调用线程被阻塞 |
+| Device→Device 拷贝 | 异步任务 | 流内后续任务自然有序；跨流先事件同步再使用 |
 
-- `aclrtMalloc(ptr, size, policy)`：最常用，`policy` 决定分配策略。
-- `aclrtMallocAlign32(ptr, size, policy)`：**32 字节对齐**版本——专为满足搬运对齐要求而设。
-- `aclrtMallocCached(ptr, size, policy)`：带缓存属性的分配。
-- `aclrtMallocWithCfg / aclrtMallocForTaskScheduler`：进阶配置（大页、任务调度器专用）。
+**两种时机不要混写**：锁页让调用方早返回，代价是显式同步；非锁页由接口替你等。两点边界：①**Host 缓冲能否复用/改写，取决于既有访问该缓冲的任务是否已结束**（包括尚未完成的读取与写入），不是「是否还提交新任务」；②**事件须 Host 侧同步等待完成**（如 `aclrtSynchronizeEvent`）才构成 Host 可读依据，把事件记入流（StreamWait 类）只约束**设备侧**执行顺序，不代表 Host 已可读[^memcpydoc]。
 
-`policy` 的可选项直击「要不要大页」：`ACL_MEM_MALLOC_HUGE_FIRST`（优先大页）、`ACL_MEM_MALLOC_HUGE_ONLY`（只用大页）、`ACL_MEM_MALLOC_NORMAL_ONLY`（只用普通页）[^aclmem]。大页能减少 TLB 缺页、提升大块搬运效率；所以「要性能就用大页」不是玄学，是分配策略层面的选择。
-
-::: tip 内存分配三问
-**要大块、要高带宽 → 优先 HUGE_FIRST；要 32B 对齐 → 用 MallocAlign32；常被复用的小缓冲 → 用 MallocCached。** 别一上来裸用 `aclrtMalloc` 不管策略——这一步就决定了你后面搬运的效率。
+::: tip 分配策略一句话
+大页与普通页是**物理分页/TLB 层面的取舍，与 swap 不是一回事，也不保证收益**，须按第19章测量方法实测；`Align32` 服务接口对齐要求，**不是 CacheLine 对齐的通用解**；复用 Host 缓冲走 HostRegister 并注意 8.1.1 复用条件。
 :::
 
-## 8.2 N-DMA：把「搬 + 变」一步做完
+## 8.2 核内搬运：通路、单元与同步
 
-第1章我们说数据搬运走 DMA。这一章的主角是它的升级版：**NDDMA（N-Dimensional DMA，多维直接内存访问）**。一句话定义：能在搬运过程中**硬件自动完成 Padding / Transpose / Broadcast / Slice 等变换**，一次 API 调用完成原来几十行循环的活[^nddma]。
+搬入 Local 后、计算前后，**数据在片内怎么走由架构决定**——这是本章第二张地图。以 2201 架构为例[^memlay][^mte]：
 
-### 8.2.1 一维 DataCopy vs 多维 N-DMA
+- **进**：MTE2 负责 GM→{L1, L0A/B}（分形/CacheLine 对齐）与 GM→UB（CacheLine 粒度）；
+- **核内**：MTE1 负责 L1→L0A/L0B（及 L1→BT）；
+- **出**：MTE3 负责 UB→GM、L1→GM；
+- **收尾**：FixPipe 从 L0C→{GM, L1}，支持随路格式/分形转换（2201 起 Fixpipe 可硬件化，输出分形满足诉求）。
 
-传统 `DataCopy` 是**一维连续搬运**——搬完想变换，还得自己写循环算地址。NDDMA 是**硬件加速的多维变换**。对比一下[^nddma]：
+**通路存在性要「架构说明×接口支持」相互印证**，单文档不下结论[^arch][^l1ub]：
 
-| 对比项 | 一维 DataCopy | NDDMA |
-|---|---|---|
-| 支持维度 | 只能一维连续 | 最高 6 维（API 约束 dim∈[1,5]） |
-| 数据变换 | 搬完软件循环处理 | 搬运 + 变换一步完成 |
-| 代码量 | 多层循环算地址 | 配参数，一次调用 |
-| 性能 | 软件循环开销大 | 硬件自动处理，3~5 倍 |
+| 通路 | 2201（架构带宽表） | 接口证据 | 3510（架构表） |
+|---|---|---|---|
+| GM→L0A/L0B | 未单列（概览载） | — | 特性明载**删除** |
+| L1→GM | 有（MTE3） | — | 特性明载**删除** |
+| UB→L1 | 接口已列 A2/A3 系列支持（`DataCopy UBToL1`） | cube_compute_load 文档 | 带宽表列 UB→L1 MTE3 128B/cyc——接口支持早于该表，物理通路是否同一实现以架构文档/实测为准 |
+| L1→UB | 带宽表未列 | `DataCopyL1ToUB` **仅 950 系列支持**（A3/A2 不支持） | 带宽表列 L1→UB MTE1；特性自述「增加」 |
+| L0C→UB | 无（FixPipe→GM/L1） | — | 特性自述**新增**（PIPE_FIX） |
+| L0C→L1 | **已有**（FixPipe→L1，概览） | — | 带宽表亦列（非新增） |
+| 核间同步 | 依赖 GM 全局内存需核间同步控制（架构文档「核间同步」节） | — | SSBuffer（其文档自述） |
 
-它的核心思想极其简单，一句话：**不同变换 = 对「步长（Stride）」的不同配置**。转置=交换源/目的步长；广播=被广播维的源步长设 0（重复读同一位置）；切片=源长度设成切片大小；Padding=配置左右 padding。记不住套路没关系，记住这个「步长即变换」的指针就抓住了灵魂。
+**结论**：编程前按**目标产品**核对**接口支持表与架构说明**——接口支持≠全部硬件能力、表缺条目≠通路不存在，不一致以产品实测/官方澄清为准，不外推。图 8-2 只画两代共同主干。
 
-### 8.2.2 一个 Padding 例子：参数怎么配
+**比通路更关键的是同步**：各执行单元（MTE2/Vector/MTE3…）**异步并行**，读写 Local Memory 的依赖要靠显式同步协调——架构文档给出的标准例子：GM→UB 搬运**完成后**才能启动 Vector 计算，Vector 完成**后**才能 UB→GM 回写[^arch]。这些队列/流水事件如何写，**属第9/10章 Ascend C 的同步机制**，本章只立「存在依赖、须显式同步」的观念；Host 侧流/事件（4章）管的是另一头的可见性，**不要拿 Host sync 替代核内同步**。
 
-以官方样例 `data_copy_gm2ub_nddma` 的场景 1（Padding）为例。输入 `[16, 32]` 矩阵四周填 0，输出 `[32, 64]`[^nddma2]：
+![搬运两行图：矩阵行 GM 搬入→L1→L0A/L0B→Cube→L0C→FixPipe 收回 GM；向量行 GM 搬入→UB、Vector 读取/写回 UB、搬出回 GM；GM/UB 重复出现指同一存储；执行单元标在边上（two rows: cube path and vector path, units on edges, repeated nodes same storage）](../figures/ch08-mte-units.svg)
+
+*图 8-2 怎么读：先选行（矩阵/向量），沿箭头看数据就位次序——GM 搬入由 MTE2 承担；UB 搬出由 MTE3 承担，L0C 搬出由 FixPipe 承担，行内读写是计算单元对 L0/UB 的直接访问；重复框=同一存储。段间依赖须显式同步（第9/10章）。*
+
+## 8.3 搬运进阶：N-DMA 与对齐
+
+`DataCopy` 除连续形式外也有带步长形式（见接口文档）；**NDDMA（多维）在搬运中硬件完成 Padding/Transpose/Broadcast/Slice**，核心是「**步长即变换**」：转置=配置输入与输出的维度步长、广播=被广播维源 stride 置 0、切片=源长度取切片、Padding=配左右 padding[^nddma]。维度上限以 API 为准：**`dim∈[1,5]`**。
+
+以官方样例场景 1（Padding，输入 `[16,32]`→输出 `[32,64]` 四周填 0）看参数面板[^nddma2]：
 
 ```cpp
-// [示意代码] 场景1：Padding，输入[16,32] → 输出[32,64]（四周填0）
+// [示意代码] 场景1：Padding（参数语义见脚注文档；须按所在架构核对支持）
 AscendC::NdDmaLoopInfo<2> loopInfo{
-    {1, 32},   // 每个维度的源步长
-    {1, 64},   // 目的维步长
-    {32, 16},  // 源数据总长度
+    {1, 32},   // 源步长
+    {1, 64},   // 目的步长
+    {32, 16},  // 源各维长度
     {15, 13},  // 左/上 padding
     {17, 3}    // 右/下 padding
 };
-AscendC::NdDmaParams<float, 2> params{loopInfo, 0};  // padding 值 0
+AscendC::NdDmaParams<float, 2> params{loopInfo, 0};  // padding 常数 0
 AscendC::DataCopy<float, 2>(xLocal, xGm, params);
 ```
 
-`NdDmaLoopInfo<dim>` 的 5 组参数是 N-DMA 的「调参面板」：`loopSrcStride`（源步长）、`loopDstStride`（目的步长）、`loopSize`（每维长度）、`loopLpSize`（左/上 padding）、`loopRpSize`（右/下 padding）。模板参数 `dim` 是维度，取值 **[1,5]**；`NdDmaParams` 还有一个 `constantValue`，是不使能最近邻填充时的 padding 常数[^nddma3]。
+转置通过为输入与输出设置不同的维度步长实现，具体配置见样例；最近邻填充把 `NdDmaConfig.isNearestValueMode` 置 true[^nddma2]。**限制随接口文档**：b64 须关最近邻且常数为 0、float 建议 32B 对齐、`loopRpSize<256` 等[^nddma3]。五场景速查：Padding 常数/最近邻、Transpose 换 stride、Broadcast 置 0、Slice 改长——**能交给 N-DMA 的变换别手写循环**。
 
-再看**转置（Transpose）**——这是 N-DMA 最能省心、也最能体现「步长即变换」的场景[^nddma2]：
+**对齐回到 8.1 的两条**：具体接口的对齐要求是**调用约束**，须查该接口对目标存储位置的规定；CacheLine 是**缓存粒度**，影响的是「一次多搬少搬」。工程顺序：先满足接口对齐，再按 CacheLine 排布数据减少跨线搬运。
 
-```cpp
-// [示意代码] 场景3：转置，输入[16,64] → 输出[64,16]（关键：交换源/目的 stride）
-AscendC::NdDmaLoopInfo<2> loopInfo{{1, 64}, {16, 1}, {64, 16}, {0, 0}, {0, 0}};
-AscendC::NdDmaParams<float, 2> params{loopInfo, 0};
-AscendC::DataCopy<float, 2>(xLocal, xGm, params);
-```
+**乒乓**：搬运单元与 Vector/Cube 可并行，双缓冲（`TPipe::InitBuffer` 两块）为相邻分块提供独立缓冲；真正的搬算重叠还须**正确的队列/依赖编排且缓冲资源足够**，并非分两块就自动重叠[^pong]。效果须按第19章方法实测。
 
-你要做的只是把 `loopSrcStride` 和 `loopDstStride` **对调**（`{1,64}` 与 `{16,1}`），硬件自动按转置后的步长读数据。换成手动写，得算出每个元素的偏移、再逐个搬——又长又易错，这就是 N-DMA 的意义所在。
+## 8.4 何时可读、怎样复用
 
-再看**最近邻填充（Nearest Padding）**，它跟「填0」的区别只在一处配置——`NdDmaConfig` 的 `isNearestValueMode=true`，padding 区域会取边界值而不是 0[^nddma2]：
+把前文收拢成「读时机清单」：
 
-```cpp
-// [示意代码] 场景2：最近邻填充，填充区取边界值
-static constexpr AscendC::NdDmaConfig dmaConfig = {true};  // 开启最近邻填充
-AscendC::DataCopy<float, 2, dmaConfig>(xLocal, xGm, params);
-```
+- **核内**：上游搬运/计算完成——靠第9/10章流水同步，**不是 Host sync**；
+- **Host 读 D2H 结果**：按 8.1.1 表——锁页异步须 `aclrtSynchronizeStream` 后读；非锁页返回即完成；
+- **跨设备/跨算子**：优先**复用**——片内结果留 UB/L1 续算（配合 8.2 的通路），跨算子共享走框架/第2章互联（HCCS/URMA 的 one-sided 是**方向性机制**，能否免拷取决于部署与数据布局，本书不给出「必然零拷贝」的承诺）。
 
-### 8.2.3 五种场景速查
+一句话：**能留片内别回 GM，能复用别重拷，读之前先对表**。
 
-记一张「变换 → 关键配置」对照表，用的时候照着配[^nddma2]：
+## 8.5 后端衔接
 
-| 场景 | 关键配置 |
-|---|---|
-| Padding（填常数） | `NdDmaParams` 的 `constantValue`；`isNearestValueMode=false` |
-| Padding（最近邻） | `NdDmaConfig.isNearestValueMode=true` |
-| Transpose 转置 | **交换**源/目的 stride |
-| Broadcast 广播 | 被广播维的源 stride 设为 0 |
-| Slice 切片 | 源长度设为切片大小 |
-
-::: tip N-DMA 一句话
-**「步长即变换」：转置换 stride、广播置 0、切片改长度、Padding 配左右。** 凡能交给 N-DMA 的变换就别写软件循环——这是算子性能的第一条金律。
-:::
-
-## 8.3 对齐、带宽与乒乓
-
-N-DMA 和 DataCopy 都有**对齐要求**：不同数据类型不同，`float` 建议对齐到 **32 字节**；`b64` 类型有额外限制（如 `isNearestValueMode` 必须为 false、`constantValue` 必须为 0）[^nddma3]。为什么？回顾 8.1——L2Cache 按 Cache Line（128/256/512B）加载，GM 读写的**最小单位是 Cache Line**。数据不对齐，一次搬运要跨两三个 Cache Line，白搬一遍。
-
-### 8.3.1 乒乓（Ping-Pong）：让「搬运」和「计算」重叠
-
-算子内部，把「搬一块算一块」改成「搬两块、算一块、搬下一块」的**乒乓**策略，是隐藏搬运延迟的经典手段。它的价值一句话讲清：**CPU / 搬运单元和 Vector/Cube 是并行的两个引擎**，乒乓让它们同时忙——搬运在搬第 i+1 块时，计算在算第 i 块[^pong]。配多级队列（`TPipe::InitBuffer` 深一点）就是给乒乓预留缓冲。
-
-### 8.3.2 带宽利用的本质
-
-「充分利用带宽」说到底就是三件事：**数据连续**（stride 少跳空，缓存命中高）、**访问对齐**（不跨 Cache Line）、**单次搬运够大**（别把大搬运拆成几十次小 DMA，启动开销会吃掉收益）。这也是 N-DMA 的价值——它把多次小变换合并成一次大搬运[^nddma]。
-
-## 8.4 零拷贝路径与算子间数据复用
-
-「搬运」还有个更彻底的解法：**能少搬就少搬，最好不搬**。零拷贝路径指的是让数据在**不同算子 / 不同设备间共享**时，避免「搬出来 → 拷走 → 再搬进去」的重复拷贝。
-
-- **片内**：UB 里算完的结果直接留在片内，供下一个算子用（`copy_ub2ub` 类搬运），别倒腾回 GM 再拿回来。
-- **跨设备 / 跨主机**：这是第5章说的 `tprt` 与第2章 HCCS / 灵衢 URMA 的用武之地——**one-sided 零拷贝**，让对端直接读你的内存，而不是双端来回拷[^zerocopy]。
-
-一句话：**数据复用是把「搬运次数」降下来的第一杠杆**。同一次搬运能喂多家就喂一家，能留片内就别回 GM。
-
-## 8.5 AIPP 与预处理（片上的「免费变换」）
-
-说到数据通路，AIPP（AI PreProcessing）值得一提[^aipp]：它把**图像预处理**（缩放、裁剪、色度转换、归一化等）下沉到**硬件 / DMA 随路**，而不是让 CPU 或 DSA 算子去算。对图像输入场景，AIPP 能在搬运的同时把预处理做了，避免单独跑一遍预处理算子——这又是一次「搬 + 算」的合并。启用时机与设备支持有关（不是所有型号都有独立 AIPP 通路），所以标注为「如适用」，需要按你的目标芯片能力菜单确认。
-
-## 8.6 后端衔接：为性能编铺路
-
-走到这，第二编逻辑上就闭环了。数据通路这一章，直接为第三编（算子开发）和性能编（第15、16章）埋了三根线[^next]：
-
-1. **N-DMA 是写算子首先要摸清的工具**——第9章起你写 `DataCopy` / `DataCopyPad`，底层就是它。
-2. **对齐与缓存**是性能分析的头号疑犯——第19章做 msprof 画像，若搬运带宽上不去，先查对齐、再查乒乓。
-3. **零拷贝与数据复用**是 kernel 融合的动机——多算子合并成一个大 kernel，本质就是「多搬几次 vs 少搬一次」的权衡。
-
-所以这一章不是终点，是给「写算子 / 调性能」做准备。
-
+本章三根线通向后面：**N-DMA/通路**→第9章起的搬运 API 实战；**对齐/乒乓**→第19章性能画像的头号疑犯；**复用与生命周期**→kernel 融合（少搬一次）与第6章驱动侧地址管理。第2章补物理与互联，第4章补流/事件 API——各章分工如图 8-1 的两条路，不再交叉重复。
 ## 陷阱与注意（汇总）
 
 | 坑 | 症状 | 对策 |
 |---|---|---|
-| 数据不对齐 | 带宽莫名低、性能上不去 | 用 `aclrtMallocAlign32`；确认数据对齐到 Cache Line（8.1、8.3） |
-| 用一维 DataCopy 硬编变换 | 代码又长又慢 | 换成 N-DMA，交给硬件做变换（8.2） |
-| N-DMA 参数配错 | 变换结果不对或搬错区 | 记住「步长即变换」，按 8.2.3 表配；维度别超 [1,5]（8.2.2） |
-| N-DMA 后马上读 | 读到脏数据 | 搬运后要等完成/刷新 cache（`NdDmaDci`），再操作（8.2、8.3） |
-| 搬运拆得太碎 | 启动开销吃掉收益 | 合并小搬运成一次大 N-DMA；用乒乓隐藏延迟（8.3） |
-| 重复拷贝 | 内存带宽被白耗 | 能留片内留片内、能零拷贝就零拷贝（8.4） |
-| 把 N-DMA 当全型号可用 | 在旧型号上行为怪 | 先查能力菜单；NDDMA 仅较新芯片支持（8.2、STYLEGUIDE §8） |
+| 把 GM 当具体介质 | 纠结「GM 是不是 HBM」 | GM=编程视图，物理承载视产品（第2章），不绑定（8.1） |
+| 通路按上代经验写 | 新架构上通路不存在/绕路 | 每架构查带宽/特性与接口支持表；3510 删 GM→L0A/B、L1→GM，增 L0C→UB 等（8.2） |
+| 锁页异步当同步 | 下发成功就读，读到旧数据 | 所引 `aclrtMemcpyAsync` 文档适用范围内：锁页须 `aclrtSynchronizeStream` 后再读；非锁页返回即完成（8.1.1）；**同步接口 `aclrtMemcpy` 不适用此表** |
+| 拿 Host sync 替代核内同步 | 核内读到半成品 | 核内依赖用第9/10章流水/队列事件；两套机制各管各段（8.2/8.4） |
+| 对齐约束张冠李戴 | 换接口/换存储就违例 | 对齐随「接口×存储」查各自文档，不跨接口泛化（8.1/8.3） |
+| 维数写超 5 | N-DMA 编译错 | `dim∈[1,5]`；其余限制按接口文档（8.3） |
+| VMM 与 Malloc 混释放 | 泄漏/双重释放 | reserve/physical/map 各有配对释放，两条生命周期不混（8.1.1） |
+| 双缓冲=自动重叠 | 依旧串行等搬运 | 重叠须正确的队列/依赖编排且资源允许；双缓冲只是资源准备的一部分（8.3） |
 
 ## 本章小结
 
-::: tip 一句话总结
-**内存层级（GM→L2→L1→UB）决定了「搬」要付费；NDDMA 用「步长即变换」把搬 + 变一步做完，是算子数据通路的主角；对齐（32B / Cache Line）、乒乓（搬算重叠）、零拷贝（少搬）是压低搬运开销的三板斧；AIPP 把预处理随路做掉。数据通路是第三编写算子与第19章性能分析的地基。**
-:::
+一个张量的旅程：**在哪里**——GM 是编程视图，片内分 Cube/Vector 两路，接口对齐与缓存粒度分开；**谁分配**——Device 侧 Malloc/Free（VMM 独立成路径）、Host 侧锁页/注册，读时机按接口文档分情况；**怎样搬**——通路与带宽以架构表为准，依赖须显式同步，N-DMA 把搬与变合成一步；**何时可读复用**——核内靠流水同步、Host 看拷贝语义、跨设备优先复用。测量方法见第19章。
 
 ## 本章来源与进一步阅读
 
-[^memlay]: 内存层级与搬运单元（Local/Global Memory、L1/L0/UB、L2Cache 按 Cache Line 加载 128/256/512B、MTE1/MTE2/MTE3/FixPipe、Regbase/Membase 架构差异）：`asc-devkit/docs/zh/guide/programming_guide/{programming_model/ai_core_simd_programming/abstract_hardware_architecture.md,advanced_programming/hardware_implementation/basic_architecture.md}`。
-[^mte]: 搬运单元分工与 Cube 数据流（MTE1: L1→L0A/L0B、L1→BT；MTE2: GM→{L1,L0A/B}（分形、Cache Line 对齐）/GM→UB（Cache Line）；MTE3: UB→GM、L1→GM；FixPipe: L0C→{GM/L1}、L1→FP，随路格式/类型转换）：`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/hardware_implementation/basic_architecture.md`。
-[^aclmem]: 内存分配 API 与策略：`runtime/include/external/acl/acl_rt.h`（`aclrtMalloc` / `aclrtMallocAlign32` / `aclrtMallocCached` / `aclrtMallocWithCfg` / `aclrtMallocForTaskScheduler`；`aclrtMemMallocPolicy`：`ACL_MEM_MALLOC_HUGE_FIRST / HUGE_ONLY / NORMAL_ONLY`）。
-[^nddma]: NDDMA 定义与对比（多维搬运 vs 一维 DataCopy、性能 3~5 倍、支持 Atlas 350 及后续）：`cann-learning-hub/blogs/operator/nddma_introduction/深入理解NDDMA多维数据搬运-昇腾算子开发性能优化利器.md`。
-[^nddma2]: NDDMA 五场景与官方样例：同上前文 + `asc-devkit/examples/01_simd_cpp_api/03_basic_api/00_data_movement/data_copy_gm2ub_nddma/`（Padding / Nearest / Transpose / Broadcast / Slice 的参数配置）。
-[^nddma3]: NDDMA 参数语义与对齐限制（`NdDmaLoopInfo<dim>` 的 srcStride/dstStride/loopSize/lpSize/rpSize，dim∈[1,5]；`NdDmaConfig` 的 `isNearestValueMode`/`loopLpSize`/`loopRpSize`(<256)/`unsetPad=0xffff`/`ascOptimize` 预留；b64 需 isNearestValueMode=false、constantValue=0；float 建议 32B 对齐）：`asc-devkit/docs/zh/api/SIMD-API/basic_api/memory_vector_compute/data_move/DataCopy_GMToUB_NDDMA.md`。
-[^pong]: 乒乓与多级队列（`TPipe::InitBuffer`）、搬算重叠：`asc-devkit/examples/01_simd_cpp_api/03_basic_api/00_data_movement/`、`asc-devkit/docs/zh/api/SIMD-API/`（DataCopy 系列）。
-[^zerocopy]: 零拷贝 / one-sided 与跨设备传输：`runtime/src/tprt/`（传输运行层）、`runtime/src/runtime/core/src/device/`；跨设备零拷贝语义见第2章 HCCS / 灵衢 URMA（one-sided）。
-[^aipp]: AIPP 预处理随路：`asc-devkit/docs/zh/guide/programming_guide/`（图像预处理相关章节）。
-[^next]: 为第三编与第19章铺路（N-DMA/对齐/乒乓/零拷贝 → 算子开发与性能画像）：`asc-devkit/docs/zh/api/SIMD-API/basic_api/memory_vector_compute/data_move/`、`cann-learning-hub/blogs/operator/nddma_introduction/`。
-- 继续读：第9章起 Ascend C（`asc-devkit/examples/01_simd_cpp_api/`）、第19章性能分析（`runtime/src/dfx/msprof/`、第8章对齐/带宽/乒乓三大斧）。
+[^memlay]: 存储层级与预留：`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/hardware_implementation/basic_architecture.md`（Local/Global、L2 CacheLine 128/256/512B L113/L206）；UB/L1 预留 256B/8KB 与平台信息查询：`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/hardware_implementation/architecture_spec/npu_arch_2201.md` L55–59、`asc-devkit/docs/zh/api/Utils-API/platform_info/platform_info.md`。
+[^arch]: 架构差异实证：`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/hardware_implementation/architecture_spec/npu_arch_2201.md`（带宽表 L65–69：L1→L0A 256/L0B 128 B/cyc；Fixpipe 硬化 L97–104；**同步必要性例 L154–159**：GM→UB→Abs→UB→GM 各段须同步）；`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/hardware_implementation/architecture_spec/npu_arch_3510.md`（特性 L13「增加 L0C→UB、UB↔L1」；带宽表 L125–137 含 L1→UB MTE1/UB→L1 MTE3/L0C→UB、L0C→L1 PIPE_FIX；删 GM→L0A/B、L1→GM L11–12；SIMD Register File L17；SSBuffer 核间 L263）。**注意 L0C→UB 为单向**。
+[^l1ub]: L1/L0C 与 UB 通路接口证据：`asc-devkit/docs/zh/api/SIMD-API/basic_api/data_move_guide/L1_or_L0C_UB_data_move.md`（表1：UB→L1 连续/高维/ND2NZ/Pad；L0C→UB 随路转换与量化；**L1→UB=DataCopyL1ToUB**）；`asc-devkit/docs/zh/api/SIMD-API/basic_api/cube_compute_ISASI/cube_compute_store/DataCopyL1ToUB.md` 产品支持表（**仅 Ascend 950PR/DT 支持，A3/A2 等不支持**）；`asc-devkit/docs/zh/api/SIMD-API/basic_api/cube_compute_ISASI/cube_compute_load/DataCopy_UBToL1_continuous.md`（UB→L1，A3/A2 支持）。L1→UB 接口支持与架构带宽表分开引用，不互推。
+
+[^mte]: 概览级通路（MTE1/2/3/FixPipe 分工）：`asc-devkit/docs/zh/guide/programming_guide/advanced_programming/hardware_implementation/basic_architecture.md` L186–206；**具体带宽/存在性以各架构表（[^arch]）为准，概览不替代**。
+[^aclmem]: 内存 API：`runtime/include/external/acl/acl_rt.h`——`aclrtMalloc` L1905（释方约定 L1890–91）、`Align32/Cached` L1916 区、`aclrtMemMallocPolicy`（HUGE_FIRST/HUGE_ONLY/NORMAL_ONLY）、`aclrtMallocConfig/Attr` L202–219；VMM：`aclrtReserveMemAddress` L2586/`aclrtReleaseMemAddress` L2600/`aclrtMallocPhysical` L2618（`aclrtPhysicalMemProp` L369–375）/`aclrtMapMem`（L2584 see）；Host 注册：`aclrtHostRegister` L2052/`V2` L2064（flags `ACL_HOST_REG_MAPPED/IOMEMORY/READONLY/PINNED` L74–77、枚举 L195–200）。
+[^hostmem]: Host 内存：`runtime/include/external/acl/acl_rt.h` L2168–2186（`aclrtMallocHost`：锁页、64B 对齐、**不能直接用于 Device 须显式拷贝**、`aclrtFreeHost` 释放）权威表述；`runtime/docs/zh/api_ref/11-02_host_memory_management.md` L5–6/50/69（锁页定义与过量代价）。
+[^memcpydoc]: 拷贝语义（锁页/非锁页时机分歧）：`runtime/docs/zh/api_ref/11-03_memory_copy_and_set.md` L140/L213——**锁页（含 `aclrtMallocHost`）→异步，成功=下发成功，须 `aclrtSynchronizeStream`（`06_stream_management.md`）后才可读；非锁页（malloc）→拷贝完成才返回**；D2D 64B 对齐等限制同文件；`aclrtMemcpyAsync` 族清单 L5–17。
+[^nddma]: NDDMA 概念与场景（二级来源）：`cann-learning-hub/blogs/operator/nddma_introduction/深入理解NDDMA多维数据搬运-昇腾算子开发性能优化利器.md`；本书不引用其性能倍数。
+[^nddma2]: 官方样例（Padding/Nearest/Transpose/Broadcast/Slice 参数）：`asc-devkit/examples/01_simd_cpp_api/03_basic_api/00_data_movement/data_copy_gm2ub_nddma/`。
+[^nddma3]: NDDMA 参数语义与限制：`asc-devkit/docs/zh/api/SIMD-API/basic_api/memory_vector_compute/data_move/DataCopy_GMToUB_NDDMA.md`（`NdDmaLoopInfo<dim>` dim∈[1,5]；`NdDmaConfig.isNearestValueMode`/`loopRpSize`<256/`unsetPad`；b64 与 float 32B 建议）。
+[^pong]: 双缓冲与 `TPipe::InitBuffer`：`asc-devkit/docs/zh/api/SIMD-API/`（资源管理类接口）及样例 `asc-devkit/examples/01_simd_cpp_api/03_basic_api/00_data_movement/`；收益须实测（第19章）。
+- 继续读：第2章（HBM/互联）、第4章（流/事件 API）、第6章（VMM 与驱动侧地址管理）、第9/10章（核内同步的写法）、第19章（实测方法）。
