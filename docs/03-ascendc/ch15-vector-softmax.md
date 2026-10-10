@@ -44,7 +44,7 @@ for (uint32_t i = 0; i < aDim; i++) {
 }
 ```
 
-官方对这笔账的定性[^softmax]：**每条 MemBase 指令的语义是「UB 读源操作数进寄存器 → 计算 → 写回 UB」，每步中间结果必须写回 UB**——ReduceMax 的结果写入 UB 后 Duplicate 要重新读出，Duplicate 写入后 Sub 又要读出……中间结果在 UB 上反复读写。数一遍：exp 和 sum 两个中间张量每行「写一次、读一到两次」，加上 max 的广播（`Duplicate`）与 half→float 的来回 `Cast`，**一行下来 UB 访问约 12 次，其中一半是存了又读**。更隐蔽的是每条 MemBase API 之间隐含 `PipeBarrier<PIPE_V>()` 同步——GELU 官方文档实测：**MemBase 每条向量指令间都插屏障、无法双发，标量同步开销占比约 2.7%**[^gelu]。这就是 11.5 说的搬运税在真实算子里的账单，44113 cycles 就是它的价格。整章要拆的六级阶梯见图 15-1——每一级都在从这份账单里划掉一行。
+官方对这笔账的定性[^softmax]：**每条 MemBase 指令的语义是「UB 读源操作数进寄存器 → 计算 → 写回 UB」，每步中间结果必须写回 UB**——ReduceMax 的结果写入 UB 后 Duplicate 要重新读出，Duplicate 写入后 Sub 又要读出……中间结果在 UB 上反复读写。按 Case0 调用序列逐条计数（**本书口径**，官方仅定性「反复读写」）：float 路径一行依次 ReduceMax（读 src 写 exp）→Duplicate（读写 exp）→Sub（读 src/exp 写 exp）→Exp（读写 exp）→ReduceSum（读 exp）→Duplicate（读写 sum）→Div（读 exp/sum 写 dst）——UB 读约 9 次、写约 7 次，exp 一项写 3 读 4，**一半以上是存了又读**。更隐蔽的同步税：gelu 官方说明**基础 API 每条向量指令间需插 `PipeBarrier<PIPE_V>()`**、无法双发，其 Case0 实测**标量开销占比 2.7%**（`aiv_scalar_time`，含屏障同步与其他标量指令）[^gelu]；softmax 官方则表述为「Vector Function 间数据依赖、无法使能双发」——两文措辞不同、同一件事。这就是 11.5 说的搬运税在真实算子里的账单，44113 cycles 就是它的价格。整章要拆的六级阶梯见图 15-1——每一级都在从这份账单里划掉一行。
 
 ## 15.2 Case 1→2：RegBase 化与循环融合【还债①】
 
@@ -64,23 +64,31 @@ AscendC::Reg::LoadAlign(srcReg, expAddr + ...);                     // sum 读�
 AscendC::Reg::LoadAlign(maxReg, expAddr + ...);                     // div 又读一次！
 ```
 
-**这就是「半吊子 RegBase」**：数据在寄存器里算，但中间结果的生命周期被人为截断在 Phase 边界。寄存器级计算消除了 VF 启动开销（+34%），但冗余的 Load/Store/sync 一个没少[^softmax]。Case 1 的价值是搭起 RegBase 骨架（mask/RegTensor/Load 铸型），让后面三级有地方使劲。
+**这是「只走半程的 RegBase」**：数据在寄存器里算，但中间结果的生命周期被人为截断在 Phase 边界。寄存器级计算消除了 VF 启动开销（+34%），但冗余的 Load/Store/sync 一个没少[^softmax]。Case 1 的价值是搭起 RegBase 骨架（mask/RegTensor/Load 铸型），让后面三级有地方使劲。
 
-### Case 2：循环融合——每个数只读一次
+**再讲清初始化常数的实际边界（`fp32MinValue=0x00800000`，最小正正规数 2^−126≈1.18e-38，真码 L37；以下为本书 CPU 数学复算，非 NPU）**。该常数只作 `Duplicate(maxReg)` 初值，作用是让空 lane/首轮比较有名定义。三条边界反例：
 
-Case 2 是本章的第一道分水岭（图 15-2 右半），三个动作同时发生[^softmax]：
+- **全负行初值不被覆盖**：`uniform(−5,5)` 不保证每行有正数——全负行的 max 仍 ≥−5 但可 **<1.18e-38**，此时初值「赢」成为 max。精确算术下用较大平移常数归一化结果**不变**（softmax 对平移不变）；真正的风险是**浮点下溢**，见下条。
+- **`[-1000,-1001]` 型行会全零**：全负行初值（seed）赢成 max，减的是 seed——`x−seed≈−1000`，`exp(−1000)` 下溢为 0，**分母 0，Div 0/0**，并非「均匀 1/n」。而**减真实 max 时分母不会为 0**：非空有限行至少一项 `exp(max−max)=exp(0)=1`，其余项下溢为 0 只会让求和少项——**分母 ≥1 恒成立**（seed 实现的极负行无此保障，见上条）。
+- **全 `−inf` 行在此实现下全零**：seed 为有限正数，`exp(−inf−seed)=0`、sum=0、Div 0/0——注意不能写成该实现算 `−inf−(−inf)`，那是用真 −inf 当 max 的另一实现。
 
-1. **循环融合（loop fusion）**：max 循环和 exp 循环合并为一轮——`srcReg` 只从 UB 读**一次**，喂给 `Max` 和 `ExpSub` 两条指令；Phase 2 的 sum 循环和 div 循环同理合并，**共享读一次 exp**（Case 1 里 sum 和 div 各读一次）。11.5 说的「VF 融合：把多个逐元素操作串进一条寄存器链」，真码就是这个样子；
-2. **ExpSub 融合指令**：`exp(x−max)` 的减法和指数是**一条指令**——两次运算合一发，还顺带解决了数值稳定问题（减 max 防溢出）；
+**正确且只属「减真实行最大」的数学性质**（与实现常数无关）：非空有限输入下至少一项取 `exp(0)=1`，故**精确算术** sum≥1、输出≤1；但浮点中其余项可下溢为 0——**不能断言每个 exp/输出严格 >0**，也不能对 nan/±inf 输入作任何保证（本书未在硬件复验）。
+
+### Case 2：保留四次遍历，减少中间结果回写
+
+Case 2 是本章的第一道分水岭（图 15-2 下半）。先看真码结构，再说它究竟省了什么[^softmax]：
+
+1. **实际是四个循环、逐循环一 Load（真码 L390–441，本书按行核对）**：每行 i 依次——①max 循环 `Load src→Max(MERGING)`，循环后 `ReduceMax+Duplicate`（max 全程寄存器、**不落 UB**）；②exp 循环 `再 Load src→ExpSub→Store exp`；③sum 循环 `Load exp→Add`，循环后 `ReduceSum+Duplicate`；④div 循环 `Load exp→Div→Store y`。**src 被读两次（①②各一）、exp 落一次读两次（③④各一）**——「融合」的实绩是 ExpSub 把 sub/exp 并一发、max 取消落 UB、Bar 由每 Phase 一道收敛为一道，**并非「src 只读一次」**；
+2. **ExpSub 融合指令**：`exp(x−max)` 减法与指数**一条指令**——两次运算合一发。数值性质（**本书 CPU 复算，非 NPU**）：`x−max≤0 ⇒ 每项 exp≤1 ⇒ sum≤n`，**不会上溢**——这是减 max（配合有限输入）保证的全部；**下溢另一面**：指数差过负的项 `exp` 可下溢为 0——减**真实** max 时 max 项恒为 1、分母 ≥1（见 15.2 Case1 段边界反例）；seed 实现的极负行则连真 max 项都按下溢差计算，分母可 0；`nan/±inf` 输入本书不作硬件语义保证；
 3. **UpdateMask 按轮续期**：`UpdateMask<float>(count)` 每轮递减有效元素数，收尾不足 VL 的轮次自动掩蔽——11.1 的 mask 纪律在归约场景的标准写法。
 
-**编译器在背后做了什么**：官方把 VF 融合分成三阶段[^vffusion]——**浅度融合**（控制流等价的多个 VF 合一，Software Loop 硬化成 Hardware Loop）→ **深度融合**（继续合并 Loop、减启动开销、消灭冗余 Load/Store、充分复用寄存器）→ **VF 内自动同步**（编译器精准插入必要同步、删除冗余同步，释放硬件 OOO 乱序能力，**用户无需手动插同步**）。自动融合的前提恰是 15.3 的规范：控制流等价 + 各自都是 Hardware Loop——规范不是空文，是编译器优化的门票。这也解释了 Case 1 为什么还要手写 `LocalMemBar`：那是教学性的半吊子写法，真融合后同步交给编译器。
+**编译器在背后做了什么**：官方把 VF 融合分成三阶段[^vffusion]——**浅度融合**（控制流等价的多个 VF 合一，Software Loop 硬化成 Hardware Loop）→ **深度融合**（继续合并 Loop、减启动开销、消灭冗余 Load/Store、充分复用寄存器）→ **VF 内自动同步**（编译器精准插入必要同步、删除冗余同步，释放硬件 OOO 乱序能力，**用户无需手动插同步**）。自动融合的前提恰是 15.3 的规范：控制流等价 + 各自都是 Hardware Loop——规范不是空文，是编译器优化的门票。**注意区分**：以上是官方文档描述的通用优化机制；**本快照 Case2 源码仍显式写了一道 `LocalMemBar<VEC_LOAD,VEC_STORE>`（②exp 落 UB 与③sum 读回之间）**——不要据通用机制删本例的必要同步；Case1 的多道 Bar 则是教学性的阶段隔离。
 
-**一个必须如实交代的细节**：即使到了 Case 2，`expReg` 算完**仍然 StoreAlign 落 UB**，Phase 2 再读回来——这不是没优化到位，而是**算法上必要**：sum 是行内全局归约，必须等整行 exp 算完才能收口，而整行 exp 驻留寄存器需要 rDim×4 字节的寄存器容量（2048 行宽就是 8KB，远超单组 VF 寄存器预算）。**寄存器驻留有物理上限，跨全局归约的中间结果是驻不住的**——真正被消灭的是 Case 1 的**冗余**往返（exp 存 1 次读 2 次 → 存 1 次读 1 次；max 的落 UB 整个取消，全程驻留 `maxReg`），以及两道 `LocalMemBar` 里的一道。44113→3413 的近 13 倍，主体就来自这里。
+**一个必须如实交代的细节**：即使到了 Case 2，`expReg` 算完**仍 StoreAlign 落 UB**，③④再读回——**本实现如此**：sum 是行内全局归约，须整行 exp 收口；驻寄存器方案（重算/分块/其他组织）本书未展开也不排除。相对 Case1（每 Phase 后一道 Bar、max/sub/exp 各自 Store-Load 往返、sub 与 exp 两条），Case 2 消灭的是：sub/exp 并发 ExpSub、max 取消落 UB、Bar 收敛为一道——**官方 44113→3413 的归因本书不复算，性能数字以 README 为准**。
 
-![Case 1 与 Case 2 数据流对比图：左侧 Case1 四阶段各自循环，src 由 max/exp 两阶段各读一次，exp 落 UB 后被 sum 和 div 各读一次，阶段间多道 LocalMemBar；右侧 Case2 两轮循环融合，src 只读一次喂 Max 与 ExpSub，exp 只落一次 UB 作为跨全局归约检查点、Phase2 共享读一次喂 Add 与 Div，maxReg 全程寄存器驻留（case1 vs case2 dataflow: per-phase loads with redundant spill vs loop fusion with single shared load and one necessary exp checkpoint）](../figures/ch15-case1v2.svg)
+![Case 1 与 Case 2 数据流对比：Case2保留max、exp、sum、div四次遍历，src读取两次，exp写一次读两次，max保留在寄存器中](../figures/ch15-case1v2.svg)
 
-*图 15-2 Case 1 vs Case 2：右边的 UB 访问并未归零——exp 作为跨全局归约的检查点必须落一次 UB（寄存器容量的物理上限）；被消灭的是「冗余」：src 两读变一读、exp 存 1 读 2 变存 1 读 1、max 往返整个消失。这比「全驻留」的神话更接近真码，也更有指导意义。*
+*图 15-2 按当前源码理解 Case 2：保留四个循环，减少部分中间结果的 UB 回写与屏障；不能把源码级变化写成每个输入只读取一次。*
 
 ## 15.3 Hardware Loop 规范：让编译器认出你的循环
 
@@ -131,7 +139,7 @@ for (uint16_t j = 0; j < repeatTimes; j++) {
 }
 ```
 
-两行数据零依赖，相邻的同名指令构成**无依赖指令对**，正好填进 Vector 双发射窗口——「展开」的本质是**给双发创造原料**（15.5 的 GELU 会再强化这一点）。Cycle 表印证：2 次访存冗余没变，光靠双发就从 3413 降到 2197。
+两行数据零依赖，相邻的同名指令构成**无依赖指令对**，正好填进 Vector 双发射窗口——「展开」的本质是**给双发创造原料**（15.5 的 GELU 会再强化这一点）。官方 Cycle 表：访存冗余未变而 3413→2197——与「展开造无依赖对喂双发」的**设计意图一致**；单因果归因需反汇编/实测，本书不作断言。
 
 ### Case 4：主尾块——主循环免掩码
 
@@ -162,13 +170,13 @@ flowchart TD
 
 Case 5 = 主尾块 + 外层展开 + ExpSub 三项叠加：双份寄存器组的展开结构（Case 3）套进 maskFull 主循环（Case 4），融合指令贯穿始终，1785 cycles 收官（Case 0 的 1/24.7）[^softmax]。叠加的顺序不是任意的——**先主尾块定轮次结构（maskFull 化），再展开（交错发射才有意义），融合贯穿始终**；顺序反了会出现「展开后尾块处理复杂度爆炸」的返工。复盘整架梯子（图 15-1）：
 
-![softmax 六级优化阶梯全景图：Case0 MemBase 44113 cycles → Case1 RegBase 半吊子 31894 → Case2 循环融合+ExpSub+UpdateMask 3413 → Case3 双份寄存器展开 2197 → Case4 主尾块 3424（单独用不赚）→ Case5 三项叠加 1785 最优；每级标注消灭的开销与官方 cycles（softmax six-level optimization ladder with official cycle counts and per-step eliminated overheads）](../figures/ch15-ladder.svg)
+![softmax 六级优化阶梯全景图：Case0 MemBase 44113 cycles → Case1 RegBase 半程 31894 → Case2 循环融合+ExpSub+UpdateMask 3413 → Case3 双份寄存器展开 2197 → Case4 主尾块 3424（单独用不赚）→ Case5 三项叠加 1785 最优；每级标注消灭的开销与官方 cycles（softmax six-level optimization ladder with official cycle counts and per-step eliminated overheads）](../figures/ch15-ladder.svg)
 
 *图 15-1 六级优化阶梯（官方 cycles 实测标注）：最大的跳变在 Case 1→2（消灭冗余 UB 往返，近 10 倍）；Case 3 与 Case 4 是「双发」与「免掩码」两条岔路，殊途同归要靠 Case 5 合流。这张图对所有逐元素/行归约算子通用。*
 
 ## 15.5 GELU：双发实战与寄存器超限陷阱
 
-GELU 样例（`gelu.asc`，251 行）提供基础版与 eltwise 版（原位计算）两个变体，公式取 tanh 近似。官方专门给了**13 步指令分解表**——`tanh(u) = (e^(2u)−1)/(e^(2u)+1)` 先代换化简，再逐条落成 `Mul → Muls → Exp → Sub/Add → Div → Adds → Mul → Muls` 指令序列[^gelu]。**公式化简本身就是优化**：少一步就少一次 UB/寄存器往返，这在数学层就该做完。**第二件武器：RegBase 发射与展开**——`asc_vf_call<GeluVfBasic>` 发射 VF，循环上挂 `#pragma unroll 6` 让编译器开足展开窗口[^gelu]。
+GELU 高性能样例（`gelu.asc`，251 行）**同文件三 Case**：0=MemBase 基准（`PipeBarrier<PIPE_V>`×8）、1=RegBase VF 融合、2=VF＋`#pragma unroll 6`（`SCENARIO_NUM` 切换）；另有**独立样例** `gelu_eltwise_high_performance/gelu_eltwise.asc`（4 case：Gelu 后接 element-wise 拉长依赖链，专练循环拆分/展开）——独立目录，非本文件变体，亦非「原位计算」。公式取 tanh 近似。官方专门给了**13 步指令分解表**——`tanh(u) = (e^(2u)−1)/(e^(2u)+1)` 先代换化简，再逐条落成指令序列（**节选非全序**，全 13 步见其 README 分解表）[^gelu]。**公式化简本身就是优化**：少一步就少一次 UB/寄存器往返，这在数学层就该做完。**第二件武器：RegBase 发射与展开**——`asc_vf_call<GeluVfBasic>` 发射 VF，循环上挂 `#pragma unroll 6` 让编译器开足展开窗口[^gelu]。
 
 **第一件武器：公式化简**——官方对比了三种 GELU 实现的指令数与 UB 内存份数[^gelu]：
 
@@ -186,7 +194,7 @@ GELU 样例（`gelu.asc`，251 行）提供基础版与 eltwise 版（原位计�
 - **手动展开**：`#pragma unroll 6`（gelu 真码实测）或 Case 3 式手工双份寄存器组，让编译器看到更多可并行的指令窗口；
 - **⚠️ 寄存器超限反效果**：展开/拆分不是免费的——**寄存器数量超限后，溢出的依赖指令会排进执行队列，双发收益被排队吃掉甚至倒亏**。展开倍数要配合 `__maxnreg__`（11.2）与活寄存器数一起权衡。
 
-官方还给了一条选型经验[^gelu]：**计算步骤 ≥3 步且中间结果无需写回 UB 时，优先 RegBase + VF 融合**——显著减少 UB 读写并利用双发提升 IPC。GELU 的「连续非对齐」场景（输入不按 VL 对齐）则回落到 15.4 的 UpdateMask/主尾块套路——**梯子上的工具是组合复用的，不是每个算子从头发明**。
+官方还给了一条选型经验[^gelu]：**计算步骤 ≥3 步且中间结果无需写回 UB 时，优先 RegBase + VF 融合**——显著减少 UB 读写并利用双发提升 IPC。另有两个维度别混：**行内尾块**（元素数非整 VL）用 15.4 的 UpdateMask/主尾块；**连续非对齐搬运**（地址不对齐元素位宽）官方另解——`LoadUnAlignPre`＋post update、偏移 `uint32_t`、首末处理移出循环[^unaligned]。**梯子上的工具是组合复用的，不是每个算子从头发明**。
 
 ## 15.6 工程衔接：softmax_custom 入口与 Tiling 消费
 
@@ -219,11 +227,11 @@ __global__ __vector__ void softmax_custom(__gm__ uint8_t* x, __gm__ uint8_t* y,
 
 | 坑 | 症状 | 对策 |
 |---|---|---|
-| RegBase 化了但每 Phase 仍独立循环各读一次 | 白改，Case1 式半吊子 | 循环融合：一次 Load 喂多条指令（15.2） |
-| 幻想中间结果全部寄存器驻留 | 全局归约的检查点驻不住 | 驻留有物理上限：跨行归约的 exp 必须落 UB，消灭的是「冗余」不是「全部」（15.2） |
+| RegBase 化但每 Phase 仍独立循环各读一次、sub/exp 分离 | 改善有限，仍有冗余 | 循环融合＋ExpSub 并发＋Bar 收敛（15.2 四循环） |
+| 幻想中间结果全部寄存器驻留 | 本实现 exp 仍落 UB | 全局归约须检查点；本实现如此，其他组织方案未展开（15.2） |
 | 循环内写 if/else 或三元 | 编译器退化成 Software Loop | if constexpr 或 for(1) 替代（15.3） |
 | 迭代变量用 uint32_t / 起始非 0 / 步长非 1 | Hardware Loop 识别失败 | 按 vf_loop 规范写循环（15.3） |
-| exp 不减 max | 大数值溢出 | ExpSub 一发解决（15.2） |
+| exp 不减 max | 大正数差上溢 | 减真实 max：非空有限输入至少一项 exp(0)=1、exp≤1 不上溢；但浮点各项可下溢 0、分母可为 0（15.2 边界反例）|
 | 尾块按满轮算 | 越界/脏数据 | UpdateMask 或主尾块（15.4） |
 | 主尾块单独使用期待大收益 | 3424 vs 3413，白忙 | 主尾块是给展开铺路的，与展开叠加才兑现（15.4） |
 | 盲目加大 unroll 倍数 | 双发收益被寄存器溢出吃掉 | 配合 __maxnreg__ 权衡活寄存器数（15.5） |
@@ -233,13 +241,18 @@ __global__ __vector__ void softmax_custom(__gm__ uint8_t* x, __gm__ uint8_t* y,
 ## 本章小结
 
 ::: tip 一句话总结
-**六级阶梯（44113→1785 cycles，24.7×）：Case1 RegBase 化只赚 34%；Case2 循环融合一步近 10 倍——每个数只读一次（src 两读变一读、exp 读两次变一次、max 全程驻留），但跨全局归约的 exp 必须落 UB（寄存器容量的物理上限，驻留消灭的是冗余不是全部）；Case3 双份寄存器展开造无依赖指令对喂双发；Case4 主尾块单独不赚、为展开提供干净轮次结构；Case5 三项叠加收官。地基是 Hardware Loop 规范（uint16_t、从 0 步长 1、循环内禁分支、for(1) 替代 if）。GELU 补第三课：双发靠拆循环和 unroll 创造无依赖对，寄存器超限会让它倒亏；≥3 步且中间结果无需写回 UB，就选 RegBase+VF 融合。**
+**六级阶梯（44113→1785 cycles，24.7×，官方数字）**：Case1 RegBase 化只赚 34%；Case2 四循环流水一步近 10 倍——ExpSub 并发、max 不落 UB、Bar 收敛（src 仍两读、exp 落 1 读 2），但跨全局归约的 exp 必须落 UB（本实现的检查点，其他组织方案未展开）；Case3 双份寄存器展开造无依赖指令对喂双发；Case4 主尾块单独不赚、为展开提供干净轮次结构；Case5 三项叠加收官。
+
+**地基**是 Hardware Loop 规范（uint16_t、从 0 步长 1、循环内禁分支、for(1) 替代 if）——没有它，后面五级都无从谈起。
+
+**GELU 补第三课**：双发靠拆循环和 unroll 创造无依赖对，寄存器超限会让它倒亏；≥3 步且中间结果无需写回 UB，就选 RegBase+VF 融合。
 :::
 
 ## 本章来源与进一步阅读
 
-[^softmax]: softmax 六级阶梯全码与官方基准（844 行，Case 0-5 同文件 `#if SCENARIO_NUM` 切换；性能表 Case0=44113/Case1=31894(+34%)/Case2=3413/Case3=2197/Case4=3424/Case5=1785 cycles；Case1 冗余 Load/Store/sync、Case2 loop fusion 共享 Load 与 ExpSub 与 UpdateMask、Case3 srcReg/srcReg1 双份寄存器与 halfA 交错、Case4 tail/repeatTimesMain/hasTail 账本与 maskFull 主循环、softmax_custom 入口的 LocalMemAllocator 与三对事件流水与 DataCopyPad 补零、Case 3+ 的 sumTensor 仅 8 字节；仅 950，CANN ≥9.1.0）：`asc-devkit/examples/01_simd_cpp_api/05_best_practices/02_reg_compute/softmax_high_performance/{README.md,softmax.asc}`（CANN Open 2.0）。
-[^gelu]: GELU 样例与官方说明（tanh 近似公式与 13 步指令分解表、基础版/eltwise 版、`#pragma unroll 6` 真码、`asc_vf_call` 调用、MemBase 指令间屏障与 2.7% 标量开销实测、「≥3 步且中间结果无需写回 UB 优先 RegBase+VF 融合」选型建议）：`asc-devkit/examples/01_simd_cpp_api/05_best_practices/02_reg_compute/gelu_high_performance/{README.md,gelu.asc}`（CANN Open 2.0）。
+[^softmax]: softmax 六级阶梯全码与官方基准（844 行，Case 0-5 同文件 `#if SCENARIO_NUM` 切换；性能表 Case0=44113/Case1=31894(+34%)/Case2=3413/Case3=2197/Case4=3424/Case5=1785 cycles；Case1 冗余 Load/Store/sync、Case2 四循环（①max Load src②exp 再 Load src+ExpSub③sum④div；exp 落 1 读 2）与 UpdateMask、Case3 srcReg/srcReg1 双份寄存器与 halfA 交错、Case4 tail/repeatTimesMain/hasTail 账本与 maskFull 主循环、softmax_custom 入口的 LocalMemAllocator 与三对事件流水与 DataCopyPad 补零、Case 3+ 的 sumTensor 仅 8 字节；仅 950，CANN ≥9.1.0；cycles 为官方测试环境折算值，本书未复测）：`asc-devkit/examples/01_simd_cpp_api/05_best_practices/02_reg_compute/softmax_high_performance/{README.md,softmax.asc}`（CANN Open 2.0）。
+[^gelu]: GELU 样例与官方说明（同文件 3 Case（0 基准 PipeBarrier×8/1 VF/2 +unroll6）、tanh 近似与 13 步分解表、eltwise 独立样例见同目录 `gelu_eltwise_high_performance/`、`#pragma unroll 6` 真码、`asc_vf_call` 调用、MemBase 指令间屏障与 2.7% 标量开销实测、「≥3 步且中间结果无需写回 UB 优先 RegBase+VF 融合」选型建议）：`asc-devkit/examples/01_simd_cpp_api/05_best_practices/02_reg_compute/gelu_high_performance/{README.md,gelu.asc}`（CANN Open 2.0；性能数据为其测试环境结果，本书未复测）。
+[^unaligned]: 连续非对齐搬运优化（`LoadUnAlignPre`+post update、偏移 uint32、初始化/收尾移出循环）：`asc-devkit/docs/zh/guide/operator_practice/simd_operator_optimization/vector_compute/vf_optimization/continuous_unaligned_optimization.md`（官方文档）。
 [^dual]: 指令双发优化（合理拆分 VF 循环、手动展开与 `#pragma unroll`、编译器自动展开、寄存器超限导致依赖指令排队的反效果）：`asc-devkit/docs/zh/guide/operator_practice/simd_operator_optimization/vector_compute/vf_optimization/dual_issue_optimization.md`（官方文档）。
 [^vfloop]: VF 循环优化（Hardware Loop 编码规范：uint16_t 迭代变量、从 0 步长 1、循环内禁分支、if constexpr 与 for(1) 替代、循环内成员变量访问/指令分布/地址管理优化）：`asc-devkit/docs/zh/guide/operator_practice/simd_operator_optimization/vector_compute/vf_optimization/vf_loop_optimization.md`（官方文档）。
 [^vffusion]: VF 融合优化原理与编写指导：`asc-devkit/docs/zh/guide/operator_practice/simd_operator_optimization/vector_compute/vf_optimization/vf_fusion_optimization.md`（官方文档）。
