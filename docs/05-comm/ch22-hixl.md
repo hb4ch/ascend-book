@@ -51,7 +51,7 @@ HIXL 的公开 C++ API 收敛在唯一头文件 `hixl.h`（194 行），全部�
 
 错误码分段：`SUCCESS=0`、`PARAM_INVALID=103900`、`TIMEOUT=103901`、`NOT_CONNECTED=103902`、`RESOURCE_EXHAUSTED=203900`、通用失败 `503900`——与 LLM-DataDist 的 `0x5010B0xx` 段（22.8 节）分属两套。
 
-连接状态机值得单独看：**异步建链/断链的 7 个状态**——由 `GetAsyncConnectStatus` 查询，单条（按引擎名）与批量（引擎名→状态 map）两个重载。**它读取的是本端连接池的任务结果表**：只有经由 `ConnectAsync/DisconnectAsync` 提交的任务才会在表中留痕，无记录时返回 `NOT_CONNECT`——它是「本端异步操作台账」，不是对端视角，也不是全量链路清单（22.3.2 的建议据此限定）。同步 `Connect/Disconnect` 阻塞到终态，不经此表。配套的轻量通知面：`SendNotify(remote, {name, msg}, timeout)` 向对端投递命名通知，`GetNotifies` **取走并清空**本地通知队列——注意「取走即清」的消费者语义，与 22.6 的「查询即消费」同构；这对手写「传输完成后再发一条应用层确认」的协议很顺手（22.3.2 的改进建议即可用它实现）。
+连接状态机值得单独看：**异步建链/断链的 7 个状态**——由 `GetAsyncConnectStatus` 查询，单条（按引擎名）与批量（引擎名→状态 map）两个重载。**它读取的是本端连接池的任务结果表**：只有经由 `ConnectAsync/DisconnectAsync` 提交的任务才会在表中留痕，无记录时返回 `NOT_CONNECT`——它是「本端异步操作台账」，不是对端视角，也不是全量链路清单（22.3.2 的建议据此限定）。同步 `Connect/Disconnect` 阻塞到终态，不经此表。配套的轻量通知面：`SendNotify(remote, {name, msg}, timeout)` 向对端投递命名通知，`GetNotifies` **取走并清空**本地通知队列——「取走即清」的消费者语义与 22.6 的「查询即消费」同构（完整定义见 22.6）；22.3.2 的改进建议正可用它实现。
 
 options 七常量中本章要用的四个：`OPTION_GLOBAL_RESOURCE_CONFIG`（协议/引擎选择的主入口）、`OPTION_AUTO_CONNECT`（建链自动性开关，22.5 节主角）、`OPTION_BUFFER_POOL`（中转，22.7）、`OPTION_ENABLE_USE_FABRIC_MEM`（FabricMem 总开关，22.8）。另有静态 `GetCapability(FeatureType, int32_t&)` 在初始化前探测**本环境**是否支持 AutoConnect / CS 通信后端——能力探测返回的是环境事实，不是配置开关本身。
 
@@ -156,13 +156,28 @@ cd "$WK/hixl"
 source /usr/local/Ascend/ascend-toolkit/set_env.sh
 ./build/examples/cpp/hixl_example_quickstart --role=client   # dev0；READ→校验→done→Disconnect
 # 观测点（与 22.3 时序对应，仅描述打印次序，不构成成功承诺）：
-# server 先 RegisterMem/监听→client Got remote addr→client TransferSync READ completed→
-# 两端 Deregister/Finalize；server Finalize 打印可能早于 client Disconnect 完成（22.3.2 窗口）。
+# server 先 RegisterMem/监听→client Got remote addr→client TransferSync READ completed→两端 Deregister/Finalize
+# （server Finalize 与 client Disconnect 的先后语义＝22.3.2 收尾窗口，此处不重复）
 ```
 
 注意：这是 **quickstart 自己的两条命令**；同目录的 `hixl_example_d2rd` 是另一组样例（`--protocol/--device` 参数、单进程双 engine），不可混用——本章主线只有一个，就是 quickstart。跑通后可核对三个观测点，与 22.3 时序一一对应：server 先打印 `RegisterMem success` 与 `Server waiting on port`，client 随后 `Got remote addr`；client 侧 `TransferSync READ completed`＋校验通过；两端各自 `DeregisterMem/Finalize done`——**server 的 Finalize 完成打印可能早于 client 的 Disconnect 完成**，这是 22.3.2 收尾窗口的可见表现；两支并行的先后不构成正确性判据，结果须按 22.3.2 的窗口语义理解。
 
 ## 22.4 一次传输的库内旅程：从 API 到硬件
+
+本节四站：**选路**（哪代引擎、哪个端点，22.4.1）→**两条数据路径**（Device/Host，22.4.2）→**完成保障链**（host_flag 真相，22.4.3）→**内存视图**（建链快照，22.4.4）。先看全程，再逐站落地：
+
+```mermaid
+%%{init: {"themeVariables": {"fontSize": "20px"}} }%%
+flowchart TB
+    A["API：TransferSync／Async"] --> E["引擎选路<br/>主线＝HixlEngine CS"]
+    E --> C1["Device 路径<br/>slot＋host_flag<br/>分块 kernel<br/>D2H 常量 1"]
+    E --> C2["Host 路径<br/>重试循环<br/>＋flag 环"]
+    C1 -.内核缺口.-> K["libcann_hixl_kernel<br/>本仓不可见"]:::gap
+    C1 --> D["CheckStatus 读 flag<br/>err 带外"]
+    C2 --> D
+```
+
+注：同仓另有 legacy CommEngine 与 FabricMem 引擎分叉（22.4.1／22.8），模型不通用，图中不展开。图读法：实线=本书逐行核过的 CS DIRECT 主链；legacy/FabricMem 仅列分叉不展开（22.8 另述）；虚框=二进制缺口——**host 侧证据链止于 D2H 常量拷贝，kernel 内部不立论**（22.4.3）。
 
 ### 22.4.1 两层选路：先选引擎，再匹配端点
 
@@ -185,7 +200,15 @@ source /usr/local/Ascend/ascend-toolkit/set_env.sh
 
 `HixlEngine`（引擎层）持有 `ClientManager`（req↔client 注册表＋按 remote_engine 的 client 缓存）与 server 侧；client 对象 `HixlCSClient` 由 `DirectClientHandler` 薄封装持有，传输最终落到 CS 内部两条路径[^G]：
 
-**Device 内存路径**（`BatchTransferDeviceAsync`）：校验→从 `TransferPool` 取共享 slot（池按 device 获取；同一 HixlCSClient 的在途传输复用其 active_slot_，引用计数共享，不能推广为同设备所有 client 共用一个 slot，最后一个引用释放时才归还/Abort）→`aclrtMallocHost` 独立 host_flag→描述符列表 H2D 拷入 device→**按 `kMaxKernelBatchSize` 分块 launch 设备 kernel**（每 1920 个 op 或末块携带 notify 等待参数）→同 stream 再排一个 D2H 拷贝（22.4.3）→返回 handle。传输本体是 CANN 预置的批量读写 kernel（经 `aclrtBinaryLoadFromFile` 加载 `libcann_hixl_kernel`），经由 slot 内 Hcomm 线程/通道下发。slot 上还挂着一个 Host 映射的 **err_flag**：设备侧执行异常时置位，查询路径读不到完成标志且 err_flag 非零→判 FAILED 并锁存（22.5）——错误与完成是两条独立回报线，前者带外、后者走数据通路。
+**Device 内存路径**（`BatchTransferDeviceAsync`）按序五步：
+
+1. 校验后从 `TransferPool` 取共享 slot——池按 device 获取；同一 HixlCSClient 的在途传输复用其 active_slot_（引用计数共享；**不能推广为同设备所有 client 共用一个 slot**，最后一个引用释放时才归还/Abort）；
+2. `aclrtMallocHost` 独立 host_flag；
+3. 描述符列表 H2D 拷入 device；
+4. **按 `kMaxKernelBatchSize` 分块 launch 设备 kernel**（每 1920 个 op 或末块携带 notify 等待参数）；
+5. 同一 stream 再排一个 D2H 拷贝（22.4.3）→返回 handle。
+
+传输本体是 CANN 预置的批量读写 kernel（经 `aclrtBinaryLoadFromFile` 加载 `libcann_hixl_kernel`），经由 slot 内 Hcomm 线程/通道下发。slot 上还挂着一个 Host 映射的 **err_flag**：设备侧执行异常时置位，查询路径读不到完成标志且 err_flag 非零→判 FAILED 并锁存（22.5）——错误与完成是两条独立回报线，前者带外、后者走数据通路。
 
 **Host 内存路径**（`BatchTransferHostAsync`）：不 launch kernel，直接在**Host 侧循环**调 `TransferWithRetry` 逐块提交读写（下详），随后从对端内置 flag 区 `ReadNbi` 回 1 写入本地 flag 槽；flag 槽是固定大小的环（`kFlagQueueSize`），**耗尽即 `RESOURCE_EXHAUSTED`**——错误消息原文要求「先查询已完成任务，再创建新传输」[^G]。这是并发上限的显式机制：**异步 in-flight 任务数受 flag 槽深约束**。
 
@@ -269,21 +292,31 @@ Status HixlEngine::AutoDisconnect(const AscendString &remote, int32_t timeout) {
 
 异步传输把三件事分开：**调用返回值**（这次查询成功吗）、**传输状态**（WAITING/COMPLETED/FAILED/TIMEOUT）、**资源释放**（handle/flag/slot 何时回收）。下述行为边界**限 CS DIRECT 路径**（本节所有断言同此范围，UB/legacy 不外推），逐层看[^G][^H]：
 
-**第一层：CS 客户端。** `CheckStatusDevice/CheckStatusHost` 的赋值路径只有 `WAITING/COMPLETED/FAILED` 三值——**CS 检测路径不产生 TIMEOUT**（`HIXL_COMPLETE_STATUS_TIMEOUT` 仅见于 `client_handler.h` 的枚举与 `ToTransferStatus` 映射，检测函数无一处赋值）。COMPLETED 或 FAILED 的瞬间执行「查询即消费」：`ReleaseDevCompleteHandle` 释放独立 host_flag、device 描述符 buffer、slot 引用（若为末引用则按 latch 状态 Abort 或归还池）——**该 handle 不支持再次查询**。WAITING 则什么都不动。释放挂在查询而非完成回调上，与「host_flag 靠应用轮询」的实现方式一致；至于这是有意的线程模型取舍还是实现惯性，仓内无陈述，本书不作归因。另注意本「不产 TIMEOUT」是**CS 检测路径**的行为，不能推广到其他引擎/路径。
+**第一层：CS 客户端。** `CheckStatusDevice/CheckStatusHost` 的赋值路径只有 `WAITING/COMPLETED/FAILED` 三值——**CS 检测路径不产生 TIMEOUT**（`HIXL_COMPLETE_STATUS_TIMEOUT` 仅见于 `client_handler.h` 的枚举与 `ToTransferStatus` 映射，检测函数无一处赋值）。Device 路径查得 COMPLETED 或 FAILED 时执行「查询即消费」：`ReleaseDevCompleteHandle` 释放独立 host_flag、device 描述符 buffer、slot 引用（若为末引用则按 latch 状态 Abort 或归还池）——**该 handle 不支持再次查询**。Host 路径查得 COMPLETED 时调用 `ReleaseCompleteHandle`：在 `top_index_ < kFlagQueueSize` 条件下归还 flag 索引并清空对应 live_handles_ 项，随后删除查询句柄（L436–444/L1061–1084）。WAITING 保留句柄。释放挂在查询而非完成回调上，与「host_flag 靠应用轮询」的实现方式一致；至于这是有意的线程模型取舍还是实现惯性，仓内无陈述，本书不作归因。另注意本「不产 TIMEOUT」是**CS 检测路径**的行为，不能推广到其他引擎/路径。
 
 **第二层：handler。** `DirectClientHandler::GetTransferStatus`：查无此 req→`PARAM_INVALID`＋status=FAILED；底层查询调用本身失败（ret≠SUCCESS）→**status 写成 FAILED、erase、返回该 ret**——注意「返回值」与「status 输出」在这里分叉：调用失败了，但输出 status 也被诚实写成 FAILED。
 
 **第三层：引擎。** 单条 `GetTransferStatus`：req 查无 owner→status=FAILED＋`PARAM_INVALID`；**查询调用失败**（ret≠SUCCESS）→`EraseTransferReq`＋`AutoDisconnect`（**返回值被检查，失败向上传**）＋返回 ret；**查询成功且 status≠WAITING（含 COMPLETED/FAILED）→仅 `EraseTransferReq`，无 AutoDisconnect**——「传输 FAILED」与「自动断链」在此层**不等价**，前者只是出表。表项消失后再查同一 req 得 `PARAM_INVALID`（「已完成或不存在」），结果须调用方自存。
 
-批量版本逐条**按条件**列出（编号 B1–B7 与下表一致，此处给正文叙述；表另附「是否查询/返回元素/登记断链」三列）：
+一次查询在**应用视角**的决策流如下——图只画调用方可见的分叉，**各层返回码/状态/清理的精确条件见其后两表**（不同层不同表，图中不统一）：
 
-- **B1** `client==nullptr`（owner 已消失）→**仅 erase＋continue，不产任何结果元素**；
-- **B2** 查询调用 ret≠SUCCESS（**该 req 有被查询，只是调用未成功**）→engine 计入 `disconnected_engines`＋`AutoDisconnect`（**返回值 `(void)` 忽略——显式模式下空转，集合照样扩张**）＋本 req status=FAILED＋erase＋出结果；
-- **B3** engine 已在集合中→**跳过查询、直接写 FAILED＋erase**（进集合条件=「调用失败」，≠status==FAILED、≠断链成功）；
-- **B4** ret=SUCCESS 且 COMPLETED（正常终态）→erase＋出结果 COMPLETED；
-- **B5** ret=SUCCESS 且 FAILED（正常终态）→erase＋出结果 FAILED（**无 AutoDisconnect**）；
-- **B6** status==WAITING→**保留注册**：erase 条件是 `status!=WAITING`，`skip_waiting` 开关只决定 WAITING 元素出不出（L302-304/L307-309），**与登记无关**；
-- **B7** `max_query_count` 截断未遍历→**保持原状**。
+```mermaid
+%%{init: {"themeVariables": {"fontSize": "20px"}} }%%
+flowchart TD
+    Q["单条 GetTransferStatus(req, status)<br/>批量语义不同：见图下 B 表"] --> RC{"返回码?"}
+    RC -->|"≠SUCCESS"| R1["先读返回码<br/>逐层语义不同（见表）<br/>wrapper 前置检查可失败"]
+    RC -->|SUCCESS| ST{"status 输出?"}
+    ST -->|"WAITING<br/>（不动 handle 表）"| W["仍在册，未消费<br/>上下文须存活，可再查"]
+    ST -->|"COMPLETED／FAILED<br/>（erase handle 表）"| C["查询即消费：消费库内 handle 资源<br/>（Device 路径含 host_flag／描述符）<br/>非应用 buffer"]
+    C --> G["再查＝无登记（PARAM_INVALID）<br/>可作对账结束条件<br/>≠应用 buffer 可释放证明"]
+    W --> Q
+```
+
+图注（证据行号，替代图中长标）：wrapper 前置检查 hixl_impl.cc L386-391；WAITING=direct_client_handler.cc L138-140 不动 complete_handles_；消费=L143-148 erase；资源释放：**Device 路径**＝`ReleaseDevCompleteHandle`（hixl_cs_client.cc L593-625：host_flag＋device 描述符 buffer＋slot 引用）——该列表仅 Device；Host 路径见 `ReleaseCompleteHandle` L436–444 与 `CheckStatusHost` L1061–1084，回收条件和资源不同；再查 PARAM_INVALID=handler L127 区/engine 无 owner；批量分支 B1–B7 见下表（hixl_engine.cc L264-310）。
+
+图外两句限定：**异步查询路径不产生查询态 TIMEOUT**（已核 CS 检测函数无一处赋值）；而 **`Status TIMEOUT` 提交链亦可出现**（③经 HostAsync 透传，见下节）——提交失败与查询态是两层，不得混写。各层清理动作不同（CS 按 Host/Device 路径回收各自句柄资源、handler/engine 移除登记表项），图中合并表达、精确条件看表。
+
+批量版本的完整分支**只在下表逐条件给出**（B1–B7，逐行对 `hixl_engine.cc` L264-310）——正文不另复述，读表即可；两个高频追问先答：**WAITING 无论 `skip_waiting` 开关如何都保留注册**（erase 条件是 `status!=WAITING`，开关仅决定 WAITING 元素出不结果，B6）；**调用失败分支的输出 status 一律写 FAILED**，与返回码分叉（B2/B3，见表）。
 
 「未出现在结果中」计三成因（B1 已消失/B6 已过滤或仍 WAITING/B7 未遍历），对账须分别处理。**引擎层批量恒 SUCCESS；公开 wrapper 另有前置检查（impl_ 空即 FAILED，hixl_impl.cc L393-395）可失败，返回码须查**——失败语义在元素、分支与返回码三处。
 
@@ -312,13 +345,21 @@ Status HixlEngine::AutoDisconnect(const AscendString &remote, int32_t timeout) {
 
 读表三点：①handler/engine 两层在**调用失败分支**会把输出 status 写成 FAILED——「输出 status」与「返回码」在该分支承载不同信息，须分别读；②engine 批量 FAILED 元素三来源：**B2 该 req 被查询但调用失败**、**B3 同 engine 连带跳过查询**，另有 **B5 正常终态 FAILED**——仅 B2/B3「未经成功查询」，其含义是「该链路查询不可用」，非单笔传输结论；③erase 的语义是**移出 manager 登记表**，之后引擎层查询返回 `PARAM_INVALID`——各层各自的表各自维护，跨层并无统一账本。
 
-**`Status TIMEOUT` 的产生点与 ACL 错误映射**（具名）：①`BatchTransferHostSync` **先 `HIXL_CHK_STATUS_RET(BatchTransferHostAsync…)`（L958-959，③等提交失败经此透传）**，再进 deadline 轮询——到期（L968-969）`ReleaseCompleteHandle` 后返回 TIMEOUT；**deadline 在 HostAsync 返回之后才起算**，`timeout_ms` 不覆盖提交阶段（含重试）耗时，非「整个调用」上界（源码次序推导，非实测）；②`BatchTransferDeviceSync` 的 `aclrtSynchronizeStreamWithTimeout` 失败→先 Abort slot，经 `HIXL_CHK_ACL_RET` 返回——**仅 `ACL_ERROR_RT_STREAM_SYNC_TIMEOUT` 映射 `hixl::TIMEOUT`，其余 ACL 错误原值 `static_cast<Status>` 透传**（hixl_checker.h L116-125）——「同步失败」≠TIMEOUT、更≠FAILED；③`TransferWithRetry` 20 分钟窗（L454/L480）——**每次调用各自起表，非整批共享总窗**。④③亦入异步提交：`BatchTransferHostAsync`→`BatchTransferTask`（L514）→`TransferWithRetry`（L499）——但重试返回后 HostAsync **还须 Fence 排序＋对端 flag `ReadNbi`（L535 区）方返回 handle**：**提交返回≠传输完成**，提交期长阻塞只是「提交可等待重试」，完成判定仍归 CheckStatus 读 flag；提交 `Status TIMEOUT`=提交失败，≠查询态 `TransferStatus::TIMEOUT`（仅枚举/映射）——同名异层不得混写。**⑤同步包装可返回的 TIMEOUT 因此有两源**：HostSync=①deadline 或③透传（提交失败，handle 未必建立，清理在提交链内）；DeviceSync=②（slot 已 Abort）。异步查询侧不产 TIMEOUT。由此得到缓冲区复用纪律：
+**`Status TIMEOUT` 的产生点**逐路具名（条件与清理各自独立，不统一承诺）：
+
+| 路 | 触发条件 | 清理状态 | 源码锚 |
+|---|---|---|---|
+| ① HostSync deadline | `BatchTransferHostSync` **先 `HIXL_CHK_STATUS_RET(BatchTransferHostAsync…)`（③经此透传，L958-959）再进轮询**，到期 | handle 已 `ReleaseCompleteHandle`（L968-969）；**deadline 在 HostAsync 返回后才起算，`timeout_ms` 不覆盖提交阶段（含重试），非「整个调用」上界（源码次序推导，非实测）** | hixl_cs_client.cc |
+| ② DeviceSync ACL 映射 | `aclrtSynchronizeStreamWithTimeout` 失败→先 Abort slot，经 `HIXL_CHK_ACL_RET` 返回——**仅 `ACL_ERROR_RT_STREAM_SYNC_TIMEOUT` 映射 `hixl::TIMEOUT`，余 ACL 原值 `static_cast<Status>` 透传**——「同步失败」≠TIMEOUT 更≠FAILED | slot 已 Abort | hixl_checker.h L116-125 |
+| ③ 提交链重试窗 | `TransferWithRetry` 20 分钟窗（**每次调用各自起表，非整批共享**）；亦入异步：HostAsync→`BatchTransferTask`（L514）→`TransferWithRetry`（L499） | 提交失败，句柄未必建立、清理在提交链内；**重试返回后 HostAsync 还须 Fence＋对端 flag `ReadNbi`（L535 区）方返回 handle——提交返回≠传输完成**，完成判定仍归 CheckStatus 读 flag | L454/L480 |
+
+**⑤同步包装可返回的 TIMEOUT 两源**：HostSync=①deadline 或③透传；DeviceSync=②。**异步查询侧不产 TIMEOUT**；提交 `Status TIMEOUT`=提交失败，≠查询态 `TransferStatus::TIMEOUT`（仅枚举/映射）——同名异层不得混写。由此得到缓冲区复用纪律：
 
 - **同步返回 `SUCCESS` 才能视为完成**——这是库给出的唯一「数据已落定」信号。
 - **同步 TIMEOUT 按分支对待，不统一承诺清理状态**：①HostSync deadline→handle 已 `ReleaseCompleteHandle`；③经 HostSync 透传→提交失败，句柄未必建立、清理在提交链内；②DeviceSync→slot 已 Abort。共同点仅是**写没写完不可证**→源缓冲与远端内容在应用完成一致性核对前都不得假设；其余同步失败（ACL 原值透传）清理程度另逐分支看，同样按「未证」对待；是否重放由应用策略决定。
 - **异步**：只有查得 `COMPLETED` 才可复用；`FAILED` 同样是终态（资源已释放）但数据态同样未证；**查询即消费**意味着 result 里关心的 `user_data` 要在查询前想清楚怎么留存——批量结果数组就是为这次查询的一次性快照。
 
-> **陷阱**：区分三种「失败」——**调用失败**（返回码≠SUCCESS）与**传输终态 FAILED** 是两回事；前者之后 req 可能仍在册（按各层分支，见表），**未终态（WAITING）的 req 始终可再查**；**已消费（COMPLETED/FAILED）的 req 再查，单条 `GetTransferStatus` 返回 `PARAM_INVALID`**（「已完成或不存在」）——这同时可作对账的**结束条件**：终态确认无需无限轮询。另分层：**公开 wrapper 返回码须查**（前置检查可失败），「恒 SUCCESS」仅引擎内部层。
+> **陷阱**：**调用失败**（返回码≠SUCCESS）≠**传输终态 FAILED**——前者之后 req 可能仍在册，**WAITING 始终可再查**；已消费（COMPLETED/FAILED）的 req 再查得 `PARAM_INVALID`（无登记），可作对账**结束条件**。公开 wrapper 返回码另须查（前置检查可失败）。
 
 把三层合起来，使用者的纪律不是再包一层封装，而是四条原则（本书整理；API 均为公开签名，见脚注）：
 
@@ -412,10 +453,10 @@ KV 生态（vLLM/Mooncake/SGLang/NIXL 适配）在仓外；仓内博客（PD 分
 
 1. **单边≠对端零准备**：远端注册＋进程存活是前提；地址交换通道用户自建。
 2. **Client/Server 注册与交换次序镜像相反**，写反即违背样例注释的本意。
-3. **done 先于 Disconnect、server 收尾无等待**：源样例收尾窗口是结构性的，集成须自行加确认（本书设计未执行）。
+3. **done 先于 Disconnect、server 收尾无等待**：窗口是结构性的（22.3.2），集成须自行加确认（本书设计未执行）。
 4. **显式模式下失败不自愈**：`AutoDisconnect` 门控空转，坏 client 残留；先断链重连再重试。
 5. **自动模式的自动断链也可能失败**；重试前链路状态非无条件健康。
-6. **重放不是幂等承诺**：timeout 可能部分写；源数据/远端注册稳定性与重试决策归应用。
+6. **重放不是幂等承诺**：timeout 可能部分写；核对与重试决策归应用（22.5 五分项）。
 7. **查询即消费**：COMPLETED/FAILED 后 handle 再查是 `PARAM_INVALID`；result 需要的信息查询前留存。
 8. **同步 SUCCESS 才是完成**；TIMEOUT 后缓冲不可假设。
 9. **批量返回恒 SUCCESS**，失败在元素 status；同 engine 首错后余者免查询判死。
@@ -424,7 +465,7 @@ KV 生态（vLLM/Mooncake/SGLang/NIXL 适配）在仓外；仓内博客（PD 分
 12. **BUFFER_POOL 默认开≠实走中转**：CS 直传路径无该机制。
 13. **性能引用带全条件**：引擎×方向×块×平台×（AICPU/Host 展开），无版本注明如实标「未知」。
 14. **先辨认引擎代际再套心智模型**：CommEngine（legacy）与 HixlEngine（CS）选项/错误/完成机制互不通用。
-15. **建链后新注册不可见**（CS）：远端视图=建链快照；新增内存须重连或先注册后建链。
+15. **建链后新注册不可见**（CS）：远端视图=建链快照（22.4.4）；新增内存须重连或先注册后建链。
 
 ## 进一步阅读
 
