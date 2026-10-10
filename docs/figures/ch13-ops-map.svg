@@ -1,82 +1,63 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 600" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="600" viewBox="0 0 920 600" font-family="'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif">
   <defs>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#495057"/>
     </marker>
-    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/>
-    </marker>
   </defs>
-  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">CANN 开源算子库版图与典型算子解剖（13.1 / 13.2）</text>
-  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">左：三仓按「计算域 + 难度梯度」分工；右：每个算子是一个四件套目录，目录即约定，构建系统自动认领</text>
+  <text x="460" y="26" text-anchor="middle" font-size="16" font-weight="bold" fill="#111827">CANN 开源算子库：三仓版图与一次调用两阶段（13.1/13.2）</text>
+  <text x="460" y="46" text-anchor="middle" font-size="11" fill="#6b7280">左：三仓定位与形态差异；右：件套教学态与调用两阶段</text>
 
-  <!-- 左：三仓版图 -->
-  <rect x="40" y="70" width="380" height="440" rx="12" fill="#f8f9fa" stroke="#4263eb" stroke-width="2"/>
-  <text x="230" y="96" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#4263eb">三仓定位（学会一个 = 学会三个）</text>
+  <!-- 左：三仓 -->
+  <text x="230" y="88" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#4263eb">三仓定位（各管一域 · 形态有别）</text>
+  <rect x="30" y="100" width="400" height="96" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.4"/>
+  <text x="46" y="122" font-size="12" font-weight="bold">ops-nn —— 高阶 NN 算子库</text>
+  <text x="46" y="141" font-size="10.5" fill="#495057">14 分类：matmul/conv/activation/…/vfusion＋common/experimental</text>
+  <text x="46" y="159" font-size="10.5" fill="#495057">op_host/op_kernel/aclnn 骨架 · 量化类型与粒度依具体接口</text>
+  <text x="46" y="180" font-size="10" fill="#1971c2">随 CANN 8.5/9.0 版本线 · 950/KirinX90 支持（2025-12，README）</text>
 
-  <g font-size="11.5" fill="#1f2937">
-    <rect x="60" y="112" width="340" height="106" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.5"/>
-    <text x="80" y="136" font-weight="bold">ops-nn —— 高阶 NN 算子库</text>
-    <text x="80" y="156" fill="#495057">matmul · activation · quant · index · loss</text>
-    <text x="80" y="174" fill="#495057">conv · pooling · rnn · optim · foreach …</text>
-    <text x="80" y="196" font-size="10.5" fill="#1971c2">2025-09 上线（A2/A3）→ 950（2025-12）</text>
+  <rect x="30" y="204" width="400" height="72" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.4"/>
+  <text x="46" y="226" font-size="12" font-weight="bold">ops-transformer —— 大模型进阶</text>
+  <text x="46" y="245" font-size="10.5" fill="#495057">attention（含 *_grad/*_metadata 配套）· moe · mc2 通算融合 · ffn/gmm</text>
+  <text x="46" y="264" font-size="10" fill="#2f9e63">月更节奏 · 查证入口：README Latest News</text>
 
-    <rect x="60" y="234" width="340" height="106" rx="8" fill="#e8f4ec" stroke="#2f9e63" stroke-width="1.5"/>
-    <text x="80" y="258" font-weight="bold">ops-transformer —— 大模型进阶算子库</text>
-    <text x="80" y="278" fill="#495057">attention（flash/quant/sparse/mla…）</text>
-    <text x="80" y="296" fill="#495057">moe · mc2 通算融合 · ffn · gmm · posembedding</text>
-    <text x="80" y="318" font-size="10.5" fill="#2f9e63">月更节奏 · 查证入口：README Latest News</text>
+  <rect x="30" y="284" width="400" height="72" rx="8" fill="#fdf0e5" stroke="#e8590c" stroke-width="1.4"/>
+  <text x="46" y="306" font-size="12" font-weight="bold">ops-sparse —— 稀疏矩阵（另一形态）</text>
+  <text x="46" y="325" font-size="10.5" fill="#495057">aclsparse C 接口（cann_ops_sparse.h）＋ sparse/&lt;op&gt;/arch*＋ test/</text>
+  <text x="46" y="344" font-size="10" fill="#e8590c">基线 SpMM 仅 CSR · 2026-05 上线 · 仅 CANN 9.0.0+ · 无 op_host 四件套</text>
 
-    <rect x="60" y="356" width="340" height="70" rx="8" fill="#fff7e6" stroke="#e8590c" stroke-width="1.5"/>
-    <text x="80" y="380" font-weight="bold">ops-sparse —— 稀疏矩阵算子库</text>
-    <text x="80" y="400" fill="#495057">SpMM · SpMV（格式稀疏线）</text>
-    <text x="80" y="418" font-size="10.5" fill="#e8590c">2026-05 上线 · 仅 CANN 9.0.0+</text>
-  </g>
-  <text x="230" y="452" text-anchor="middle" font-size="11" fill="#6b7280">同构骨架：build.sh · cmake · classify_rule.yaml</text>
-  <text x="230" y="470" text-anchor="middle" font-size="11" fill="#6b7280">CONTRIBUTING · experimental · tests · docs</text>
-  <text x="230" y="494" text-anchor="middle" font-size="11" font-weight="bold" fill="#c92a2a">版本配套纪律：源码配 release 标签，慎用 master</text>
+  <rect x="30" y="364" width="400" height="74" rx="8" fill="#f4f5f6" stroke="#adb5bd" stroke-width="1.2"/>
+  <text x="46" y="386" font-size="11" font-weight="bold">共同：一目录一算子 · README 定契约 · 根 build/CMake</text>
+  <text x="46" y="405" font-size="10.5" fill="#495057">贡献均走各仓 CONTRIBUTING；experimental 机制仅两主力仓</text>
+  <text x="46" y="426" font-size="11" font-weight="bold" fill="#c92a2a">版本配套：源码配 release tag（本书钉 SOURCE-BASELINE 快照）</text>
 
-  <!-- 连接箭头 -->
-  <path d="M420 260 L480 260" stroke="#495057" stroke-width="2" stroke-dasharray="8 5" fill="none" marker-end="url(#arr)"/>
-  <text x="450" y="248" text-anchor="middle" font-size="10" fill="#6b7280">任一仓内</text>
+  <text x="230" y="462" text-anchor="middle" font-size="11" fill="#6b7280">两主力仓同骨架；ops-sparse 读法另学（13.4）</text>
 
-  <!-- 右：算子解剖 -->
-  <rect x="490" y="70" width="390" height="440" rx="12" fill="#f6fbf7" stroke="#2f9e63" stroke-width="2"/>
-  <text x="685" y="96" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#2f9e63">算子四件套（add_example 真例）</text>
+  <!-- 中箭头：仅指两主力仓形态 -->
+  <path d="M436 240 L486 240" stroke="#495057" stroke-width="2" stroke-dasharray="8 5" fill="none" marker-end="url(#arr)"/>
 
-  <g font-size="11" fill="#1f2937">
-    <rect x="510" y="112" width="350" height="76" rx="8" fill="#eef2fb" stroke="#4263eb" stroke-width="1.4"/>
-    <text x="526" y="134" font-weight="bold">op_host/ —— 分块账本（第9章）</text>
-    <text x="526" y="152" fill="#495057">*_def.cpp · *_infershape.cpp · *_tiling.cpp</text>
-    <text x="526" y="172" font-size="10" fill="#1971c2">config/&lt;架构&gt;/binary.json —— 按架构登记编译配置</text>
+  <!-- 右上：件套（教学态） -->
+  <rect x="492" y="64" width="412" height="286" rx="10" fill="#f8fafc" stroke="#2f9e63" stroke-width="1.4"/>
+  <text x="698" y="88" text-anchor="middle" font-size="13" font-weight="bold" fill="#2f9e63">add_example 件套（教学态）</text>
+  <text x="508" y="112" font-size="11" font-weight="bold">op_host/ 分块账本（第9章）</text>
+  <text x="508" y="129" font-size="10" fill="#495057">def · infershape（可缺省同输入）· tiling · config/&lt;soc&gt;/binary.json</text>
+  <text x="508" y="152" font-size="11" font-weight="bold">op_kernel/ Device 实现（第10-11章）</text>
+  <text x="508" y="169" font-size="10" fill="#495057">入口按 TilingKey 分发 · tiling_key/tiling_data 可缺</text>
+  <text x="508" y="192" font-size="11" font-weight="bold">op_graph/ 图侧</text>
+  <text x="508" y="209" font-size="10" fill="#495057">graph_infer+proto 入图 · fusion_pass 可选融合规则（本例空壳）</text>
+  <text x="508" y="232" font-size="11" font-weight="bold">examples/ 调用侧（同仓同版，须三方互证）</text>
+  <text x="508" y="249" font-size="10" fill="#495057">test_aclnn_*.cpp 两段式 · tests/ut</text>
+  <text x="508" y="274" font-size="10" fill="#1971c2">缺目录勿反推：可能复用他实现/暂无 Ascend C 待贡献（dir_structure）</text>
+  <text x="508" y="294" font-size="10" fill="#1971c2">注册层 ascendc_config 须按指南配置；产物登记缺省可生成</text>
+  <text x="508" y="322" font-size="10.5" font-weight="bold" fill="#c92a2a">反例：matmul/addmv 无 op_kernel（复用实现）</text>
 
-    <rect x="510" y="200" width="350" height="60" rx="8" fill="#fdf0e5" stroke="#e8590c" stroke-width="1.4"/>
-    <text x="526" y="222" font-weight="bold">op_kernel/ —— Device 实现（第10-11章）</text>
-    <text x="526" y="240" fill="#495057">*.cpp · *_tiling_key.h · *_tiling_data.h</text>
-
-    <rect x="510" y="272" width="350" height="60" rx="8" fill="#f3e8fd" stroke="#9c36b5" stroke-width="1.4"/>
-    <text x="526" y="294" font-weight="bold">op_graph/ —— 图侧（第3章，易被忽略）</text>
-    <text x="526" y="312" fill="#495057">*_proto.h · fusion_pass/ —— 图模式融合真身</text>
-
-    <rect x="510" y="344" width="350" height="52" rx="8" fill="#f8f0fc" stroke="#9c36b5" stroke-width="1.4" stroke-dasharray="6 3"/>
-    <text x="526" y="366" font-weight="bold">examples/ —— 调用侧最权威参考</text>
-    <text x="526" y="384" fill="#495057">test_aclnn_*.cpp（第4章两段式真码）</text>
-  </g>
-
-  <!-- 交付链 -->
-  <g font-size="10.5" fill="#495057">
-    <text x="685" y="428" text-anchor="middle">交付链：目录 → binary.json → 编译（第12章）</text>
-    <text x="685" y="446" text-anchor="middle">→ 安装包 → aclnn 两段式调用（第4章）</text>
-  </g>
-  <path d="M510 470 L600 470" stroke="#1971c2" stroke-width="1.6" fill="none" marker-end="url(#arrb)"/>
-  <path d="M660 470 L770 470" stroke="#1971c2" stroke-width="1.6" fill="none" marker-end="url(#arrb)"/>
-  <g font-size="10" fill="#1971c2">
-    <text x="555" y="462" text-anchor="middle">build.sh --pkg</text>
-    <text x="715" y="462" text-anchor="middle">aclnn 调用</text>
-  </g>
-
-  <!-- 底部结论 -->
-  <rect x="40" y="530" width="840" height="50" rx="10" fill="#fff7e6" stroke="#e8590c" stroke-width="1.4"/>
-  <text x="460" y="551" text-anchor="middle" font-size="12" font-weight="bold" fill="#1f2937">选型闭环：先调库 → 再改模板 → 最后手写（第9-12章方法论）→ 改好了贡献回库（experimental → 正式域目录）</text>
-  <text x="460" y="570" text-anchor="middle" font-size="11" fill="#495057">仓是月更的：学会查证方法（README News / ascend950_op_list / 算子级 README）比背清单值钱</text>
+  <!-- 右下：两阶段（收敛在 904 内） -->
+  <rect x="492" y="362" width="412" height="188" rx="10" fill="#faf5ff" stroke="#9c36b5" stroke-width="1.4"/>
+  <text x="698" y="386" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#862e9c">一次调用两阶段（host/device）</text>
+  <text x="508" y="410" font-size="10.5" fill="#495057">Host：注册 ascendc_config → 构建打包（第12章 build.sh）</text>
+  <text x="508" y="430" font-size="10.5" fill="#495057">Device：kernel 按 TilingKey 分发执行</text>
+  <text x="508" y="452" font-size="10.5" fill="#495057">调用①GetWorkspaceSize 建 executor</text>
+  <text x="508" y="472" font-size="10.5" fill="#495057">②workspaceSize&gt;0 才 Malloc，为 0 传 nullptr</text>
+  <text x="508" y="492" font-size="10.5" fill="#495057">③第二段提交 stream（executor 一次性，勿重复）</text>
+  <text x="508" y="512" font-size="10.5" fill="#495057">④Synchronize 后才读结果/释放（提交≠完成）</text>
+  <text x="508" y="536" font-size="10" fill="#6b7280">注册了≠任意输入可跑：仍须过接口支持表/dtype/shape 约束</text>
 </svg>
