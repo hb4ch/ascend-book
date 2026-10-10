@@ -65,19 +65,17 @@ HcclComm hcclComm;
 HCCLCHECK(HcclCommInitRootInfoConfig(devCount, &rootInfo, devId, &config, &hcclComm));
 ```
 
-`HcclCommConfig` 主要字段（类型头[^oC]，按声明序）：`hcclBufferSize`（共享缓存区 MB，须≥1 缺省 200——注释原文）、`hcclDeterministic`（归约类确定性 0/1）、`hcclCommName`、`hcclUdi`、`hcclOpExpansionMode`、`hcclRdmaTrafficClass/hcclRdmaServiceLevel`（RoCE QoS）、`hcclWorldRankID/hcclJobID`（跨域/作业标识）、`aclGraphZeroCopyEnable`。其中 `hcclOpExpansionMode`（0 默认/1 host/2 aicpu/3 aiv，注释原文）是后续算子展开方式的**配置输入**——最终走 Host 展开、AICPU 展开还是 AIV，仍须过 21.4 的能力/条件判定（配置≠裁决）。
+`HcclCommConfig` 常用字段（类型头[^oC]，按声明序）：`hcclBufferSize`（共享缓存区 MB，须≥1 缺省 200——注释原文）、`hcclDeterministic`（归约类确定性 0/1）、`hcclCommName`、`hcclOpExpansionMode`（0 默认/1 host/2 aicpu/3 aiv，注释原文）。最后者只是算子展开方式的**配置输入**——最终 Host 展开、AICPU 展开还是 AIV，仍须过 21.4 的能力/条件判定（配置≠裁决）。其余字段（`hcclUdi`、RoCE QoS 两项、跨域/作业标识、`aclGraphZeroCopyEnable`）见类型头，本章不展开。
 
-**域的暂停/恢复（矩阵如实）**：`HcclCommSuspend/Resume/GetStatus` 服务故障场景的域级悬挂三件套，**三个接口页首部均自注「本接口为预留接口，后续有可能变更，不支持开发者使用」**——这是全接口限制，非某产品特有。产品行差异照录：Suspend 950PR/DT **不支持**（A3/A2 支持）；Resume 950PR/DT 支持；GetStatus 仅 950PR/DT 支持（A3/A2 不支持）。组合起来「悬挂后查询状态」在 A3/A2 上缺 GetStatus、在 950 上缺 Suspend——**工程上不要把它们当可依赖的故障恢复手段向应用开发者推荐**；框架级容错属 PMK/框架层议题，本书不展开。
+**域的暂停/恢复**：`HcclCommSuspend/Resume/GetStatus` 三件套页首均自注「本接口为预留接口，后续有可能变更，不支持开发者使用」——全接口限制。产品行互缺（见下表）：「悬挂后查询」在 A3/A2 缺 GetStatus、在 950 缺 Suspend——**勿当可依赖的故障恢复手段向应用开发者推荐**；框架级容错属 PMK/框架层，本书不展开。
 
 **路径 B：rank table**[^oB]。`02_one_device_per_process_rank_table` 用 JSON 显式声明 `server_list[].device[]{device_id,device_ip,rank_id}`，调 `HcclCommInitClusterInfoConfig(rankTableFile, devId, &config, &comm)`。**rank↔物理设备的映射在这里是显式数据，不是「rank=i 就 0 号卡」的推定**——单机样例里 `devId=procRank` 只是该样例的选择，跨机/多卡每进程场景读者必须回到 table。
 
 **第三种托管：单进程多线程**。`03_one_device_per_pthread` 在同进程内 `pthread` 每线程绑一设备，各自 `HcclCommInitRootInfoConfig(count, sharedRootInfo, device, …)`（main.cc L78）——**rootInfo 由主线程准备、各线程并发初始化、域对象 per-thread**（L103 各自 Destroy）。三种托管（进程/多进程 rank table/单进程多线程）覆盖了框架接入的三大形态；**「域生命周期≤宿主单元生命周期」在三者中一致**。
 
-**v1/v2 表之别（950 分叉实据）**：样例 02 按soc名选表——`socName.find("Ascend950")==npos ? rank_table.json : rank_table_v2.json`（样例 main.cc L119-121）。v1：`server_list[].device[]{device_id,device_ip,rank_id}`；v2：**扁平 `rank_list[]`＋每 rank `level_list[]{net_layer,net_instance_id,net_type,net_attr,rank_addr_list[{addr_type,addr,ports}]}`**——把 21.2.2 拓扑模型的 Layer/Endpoint 概念直接写进了配置：**v2 是拓扑感知表， layer0 实例与地址端口显式可查**。本样例按产品选择 v2；仅凭字段结构不能证明产品要求的设计原因。
+**v1/v2 表之别（950 分叉实据）**：样例 02 按soc名选表——`socName.find("Ascend950")==npos ? rank_table.json : rank_table_v2.json`（main.cc L119-121）。v1 即路径 B 的 `server_list[].device[]{device_id,device_ip,rank_id}`；v2 改**扁平 `rank_list[]`＋每 rank `level_list[]{net_layer,net_instance_id,net_type,net_attr,rank_addr_list[{addr_type,addr,ports}]}`**——把 21.2.2 拓扑模型的 Layer/Endpoint 直接写进配置：**v2 是拓扑感知表，layer0 实例与地址端口显式可查**。仅凭字段结构不能证明产品要求的设计原因。
 
-**产品矩阵**[^oE]：`HcclCommInitRootInfo/...Config/ClusterInfo...` 各支持页均列 950PR/DT、A3、A2（910b）、310P、910 五行——**域创建入口全平台覆盖**；引擎与算法层就没这么整齐（21.4）。
-
-**矩阵速览**（域创建入口，逐接口页「产品支持」节）：
+**矩阵速览**（域创建入口，逐接口页「产品支持」节照录；「五平台全覆盖」即出自同页——引擎与算法层没这么整齐，见 21.4/21.5）：
 
 | 接口（comm_mgr_c 页「产品支持」节实录） | 950PR/DT | A3 | A2 | 推理 | 训练910 |
 |---|---|---|---|---|---|
@@ -102,7 +100,7 @@ HCCLCHECK(HcclCommInitRootInfoConfig(devCount, &rootInfo, devId, &config, &hcclC
 
 链路建立时序由此而定：Edge（静态连线）→Link（可建链集合）→Channel（实例化可用，含 Notify 资源）。21.4 的 `IsAlgTypeLevel0Mesh` 检查的是 legacy 算法枚举；本节拓扑模型与该枚举的转换链未在本章展开，不能直接等同。
 
-**这些名词的代码落点**（供 21.5/21.7 回查）：域/线程获取走 `HcclThreadAcquire(comm, engine, threadNum, notifyNumPerThread, &thread)`——签名与「申请通信线程资源」示例见数据面页（数据面接口页）；Channel 创建/销毁配置在 `hccl_channel.h`；对称窗口 `hccl_sym_win.h`（ch22 对照）。**控制面名词→数据面句柄**的兑换发生在资源管理器（`hcomm` 仓 `coll_communicator_mgr/resource_mgr`、`base_comm/resources` 目录，本书仅目录级证据），本书取「可见接口层」证据，内部分配细节不展开。
+**名词→句柄的代码落点**（供 21.5/21.7 回查）：通信线程经 `HcclThreadAcquire(comm, engine, threadNum, notifyNumPerThread, &thread)` 申请（数据面页）；Channel 创建/销毁配置在 `hccl_channel.h`；对称窗口 `hccl_sym_win.h`（ch22 对照）。**控制面名词→数据面句柄**的兑换真身在资源管理器（`hcomm` 仓 `coll_communicator_mgr/resource_mgr`、`base_comm/resources`，本书仅目录级证据），内部分配细节不展开。
 
 ## 21.3 Host 主线：一次 AllReduce 的完整旅程（证据范围①）
 
@@ -137,7 +135,7 @@ ACLCHECK(aclrtSynchronizeStream(stream));
 
 ## 21.4 内部实现案例：算法怎么被选中（证据范围②，legacy）
 
-**先立边界**：从 Host 公开入口到选择器的完整链接**无法在本机证据下画成已证箭头**——`op_base.h` L89 中 `HcclAllReduceV2` 是 weak 声明，910 树内未见其实现（仅 950 树 `src/legacy/ascend950/framework/entrance/op_base/op_base_v2.cc` L1263 有同名函数），HCCL 算子仓亦不在本书源码基线。因此本节是**独立的内部实现案例**：在 hcomm legacy（`src/legacy/ascend910/`，A2&A3 兼容代码，明注「不持续演进」）里，选择**如何发生**[^oF]；不宣称主线样例必经此链。
+**先立边界（证据范围②，独立案例）**：Host 入口到选择器的完整链接不断言已证——`op_base.h` L89 的 `HcclAllReduceV2` 是 weak 声明，910 树内未见实现（仅 950 树 `src/legacy/ascend950/framework/entrance/op_base/op_base_v2.cc` L1263 有同名函数），HCCL 算子仓亦不在本书源码基线。本节只在 hcomm legacy（`src/legacy/ascend910/`，A2&A3 兼容代码，明注「不持续演进」）里看选择**如何发生**[^oF]；不宣称主线样例必经此链。
 
 ### 21.4.1 入口观察与已证链（legacy 内部，全部源码行号）
 
@@ -179,7 +177,14 @@ if (hcclGroupDepth > 0) {
 
 ### 21.4.2 两级选择
 
-**第一级·拓扑**（`alg_configurator.cc SelectCurrOpAlgType`，L57-140 区）：`Is310P3Common(isHaveCpuRank,deviceType)` 且用户未配 level0/1（双 DEFAULT）→WHOLE_RING（L100-107，用户配置优先）；`multiSuperPodDiffServerNumMode`＋ARS 类算子（ALLGATHER/REDUCE_SCATTER/ALLREDUCE/ALL，L87-88）＋`isConfigAHC`→AHC（L92-96 组合）；server 内卡数不对称且非 910_93 ARS 场景（`isNoARS`）或超节点非对称无 AHC 配置（`isNoAHC`）→单层 WHOLE_RING（L138-140，「多 server 不同卡模式，设置为单层拓扑类型」注释原文）；nicList 校验逐行（L113-117/162-166 同式两处）：仅当 `!isStandardCard && deviceType!=910B && !isDiffDeviceType` 且 `nicList.size()!=8 && deviceNumPerAggregation==8 && algType0!=ALG_LEVEL0_8P_RING` 三条件同真→`HCCL_ERROR("…algType is not 8P ring")` 返回 `HCCL_E_PARA`——**即「非标卡＋每聚合 8 卡＋选了非 8P 环 level0＋网卡数非 8」才报错**，这是网卡数、聚合卡数与 level0 算法组合的校验，不是「必须 8 网卡」的普遍强制。
+**第一级·拓扑**（`alg_configurator.cc SelectCurrOpAlgType`，L57–166 区；分支按序短路，用户配置仅在走 `SetAlgoLevel0/1/2` 的分支被消费，并非全局优先）：
+
+- `Is310P3Common(isHaveCpuRank, deviceType)` → WHOLE_RING（L100-107，该分支不读用户配置）；
+- `!multiModuleDiffDeviceNumMode && multiSuperPodDiffServerNumMode`＋ARS 类算子（ALLGATHER/REDUCE_SCATTER/ALLREDUCE/ALL）：调用 `SetAlgoLevel0(用户配置)/SetAlgoLevel1(HCCL_ALGO_TYPE_AHC,…)/SetAlgoLevel2(用户配置)`（L102–119 区），但结果**仅赋 `algoLevel0/1`**——level2 配置在该分支不落入结果（调用与赋值如实分记，不推断是否有意）；
+- A3 AlltoAll 非对称（`!multiModuleDiffDeviceNumMode && multiSuperPodDiffServerNumMode && deviceType==DEV_TYPE_910_93`，opType∈{ALLTOALL,ALLTOALLV,ALLTOALLVC}；L117–135 区）：SetAlgoLevel0/1/2 结果均赋值，仅 level0/1 双 DEFAULT 才回落 WHOLE_RING（L130–135 区）；
+- `isNoARS`／`isNoAHC` 且非 `isConfigNULL` → 强制单层 WHOLE_RING（L138–140，注释原文「多 server 不同卡模式，设置为单层拓扑类型」；用户配置不空时仅告警「…selected by force」L143–146 即被覆盖，不回退重选）；
+- `isHaveCpuRank` → NP_STAR/STAR（L151–153，强制，不读配置）；
+- 其余常规分支：按用户配置 `SetAlgoLevel0/1/2`；nicList 校验在 AHC 分支与常规分支各一处（L113–117/L162–166 同式）：仅当「非标卡＋非 910B＋非混装」且「每聚合 8 卡＋level0 非 8P 环＋网卡数非 8」**同真**才报 `HCCL_E_PARA`——组合校验，非「必须 8 网卡」的普遍强制。
 
 **第二级·算子**（`all_reduce_operator.cc SelectAlg`，L108-160）：`userRankSize==1→AllReduceSingleExecutor`；否则按 `deviceType_` 分派 910A/910B/910_93/310P 专用选择器；混布→`SelectAlgforMix`（NHR 或 ring，WARNING 原文「only support … yet」；**混布不支持确定性 STRICT**，`IsNeedStrictMode` 即报 E_NOT_SUPPORT）。**910B 分支的 AIV 判定全式**（L299-341，变量映射已核）：
 
@@ -202,13 +207,22 @@ isAivMode = (GetAivModeConfig() && !isBarrierOp) && IsSupportAIVReduce(dtype,op)
          && (deter==DISABLE || isSupportAivDeter);
 ```
 
-读法三条：**①量纲**——190KB 门槛按均摊、16M/8M 按总量，常量定义 `algorithm/pub_inc/common.h` L195-202；**②OR/排除并存**——「单机∨小∨中」是 OR，`!isSingleMeshAggregation∧!multiModuleDiff…` 是排除，压缩成一句「小数据走 AIV」不忠实；**③AIV 白名单**在 `device_capacity.cc IsSupportAIVReduce`（L57-64 原文条件）：数据类型 {FP32,FP16,INT8,INT16,INT32,BFP16} × 归约 {SUM,MAX,MIN}，`checkDataType && checkReduceType`。AIV 之外还有工程化重定向：pipeline 算子 context 数超 `HCCL_FFTS_CAPACITY`→改 HD（图模式不重定向）；确定性 STRICT＋非对称→直接报不支持。
+读法三条：**①量纲**——190KB 门槛按均摊、16M/8M 按总量，常量见 `algorithm/pub_inc/common.h` L195-202；**②OR 与排除并存**——压成一句「小数据走 AIV」不忠实；**③AIV 白名单**在 `device_capacity.cc IsSupportAIVReduce`（L57-64 原文条件）：数据类型 {FP32,FP16,INT8,INT16,INT32,BFP16} × 归约 {SUM,MAX,MIN}。AIV 之外还有工程化重定向：pipeline 算子 context 数超 `HCCL_FFTS_CAPACITY`→改 HD（图模式不重定向）；确定性 STRICT＋非对称→直接报不支持。
 
 **读 `SelectAlg` 的正确姿势**：它是一个**决策表型函数**——入口先分派（单 rank/混布/310P/910A/910B/910_93），每个分叉内部再条件式；任何「HCCL 在 X 场景用 Y 算法」的断言都必须能落到「某分叉内某布尔式取真」，否则只是经验。本书示范 910B 全式（下），其余分叉同法可查。
 
-**走查一例（判定演示，本书手算；前提全列，缺一即须重判）**：2 server（`isServNumPowOfTwo✓`）×每聚合 8 卡（`deviceNumPerAggregation_=8`）、`isSingleMeshAggregation_=false`（非单机聚合，走 OR 分支）、`multiModuleDiffDeviceNumMode_=false`、**`isOnlyAiv=false`**（若为 true，小数据 OR 经 `rankCountSize<=190KB ∨ isOnlyAiv` 恒可过，走查失效——故必须显式给出）、拓扑层0=mesh（`isMesh✓`）、CCL buffer in/out≥16M（`isCCLBufferGE16M✓`）、FP32 SUM（白名单✓，源码 `device_capacity.cc` L57-64：{FP32,FP16,INT8,INT16,INT32,BFP16}×{SUM,MAX,MIN}）、非 Barrier（`syncMode≠UNLIMITED_TIMEWAITSYNCMODE`）、`GetAivModeConfig()` 开、确定性 DISABLE。数据 1MB：`rankCountSize=1MB/8=128KB≤190KB✓`→SmallCount✓→**isAivMode✓，AIV 小数据跨机**。同数据改 64MB：均摊 8MB＞190KB 且总量 64M＞16M→OR 全败→**AIV 否**，落回 level1 常规（NHD/HD/pipe 由后续分支定）。**换数据量即换引擎——条件式选择的意义；任何前提变动（如 isOnlyAiv、server 数非幂方、Barrier 模式）都须重走全式**。
+**走查一例（判定演示，本书手算；前提全列，缺一即须重判）**：
 
-**algType 三层结构（枚举注释实录：`algorithm/pub_inc/common.h` L48-77）**：Level0=拓扑组合——`ALG_LEVEL0_8P_RING`（注：Ring 节点内 4 固定 stream）、`4P/2P/1P_MESH`、`NP_SINGLE_RING/NP_DOUBLE_RING`、`NP_MESH`（注：服务器内 3~8p rank 组 MESH）、`NP_HD/NP_STAR/PAIRWISE` 等；Level1=`WHOLE_RING/HD/RING/PIPELINE/STAR/NHR/NHR_V1/NB/AHC/AHC_BROKE`；Level2=`WHOLE_RING/HD/RING/NHR/NB/PIPELINE`——**枚举注释只标「拓扑组合 X 层」，本书不从名字推断「机间/机内」语义；AHC 的细分体现在 Level1 的 AHC/AHC_BROKE，Level2 无 AHC 专属项**。名字→执行体经 `HCCL_ALGO_LEVEL1_NAME_MAP`，最终 `newTag=tag+level1名+Executor名（+_no_inline/_device）`——trace 里直接可读。辅助查询 `GetAllReduceScratchSize=count×size×2+reserved`（AllReduceOperator L96-102 区，**临时中转的双倍数据量**）；910A/310P 分支各有专用选择器（本书未逐条展开，条件式结论只从 910B 全式与 Mix 分支得出）。AHC 重定向、pipeline→HD 重定向、STRICT 非对称报错——三处「改主意」都在 SelectAlg 内完成，**选择不是一次性判定而是带修正的流水**。
+| 前提 | 取值 |
+|---|---|
+| 拓扑/聚合 | 2 server（`isServNumPowOfTwo`✓）×每聚合 8 卡；层0=mesh（`isMesh`✓） |
+| 模式开关 | `isSingleMeshAggregation_=false`（走 OR 分支）；`multiModuleDiffDeviceNumMode_=false`；**`isOnlyAiv=false`**（若真，小数据 OR 经 `∨isOnlyAiv` 恒过，走查失效——故必须显式） |
+| buffer/同步 | CCL buffer in/out≥16M（`isCCLBufferGE16M`✓）；`syncMode≠UNLIMITED_TIMEWAITSYNCMODE`（非 Barrier）；`GetAivModeConfig()` 开 |
+| dtype/确定性 | FP32 SUM（白名单✓，`device_capacity.cc` L57-64）；确定性 DISABLE |
+
+数据 1MB：`rankCountSize=1MB/8=128KB≤190KB`→SmallCount✓→**isAivMode✓，AIV 小数据跨机**。同数据改 64MB：均摊 8MB＞190KB 且总量 64M＞16M→OR 全败→**AIV 否**，落回 level1 常规（NHD/HD/pipe 由后续分支定）。**换数据量即换引擎——条件式选择的意义；任何前提变动（如 isOnlyAiv、server 数非幂方、Barrier 模式）都须重走全式**。
+
+**algType 三层结构（枚举注释实录：`algorithm/pub_inc/common.h` L48-88）**：Level0=拓扑组合——`ALG_LEVEL0_8P_RING`（注：Ring 节点内 4 固定 stream）、`4P/2P/1P_MESH`、`NP_SINGLE_RING/NP_DOUBLE_RING`、`NP_MESH`（注：服务器内 3~8p rank 组 MESH）、`NP_HD/NP_STAR/PAIRWISE` 等；**Level1 与 Level2 成员不同，勿合并记**——Level1=`WHOLE_RING/HD/RING/PIPELINE/STAR/NHR/NHR_V1/NB/AHC/AHC_BROKE`，Level2 仅=`WHOLE_RING/HD/RING/NHR/NB/PIPELINE`（比 Level1 少 STAR/NHR_V1/AHC/AHC_BROKE）——**枚举注释只标「拓扑组合 X 层」，本书不从名字推断「机间/机内」语义；AHC 细分只在 Level1**。名字→执行体经 `HCCL_ALGO_LEVEL1_NAME_MAP`，最终 `newTag=tag+level1名+Executor名（+_no_inline/_device）`——trace 里直接可读出选择。辅助查询 `GetAllReduceScratchSize=count×size×2+reserved`（AllReduceOperator L96-102 区，**临时中转的双倍数据量**）；910A/310P 分支各有专用选择器（本书未逐条展开，条件式结论只从 910B 全式与 Mix 分支得出）。AHC 重定向、pipeline→HD 重定向、STRICT 非对称报错——三处「改主意」都在 SelectAlg 内完成，**选择不是一次性判定而是带修正的流水**。
 
 **用户可覆写**：环境变量 `HCCL_ALGO`（`level0:NA;level1:<algo>` 或按 op 分别指定），`env_config.cc` 解析、非法即初始化报错；域级则走 `HcclSetConfig`。**「凭什么是 ring」的答案因此是条件式**：拓扑对称性、server 数幂方、数据量双口径、buffer 容量、确定性档位、AIV 白名单——任何一条变化都换路径；**目录名（coll_all_reduce_ring…）只是候选池**。
 
@@ -237,9 +251,23 @@ architecture 卷给四引擎对照：**AICPU_TS**（AICPU 跑通信 Kernel、下
 
 **一条原语详解：`HcommWriteOnThread`**[^oH]（数据面页，参数/约束照录）——原型 `int32_t HcommWriteOnThread(ThreadHandle thread, ChannelHandle channel, void *dst, const void *src, uint64_t len)`。参数五项：`thread`=经 `HcclThreadAcquire` 获取的通信线程句柄；`channel`=经 `HcclChannelAcquire` 获取的通道句柄；`dst`/`src`=目的/源内存，**须为 `HcclGetHcclBuffer`/`HcclChannelGetHcclBuffer` 获取的通信内存**（随意传普通 GM/Host 指针不在契约内）；`len`=字节。返回 `int32_t`：0 成功、其他失败。功能节原文「该接口为异步接口」——**返回 0 只算提交成功**；本页未给完成通知语义，完成须显式配 notify 原语或改用带通知变体（见下），**不得拿 P2P 案例的 Read 握手泛证 Write 的完成**。约束：950 上「仅支持通信协议 UB_CTP、UBoE」。
 
-**同族辨析（各页各自契约，不互相推广）**：`HcommWriteWithNotifyOnThread`=写数据**并向对端发同步信号**（功能节原文，异步）——把「通知」并入调用；`HcommWriteNbiOnThread`=功能节原文「**非阻塞接口**」，且 950 约束更窄：仅 Host CPU 调用、建通道须 `engine=COMM_ENGINE_CPU` 且协议 RoCE/UB_CTP，**NBI 读写仅支持 RoCE（需 DPU/1825 网卡）、不支持 UB_CTP**。`HcommChannelFence(OnThread)` 功能节原文：「插入内存屏障操作，确保屏障前的通道读写操作在屏障后的通道读写操作之前完成」——**排序保证**，非完成通知、亦非「屏障等待」。其余原语按同页式样自查——**目录名不是签名**。
+**同族辨析（各页各自契约，不互相推广）**：
 
-**读向对照（逐页原句，方向相反勿混）**：`HcommReadOnThread`——「从 src 中读取长度为 len 的内存数据，并写入 dst。**接口调用方为 dst 所在节点**」（异步）；`HcommWriteOnThread`——「将 src…写入 dst。**接口调用方为 src 所在节点**」（异步）；`HcommReadNbiOnThread`/`HcommWriteNbiOnThread` 同向（Read=dst 端、Write=src 端，均非阻塞）。即**读由数据归宿（dst）端发起、写由数据源头（src）端发起**——方向按接口分立，不存在统一「归宿端发起」规则。**单边≠对端无感**：调用发起端的页并未声明对端可零准备——通道/内存句柄本就在建链时两端协商（21.2），对端资源前提由建链契约覆盖，本文不额外断言。开发指导示例「获取对端通信内存信息→将对端内存读到本端」即 Read 契约的两步展开[^oH]。
+- `HcommWriteWithNotifyOnThread`：写数据**并向对端发同步信号**（功能节原文，异步）——把「通知」并入调用。
+- `HcommWriteNbiOnThread`：功能节原文「**非阻塞接口**」；且 950 约束更窄：仅 Host CPU 调用、建通道须 `engine=COMM_ENGINE_CPU` 且协议 RoCE/UB_CTP，**NBI 读写仅支持 RoCE（需 DPU/1825 网卡）、不支持 UB_CTP**。
+- `HcommChannelFence(OnThread)`：功能节原文「插入内存屏障操作，确保屏障前的通道读写操作在屏障后的通道读写操作之前完成」——**排序保证**，非完成通知、亦非「屏障等待」。
+
+其余原语按同页式样自查——**目录名不是签名**。
+
+**读向对照（逐页原句，方向相反勿混）**：
+
+| 接口 | 调用方所在端 | 语义（页原文） |
+|---|---|---|
+| `HcommReadOnThread` | **dst 所在节点** | 从 src 读 len 字节写入 dst（异步） |
+| `HcommWriteOnThread` | **src 所在节点** | 将 src 写入 dst（异步） |
+| `…ReadNbi/WriteNbiOnThread` | 同上两行 | 非阻塞变体，方向各同上 |
+
+即**读由数据归宿（dst）端发起、写由数据源头（src）端发起**——方向按接口分立，不存在统一「归宿端发起」规则。**单边≠对端无感**：通道/内存句柄本就在建链时两端协商（21.2），对端资源前提由建链契约覆盖，本文不额外断言。开发指导示例「获取对端通信内存信息→将对端内存读到本端」即 Read 契约的两步展开[^oH]。
 
 **引擎内幕两条**（均）：AICPU_TS 四拍——Host 提交 AICPU Kernel→TS 分发→AICPU 提交通信 Task 描述符→TS 落执行器，「描述符下发」故不占计算核；CCU 则是 Host 下指令序列→Kernel 调度→微码执行＋URMA 搬运，「硬化但受片上资源限、支持域数有限」。**Thread 抽象差异**是四引擎本质：NPU Stream（AICPU_TS/CPU_TS）vs AICore Block（AIV）vs Mission（CCU）——同一「通信线程」词在三引擎里是三种东西，读日志先辨引擎。线程间同步用 ThreadNotify（域内）/ChannelNotify（跨实体），即 21.7 表的原语底层。
 
@@ -264,9 +292,21 @@ hccl.Commit(handleId);                                      // ④通知服务�
 // ⑤按编排 Wait(handleId)（阻塞）或计算完后 Commit（免 Wait）
 ```
 
-**编排两式**（源文原文）：先通信后计算（AllGather+Matmul）——Prepare 后立即 Commit 并 **Wait**，算完再算；先计算后通信（Matmul+AllReduce）——先 Prepare 让组装/下发被计算流水掩盖，计算完再 Commit，**无须 Wait**。**「无须 Wait」只针对该编排**：含义是免「等通知」这一步，**不等于可提前改写/释放任务缓冲**——缓冲复用时机仍以任务完成为准（源文未给更细承诺，本书不下结论）。收尾 `Finalize`：接口页两处原文（机制节与步骤 6）「通知服务端后续无通信任务，执行结束后退出，**客户端检测并等待最后一个通信任务执行结束**」——Finalize 自带末任务等待，不是裸退出。
+**编排两式**（源文原文）：先通信后计算（AllGather+Matmul）——Prepare 后立即 Commit 并 **Wait**，算完再算；先计算后通信（Matmul+AllReduce）——先 Prepare 让组装/下发被计算流水掩盖，计算完再 Commit，**无须 Wait**。**「无须 Wait」只针对该编排**：含义是免「等通知」这一步，**不等于可提前改写/释放任务缓冲**——缓冲复用时机仍以任务完成为准（源文未给更细承诺，本书不下结论）。收尾 `Finalize`：接口页两处原文（机制节与步骤 6）「通知服务端后续无通信任务，执行结束后退出，**客户端检测并等待最后一个通信任务执行结束**」——这是**默认 `Finalize()`（模板参 `sync=true`）** 的行为，不是裸退出；`sync=false` 的差异与产品限定见下表。
 
-**repeat/Commit/Wait 契约（逐页原文；作用范围按编排分立）**：机制节 L159——repeat 必须=该 handleId 的 Commit 次数=Wait 次数（非细粒度）；`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Commit.md` 约束节同句；`Wait.md` 另加「handleId 调用 Wait 的顺序须和 Prepare 一致」＋「默认在所有核上工作，也可经 GetBlockIdx 指定单核」。**与「免 Wait」编排的关系**：repeat=Wait 次数约束的是**选择了 Wait 的路径**（先通后算，ReduceScatter 实例即此：3 份切分→repeat=3 时 1 个 handleId 配 3 次 Commit＋3 次 Wait，或 3 个 handleId 各 1 次）；先算后通路径不走 Wait，自然不受该计数约束——两规则按编排分立，无冲突。**Finalize 页两条硬约束照录**：①「调用 `Finalize<false>` 前若需保证通信任务完成必须先完成同步；否则客户端直接退出后无法保证数据传输完成」（多队列 BatchWrite 须先 QueueBarrier）；②「`Finalize` 为终止接口，调用后当前 Hccl 对象不可再次用于通信，如需继续须重新创建并 InitV2」。多核收尾：实例两处 `AscendC::SyncAll<true>()` 再 `Finalize()`，注原文「全AIV核同步，防止0核执行过快，提前调用hccl.Finalize()接口，导致其他核Wait卡死」——**这是该实例（多核 AIV、核间 Wait）的做法**；本书不将其推广为普适收尾律。
+**编排契约速查（逐页原文；作用范围按编排分立）**：
+
+| 约束 | 原文出处 | 适用/说明 |
+|---|---|---|
+| repeat 必须=该 handleId 的 Commit 次数=Wait 次数（非细粒度） | 机制节 L159、Commit.md 约束节 | 只约束**选了 Wait 的路径**（先通后算；ReduceScatter 实例即此：3 份切分→1 个 handleId 配 3 次 Commit＋3 次 Wait，或 3 个 handleId 各 1 次） |
+| Wait 顺序须与 Prepare 一致；默认全体核，可经 GetBlockIdx 指定单核 | Wait.md | 同上路径 |
+| 先算后通无须 Wait；**免 Wait≠可提前改写/释放缓冲**，复用时机以任务完成为准 | HCCL_usage | 先算后通编排；源文未给更细承诺，本书不下结论 |
+| 终止：调用后服务端开始退出，当前 Hccl 对象不可再次用于通信，须重新创建并 InitV2 | Finalize.md 约束节 | 终止语义，非裸退出 |
+| 默认 `Finalize()`＝`template <bool sync = true>`（头文件 L368）：客户端检测并等待最后一个通信任务执行结束（机制节 L12/143；实现 `if constexpr (sync)` 两处等待，`hccl_aicpu_impl.h` L501–507/L515–521） | HCCL_usage/impl | 「自带末任务等待」仅指 sync=true 默认重载 |
+| `Finalize<false>`：发通知后不等待即退出——仅跳过客户端侧阻塞等待，不取消已被服务端接收编排的任务；不表示任务已完成或对端已收到数据 | Finalize.md 参数表 | 产品行：该取值 A3 仅 BatchWrite 场景支持、A2 仅默认 true |
+| **调用 `Finalize<false>()` 前，若需要保证通信任务完成，必须先完成同步；否则客户端直接退出后，无法保证数据传输完成。多队列 BatchWrite 场景须先对所有队列调用 `QueueBarrier`，等待队列上的 BatchWrite 任务完成后再 `Finalize<false>()`**（约束节原文） | Finalize.md 约束节 | false 模板路径的前置条件 |
+
+多核收尾：实例两处 `AscendC::SyncAll<true>()` 再 `Finalize()`，注原文「全AIV核同步，防止0核执行过快，提前调用hccl.Finalize()接口，导致其他核Wait卡死」——**这是该实例（多核 AIV、核间 Wait）的做法**；本书不将其推广为普适收尾律。
 
 **与通算融合工程衔接**：Device Hccl 不是孤立的——算子须经原型 `MC2().HcclGroup("group")` 注册通信域、Tiling 结构首参 `Mc2InitTiling`＋每任务 `Mc2CcTiling`（见脚注[^oM]的融合算子实现指导）；辅助接口 `GetHcclContext<0>()` 取上下文、`GetRankId/GetRankDim/GetWindowsIn/OutAddr/QueueBarrier/Iterate` 等见同目录接口页（本书未逐一展开）。这是所引通算融合工程的接入步骤，本章不将它推广为所有集成方式的唯一途径。
 
@@ -290,9 +330,9 @@ hccl.Commit(handleId);                                      // ④通知服务�
 
 **Prepare 返回与调试**（以 AllReduce 页为例）：功能定义原文「将通信域内所有节点的同名张量进行 reduce 操作后，再把结果发送到所有节点的输出 buffer」，返回**任务标识 handleId**；产品行：950PR/DT、A3、A2 支持，推理系列 Vector Core 等不支持（逐行见页）。源文调试注原文：「对于 Prepare 接口，在调试时可增加异常值校验和 PRINTF 打印——if (handleId == INVALID_HANDLE_ID) PRINTF(...)」，即失败以 `INVALID_HANDLE_ID` 回显；`GetQueueNum` 可查已入队任务数（接口页）。
 
-**消息区工作核**：AllReduce 头注描述“核0写消息区”；实际 AICPU 特化通过 `InitWorkingFlag` 按 `config.type` 与 `config.blockId` 选定工作核，因此不能把头注推广成所有配置必须核0。默认配置、指定核型与自定义 blockId 应分别核对；工作核选择本身不代替其他核的完成同步。`Query(handleId)` 提供非阻塞探测，与 `Wait` 的阻塞等待区分。[^oI]
+头注「核0写消息区」因此不能照抄——工作核由 `config.type/blockId` 经 `InitWorkingFlag` 决定，且工作核选择不代替其他核的完成同步；默认配置、指定核型与自定义 blockId 应分别核对。`Query(handle)` 提供非阻塞探测，与 `Wait` 的阻塞等待区分。[^oI]
 
-**再次划界**：本节 API 与 21.3 Host C 接口**完成机制不同**（消息区+Commit/Wait vs stream 同步），**不得互证**；本节仅依据 Device 实现说明 AI CPU/CCU 服务端分支，不据此判断 Host 样例实际选择的设备侧执行体。
+**再次划界**：本节完成机制（消息区＋Commit/Wait）与 21.3 Host stream 同步**不同、不互证**——本节仅依据 Device 实现说明服务端分支，不据此判断 Host 样例实际选择的执行体。
 
 ## 21.7 完成语义、自定义算子与精度改造
 
@@ -311,7 +351,7 @@ hccl.Commit(handleId);                                      // ④通知服务�
 
 ### 21.7.2 Kernel 侧原语速览（AICPU 版，非完整词表）
 
-把 21.7.1 的四步放到 Kernel 视角，常用原语按类速览（数据面接口页＋AICPU 开发指导；**非穷尽，语义以各接口页为准**）：**本地** `HcommLocalCopyOnThread`（数据进 LocalBuffer）、`HcommLocalReduceOnThread`（本地归约）；**网络** `HcommWrite/ReadOnThread`（异步；Nbi 变体为非阻塞接口，950 仅 Host CPU＋RoCE，见 21.5 辨析）、`ReadReduce/WriteReduce(WithNotify)OnThread`（边搬边归；WithNotify=完成随通知）；**同步** `HcommChannelNotify{Record,Wait}OnThread`（跨实体）、`HcommThreadNotify{Record,Wait}OnThread`（域内线程）、`HcommChannelFence(OnThread)`（内存屏障：屏障前通道读写先于其后完成，排序保证非等待）、`HcommSetNotifyWaitTimeOut/ThreadResAcquireTimeOut`（超时治理）；**Host 桥** `HcommAclrtNotify{Wait,Record}OnThread`（Kernel 首尾与 Host 握手）。**OnThread 后缀=绑定申请到的 Thread 执行**——资源先 `HcclThreadAcquire`，调用绑线程，这就是「Thread 抽象」落到用户代码的形态。Nbi/WithNotify 差异契约见 21.5 辨析；本书未逐页展开全部变体。
+把 21.7.1 的四步放到 Kernel 视角时，常用原语按五类各记一句（数据面接口页＋AICPU 开发指导；**非穷尽，语义以各接口页为准**，全量词表见脚注 [^oH]）：**本地** `HcommLocalCopyOnThread`/`…LocalReduce…`；**网络** `HcommWrite/Read(±Nbi/WithNotify)OnThread`；**同步** `ChannelNotify{Record,Wait}`（跨实体）、`ThreadNotify{Record,Wait}`（域内）、`ChannelFence`（排序保证）；**超时** `…SetNotifyWaitTimeOut/ThreadResAcquireTimeOut`；**Host 桥** `HcommAclrtNotify{Wait,Record}OnThread`（Kernel 首尾）。**OnThread 后缀=绑定申请到的 Thread 执行**——资源先 `HcclThreadAcquire`，调用绑线程，这就是「Thread 抽象」落到用户代码的形态。Nbi/WithNotify 差异契约见 21.5 辨析。
 
 ### 21.7.3 自定义算子工程与「高精度 ReduceScatter」的真边界
 
@@ -319,7 +359,12 @@ hccl.Commit(handleId);                                      // ④通知服务�
 
 **两条 dev guide 的分叉**：AICPU 路线（Thread=NPU Stream，Host 下 Kernel、AICPU 内再排 Task）与 AIV 路线（Thread=AICore Block，通信算子即 Vector 核函数）目录结构同名八篇但内容分立；**工程侧**：AICPU 版经「自定义算子编译打包工程」（`--vendor=cust --ops=<name>`）产出 tar 子包，加载时驱动默认安全验签；**用户自编 AI CPU 算子包不含签名头，须按 `aicpu_quick_start.md`「关闭AI CPU算子验签功能」节（npu-smi set custom-op-secverify-* 两命令）手工关闭方可加载**——该限定只针对自编包场景，与 21.8 脚注③同一口径。资源复用语义（博客原文级）：`HcclSendCustom/HcclRecvCustom` 多次调用复用首次建立的 ctx（`HcclEngineCtxGet` 检查），资源 **Per-Device**——收发两端各自建立端点，句柄经 `aclrtMemcpy` 下发。
 
-**精度案例必须拆成两个独立实现**：①**AIV 化二开**（学习案例）：ReduceScatter 原四步（入 CCL buffer→对端拷→**MTE3 归约**→拷出）在 BF16 场景的精度改造=计算前后插 Cast（FP32 计算）→进一步把 `Cast+Add+Cast` 挪进 AIV 并按核数切分并行——博客定性「性能几乎不变、精度提升」，**无公开数据表**；②**CCU `LocalReduce` 升精度**：接口层支持「同精度」或「SUM 下低精度→高精度（如 INT8→FP32，4×膨胀，MS 数组须按膨胀比例预留，预留不足硬件读写越界、行为未定义——页原文）」。**dtype 白名单照录**：参数表仅 6 种 `UINT8/INT16/INT32/FP16/FP32/BFP16`（重载 1/2 两处同）；而调用示例场景 2 用 **INT8**→FP32——**首项 UINT8 的表与 INT8 的例并存，属源文内部不一致**，本书照录两处、不下支持结论。两者引擎（AIV vs CCU）、层级（算子改造 vs 原语参数）不同，**不可拼成「HCCL 自带高精度 RS」**。
+**精度案例必须拆成两个独立实现**：
+
+- **① AIV 化二开（学习案例）**：ReduceScatter 原四步（入 CCL buffer→对端拷→**MTE3 归约**→拷出）在 BF16 场景的精度改造＝计算前后插 Cast（FP32 计算）→进一步把 `Cast+Add+Cast` 挪进 AIV 并按核数切分并行。博客定性「性能几乎不变、精度提升」，**无公开数据表**。
+- **② CCU `LocalReduce` 升精度**：接口层支持「同精度」或「SUM 下低精度→高精度（如 INT8→FP32，4×膨胀，MS 数组须按膨胀比例预留——预留不足硬件读写越界、行为未定义，页原文）」。**dtype 白名单照录**：参数表仅 6 种 `UINT8/INT16/INT32/FP16/FP32/BFP16`（重载 1/2 两处同）；而调用示例场景 2 用 **INT8**→FP32——**首项 UINT8 的表与 INT8 的例并存，属源文内部不一致**，本书照录两处、不下支持结论。
+
+两者引擎（AIV vs CCU）、层级（算子改造 vs 原语参数）不同，**不可拼成「HCCL 自带高精度 RS」**。
 
 ## 21.8 复现矩阵、维测入口与小结
 
@@ -353,7 +398,7 @@ make && make test N="$N"                   # test 目标=mpirun -n $(N)（Makefi
 
 **错误处理路径（三层各自表述）**：Host=返回 `HcclResult`＋`HCCLCHECK`＋同步点后 `HcclGetCommAsyncError`；Device Prepare=返回值校验（`INVALID_HANDLE_ID` 即失败，源文调试注）＋`PRINTF`；数据面原语=返回 `int32_t` 0/非 0＋notify 超时接口（`HcommSetNotifyWaitTimeOut` 等，页名即契约）。**排障纪律**：各层错误走各层接口检查（Host 同步点后查 `HcclGetCommAsyncError`、Device 查 Prepare 返回、数据面查返回值＋超时）；**错误是否跨层传播、如何传播，本章无证据，不下断言**——跨层排障先分层逐查。
 
-**平台速查**（全书引用口径）：域创建五平台全支持；**引擎**CPU_TS=A2 专用、CCU=950PR/DT、AIV=条件式（21.4 全式）、AICPU_TS=主力宽面；**Device API**服务端 950 仅 CCU、A3 有安全注；**legacy=兼容层不演进**，新特性查标准目录。
+**平台速查（全书引用口径）**：域创建入口支持矩阵→21.2 速览表；引擎条件（CPU_TS=A2 专用注、CCU=950PR/DT、AIV=21.4 全式、AICPU_TS=主力宽面）→21.4/21.5；Device 服务端矩阵（950 仅 CCU、A3 安全注、2201 仅 AICPU）→21.6.1/21.6.2。**legacy=兼容层不演进**，新特性查标准目录（`include/hcomm_res_defs.h` 等新标准头）。
 
 ::: tip 一句话总结
 **通信=域（谁）→选择（条件，非目录名）→引擎×协议（怎么走）→notify 闭环（何时完）。三层证据各归各：Host 契约看样例与接口页，选择看 legacy 条件式，Device 编排看消息区协议——同名 API 不互证。**
@@ -376,8 +421,8 @@ make && make test N="$N"                   # test 目标=mpirun -n $(N)（Makefi
 [^oC]: `hcomm/include/hccl/hccl_types.h`（`HcclCommConfig` 主要字段、`HCCL_ROOT_INFO_BYTES`、`HcclDataType`/`HcclReduceOp`）；`hcomm/include/hccl/hccl_comm.h`（Init 簇 weak 声明）；`hcomm/include/hcomm_res_defs.h` L109-114（`COMM_ENGINE`）。
 [^oD]: `hcomm/docs/zh/architecture/architecture-brief.md`（§1.2 能力/约束、四引擎、L128 同域单引擎句、§2.2 拓扑名词与 NCCL 命名对照）；`hcomm/docs/zh/api_ref/hcomm_header_and_lib.md`（dlsym 解耦、头文件→so 表）。
 [^oE]: 域管理接口页（`hcomm/docs/zh/api_ref/comm_mgr_c/` 下，均含「产品支持」节；Suspend/Resume/GetStatus 另有「预留接口」首注）：`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommInitRootInfo.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommInitRootInfoConfig.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommInitClusterInfo.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommInitClusterInfoConfig.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommDestroy.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommSuspend.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommResume.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommGetStatus.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclBarrier.md`（下发对齐句）、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclGetCommAsyncError.md`、`hcomm/docs/zh/api_ref/comm_mgr_c/HcclCommSetMemoryRange.md`（零拷贝前提）。
-[^oF]: `hcomm/src/legacy/ascend910/framework/op_base/src/op_base_host.cc`（L62-135 Inner/组登记、L113-117 V2 调用）；`hcomm/src/legacy/ascend910/framework/op_base/src/op_base.h`（L89 weak）；`hcomm/src/legacy/ascend910/framework/communicator/impl/hccl_communicator_host.cc`（L3089-3156 AllReduce；L4578-4831 ExecOp：L4649 SelectAlg→L4679/4706 CalcResRequest→L4719 PrepareCommInfo→L4809/4831 Orchestrate；L1921 信息模式；L4598/4814/4935 GetAivModeConfig 调用点）；`hcomm/src/legacy/ascend910/framework/communicator/impl/hccl_communicator_device.cc`（L1300 GetAivModeConfig 恒 false）；`hcomm/src/legacy/ascend910/framework/communicator/hccl_comm_host.cc`（L40-60 HcclComm::AllReduce 校验链）；`hcomm/src/legacy/ascend910/algorithm/impl/hccl_alg.cc`（L103 GetAlgOperator）；`hcomm/src/legacy/ascend910/algorithm/impl/operator/all_reduce_operator.cc`（L108-341 SelectAlg/910B 判定；L96-102 区 scratch）；`hcomm/src/legacy/ascend910/algorithm/impl/alg_configurator.cc`（L85-140：isNoARS/isNoAHC L89-96、310P L100-107、nicList L113-117 与 L162-166）；`hcomm/src/legacy/ascend910/algorithm/pub_inc/common.h`（L48-77 AlgType 三层枚举注释、L188-202 阈值常量）；`hcomm/src/legacy/ascend910/platform/common/device_capacity.cc`（L57-66 AIV 白名单）；`hcomm/src/legacy/ascend910/platform/inc/adapter/adapter_hal.h`（L40-58 DevType）；`hcomm/src/legacy/ascend910/framework/communicator/comm_config.cc`（L345-380 展开配置分支）；`hcomm/src/legacy/ascend910/framework/common/src/config/env_config.cc`（HCCL_ALGO 解析）；`hcomm/src/legacy/ascend910/framework/hcom/hcom.cc`（L2095-2140 区信息模式旁路）；`hcomm/src/legacy/ascend950/framework/entrance/op_base/op_base_v2.cc`（L1263 950 树同名 V2，断点旁证）。
-[^oG]: `asc-devkit/include/adv_api/hccl/hccl.h`（L33 DEFAULT_CFG、L36-52 类注与 AICube/AIVector note L73-74、L264-274 SetCcTiling(deprecated)/SetCcTilingV2 签名、L283-293 Init/InitV2、L308-316 Wait、L414 HcclImpl 成员）；`asc-devkit/include/adv_api/hccl/hccl_common.h`（L65 `HcclServerType{AICPU=0,CCU=5}`）；`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/HCCL_usage.md`（机制/步骤、Finalize 等待句 L12 与 L143、repeat L159、ReduceScatter 实例与 SyncAll 注、950 仅 CCU、A3 CAUTION）；`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Wait.md`（计数/同序/默认全体核）、`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Commit.md`（计数）、`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Finalize.md`（核一致、`Finalize<false>` 先同步、终止语义）、`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/AllReduce.md`（功能句/产品行）。
+[^oF]: `hcomm/src/legacy/ascend910/framework/op_base/src/op_base_host.cc`（L62-135 Inner/组登记、L113-117 V2 调用）；`hcomm/src/legacy/ascend910/framework/op_base/src/op_base.h`（L89 weak）；`hcomm/src/legacy/ascend910/framework/communicator/impl/hccl_communicator_host.cc`（L3089-3156 AllReduce；L4578-4831 ExecOp：L4649 SelectAlg→L4679/4706 CalcResRequest→L4719 PrepareCommInfo→L4809/4831 Orchestrate；L1921 信息模式；L4598/4814/4935 GetAivModeConfig 调用点）；`hcomm/src/legacy/ascend910/framework/communicator/impl/hccl_communicator_device.cc`（L1300 GetAivModeConfig 恒 false）；`hcomm/src/legacy/ascend910/framework/communicator/hccl_comm_host.cc`（L40-60 HcclComm::AllReduce 校验链）；`hcomm/src/legacy/ascend910/algorithm/impl/hccl_alg.cc`（L103 GetAlgOperator）；`hcomm/src/legacy/ascend910/algorithm/impl/operator/all_reduce_operator.cc`（L108-341 SelectAlg/910B 判定；L96-102 区 scratch）；`hcomm/src/legacy/ascend910/algorithm/impl/alg_configurator.cc`（L85-166：isNoARS/isNoAHC L89-96、310P L100-107、AHC 分支 nicList L113-117、A3 AlltoAll 双 DEFAULT 回落 L130-135 区、强制 ring L138-149、STAR L151-153、常规分支 nicList L162-166）；`hcomm/src/legacy/ascend910/algorithm/pub_inc/common.h`（L48-77 AlgType 三层枚举注释、L188-202 阈值常量）；`hcomm/src/legacy/ascend910/platform/common/device_capacity.cc`（L57-66 AIV 白名单）；`hcomm/src/legacy/ascend910/platform/inc/adapter/adapter_hal.h`（L40-58 DevType）；`hcomm/src/legacy/ascend910/framework/communicator/comm_config.cc`（L345-380 展开配置分支）；`hcomm/src/legacy/ascend910/framework/common/src/config/env_config.cc`（HCCL_ALGO 解析）；`hcomm/src/legacy/ascend910/framework/hcom/hcom.cc`（L2095-2140 区信息模式旁路）；`hcomm/src/legacy/ascend950/framework/entrance/op_base/op_base_v2.cc`（L1263 950 树同名 V2，断点旁证）。
+[^oG]: `asc-devkit/include/adv_api/hccl/hccl.h`（L33 DEFAULT_CFG、L36-52 类注与 AICube/AIVector note L73-74、L264-274 SetCcTiling(deprecated)/SetCcTilingV2 签名、L283-293 Init/InitV2、L308-316 Wait、L414 HcclImpl 成员）；`asc-devkit/include/adv_api/hccl/hccl_common.h`（L65 `HcclServerType{AICPU=0,CCU=5}`）；`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/HCCL_usage.md`（机制/步骤、Finalize 等待句 L12 与 L143、repeat L159、ReduceScatter 实例与 SyncAll 注、950 仅 CCU、A3 CAUTION）；`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Wait.md`（计数/同序/默认全体核）、`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Commit.md`（计数）、`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/Finalize.md`（`template <bool sync = true>` 签名与两取值语义、默认等待末任务、false 仅跳过客户端等待+A3 仅 BatchWrite/A2 仅 true、约束节 `Finalize<false>` 先同步＋QueueBarrier 原句、终止语义）、`asc-devkit/docs/zh/api/SIMD-API/adv_api/HCCL_communication/HCCL_Kernel/AllReduce.md`（功能句/产品行）。
 [^oI]: 服务端实现（`asc-devkit/impl/adv_api/detail/hccl/`）：`asc-devkit/impl/adv_api/detail/hccl/impl/hccl_impl_def.h`（L20-26 __NPU_ARCH__ 2201/3510 分派）；`asc-devkit/impl/adv_api/detail/hccl/impl/hccl_impl.h`（L18-21 平台 include：2201 仅 AICPU、3510 AICPU+CCU；L24-31 区 AllReduce 外层 DFX 包装转 `impl_`）；`asc-devkit/impl/adv_api/detail/hccl/impl/hccl_v310_impl.h`（并合 `asc-devkit/impl/adv_api/detail/hccl/common/hccl_aicpu_def.h`＋`asc-devkit/impl/adv_api/detail/hccl/impl/platform_v310/hccl_ccu_v0_def.h`）；`asc-devkit/impl/adv_api/detail/hccl/common/hccl_aicpu_def.h`（L21 AICPU 特化声明）；`asc-devkit/impl/adv_api/detail/hccl/common/hccl_aicpu_impl.h`（L68-80 InitWorkingFlag=CoreType/blockId；L133-141 3510 消息 V2 分支；L250 CommonPrepareImpl；L327 AllReduce；L416 Wait；L457 Commit；L484 Finalize）；`asc-devkit/impl/adv_api/detail/hccl/impl/platform_v310/hccl_aicpu.h`（L30-41 InitV2 context=OpResCtx；L170-199 GetStepSizeByHandle）；`asc-devkit/impl/adv_api/detail/hccl/impl/platform_v220/hccl_aicpu.h`（L147-160 InitV2 context=HcclCombineOpParam、读 queueNum_）；`asc-devkit/impl/adv_api/detail/hccl/impl/platform_v310/hccl_ccu_v0_def.h`（L38 CCU 特化声明）；`asc-devkit/impl/adv_api/detail/hccl/impl/platform_v310/hccl_ccu_v0.h`（L24-31 AllReduce；L200-210 InitV2/newCcuFlag_；L338 CommonPrepareImpl；L477 Commit；L499 Wait 校验 commitCnt；L570 Finalize）；`asc-devkit/impl/adv_api/detail/hccl/ccu/hccl_ccu_v0_prepare.h`（CcuPrepareForAllToAllV 等 xn 组装）。
 [^oH]: `hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/`下：`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/HcommWriteOnThread.md`（参数/返回/异步/950 协议约束）、`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/HcommReadOnThread.md`（dst 端发起）、`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/HcommWriteNbiOnThread.md`（非阻塞+950 HostCPU/RoCE）、`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/HcommReadNbiOnThread.md`（同向）、`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/HcommWriteWithNotifyOnThread.md`（写+同步信号）、`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/communication_operations/HcommChannelFenceOnThread.md`（屏障原句）；`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/cpu-cpu_ts-aicpu_ts/local_operations/HcommLocalCopyOnThread.md`；`hcomm/docs/zh/api_ref/comm_opdev/data_plane_api/ccu/data_movement/LocalReduce.md`（L28/60/69-72/117-126）；`hcomm/docs/zh/comm_op_dev_guide/aicpu_quick_start.md`（L66-74 验签限定与 npu-smi 命令）；`hcomm/docs/zh/comm_op_dev_guide/`（aicpu/aiv/ccu 三线：define_op_if/query_topo/algo_select/create_res/task_sched/op_dispatch/build_deploy）；`cann-learning-hub/blogs/operator/hccl_custom_operator_aicpu_p2p/基于AICPU引擎的HCCL点对点通信算子开发.md`；`cann-learning-hub/blogs/operator/hccl_reducescatter_high_precision_redevelopment/HCCL ReduceScatter精度优化.md`。
 
