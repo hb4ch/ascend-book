@@ -111,7 +111,7 @@ for (uint32_t mBlockIdx = 0; mBlockIdx < fullMBlockCount; mBlockIdx++) {
 
 **这是什么性质的改动**：场景 7/8 是**只读 benchmark**——核函数仅 `srcGlobal.SetGlobalBuffer`＋`DataCopyPad`GM→UB，**无写回 tensor**（ub.h L28/89-112）。因此改动「无数据依赖、无写侧」；**但它仍有工程前提，不等于「正确性不可触碰」**：
 
-1. **地址合法性与覆盖**：置换只是重排读序，每个 `curMBlockIdx` 仍必须落在 `[0,fullMBlockCount)`——组内置换 `blockGroupStart+…` 保证之，**前提 `fullMBlockCount % numBlocks == 0`**（场景实测：A2 6144/128=48=blk、950 8192/128=64=blk✓）；非整倍时组内缺项／越界行为样例未论，用前自行核。
+1. **地址合法性与覆盖**：置换只是重排读序，每个 `curMBlockIdx` 仍必须落在 `[0,fullMBlockCount)`——组内置换 `blockGroupStart+…` 保证之，**前提 `fullMBlockCount % numBlocks == 0`**（按样例参数验算：A2 Tensor M 6144÷tile M 128＝48＝Block Num、950 8192÷128＝64＝Block Num，均整除✓——参数见 [^oB] README 场景 7/8 表）；非整倍时组内缺项／越界行为样例未论，用前自行核。
 2. **mod 非零**：`%numBlocks` 要求 numBlocks≥1；样例分支语义是**组内轮转**，numBlocks=1 时退化同序——用前确认。
 3. **「访问同一输入」是有意设计**（重复读测 L2），不是「核间区间不重叠」的证明——各核读集刻意全同，勿推广为互斥访问模式。
 
